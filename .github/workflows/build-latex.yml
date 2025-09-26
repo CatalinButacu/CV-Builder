@@ -53,6 +53,10 @@ jobs:
         path: resume.pdf
         retention-days: 90
         
+    - name: Rename PDF for release
+      run: |
+        cp "resume.pdf" "CV_Butacu Ionel-Catalin.pdf"
+        
     - name: Commit and push PDF (if on main/master)
       if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
       run: |
@@ -87,7 +91,7 @@ jobs:
           ${{ github.event.head_commit.message }}
           
           📥 **Download the latest CV PDF below**
-        files: resume.pdf
+        files: CV_Butacu Ionel-Catalin.pdf
         prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
