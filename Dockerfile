@@ -19,18 +19,31 @@ RUN apk add --no-cache \
     git \
     make \
     bash \
+    texmf-dist \
     texlive \
-    texlive-latex \
-    texlive-latex-recommended \
-    texlive-latex-extra \
-    texlive-fonts-recommended \
-    texlive-fonts-extra \
-    texlive-xetex \
-    texlive-luatex \
     && rm -rf /var/cache/apk/*
 
-# Install essential LaTeX packages (remove tlmgr section since using Alpine packages)
-# Alpine's TeX Live packages already include most essential packages
+# Install additional LaTeX packages using tlmgr
+RUN apk add --no-cache perl wget && \
+    tlmgr install \
+    fontawesome \
+    fontawesome5 \
+    academicons \
+    xcolor \
+    hyperref \
+    fancyhdr \
+    ragged2e \
+    geometry \
+    enumitem \
+    titlesec \
+    parskip \
+    setspace \
+    microtype \
+    babel \
+    babel-english \
+    cm-super \
+    lm \
+    && apk del perl wget
 
 # Set working directory
 WORKDIR /latex
