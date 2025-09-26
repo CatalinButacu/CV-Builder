@@ -1,0 +1,199 @@
+% Packages 
+\documentclass[a4paper,12pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[colorlinks=true, linkcolor=black, urlcolor=black, citecolor=black]{hyperref}
+\usepackage{fancyhdr}
+\usepackage{ragged2e}
+\setlength{\footskip}{1cm}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.530in}
+\addtolength{\evensidemargin}{-0.375in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.45in}
+\addtolength{\textheight}{1in}
+
+\urlstyle{rm}
+
+\raggedbottom
+\justifying
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-10pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-6pt}]
+
+%-----------------------------------------------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{\item\small{#1\vspace{-2pt}}}
+
+\newcommand{\resumeItemWithoutTitle}[1]{
+  \item\small{
+    {\vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-1pt}\item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{#3} & \textit{#4} \\
+    \end{tabular*}\vspace{-5pt}
+}
+
+\newcommand{\resumeSubheadingSimple}[2]{
+  \vspace{-1pt}\item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      #1 & #2 \\
+    \end{tabular*}\vspace{-5pt}
+}
+
+
+\newcommand{\resumeSubItem}[2]{\resumeItem{#1}{#2}\vspace{-3pt}}
+
+\renewcommand{\labelitemii}{$\circ$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=*, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%---------------------------------------------------------------------
+%%%%%%  CV STARTS HERE  %%%%%%
+\begin{document}
+%----------HEADING----------------------------------
+\noindent\begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+   \textbf{{\LARGE BUTACU IONEL-CATALIN}} & \\  
+   \small{
+     \href{https://ro.linkedin.com/in/catalin-butacu}{linkedin.com/in/catalin-butacu} $\times$ 
+     \href{https://github.com/CatalinButacu/}{github.com/CatalinButacu} $\times$ 
+     \href{mailto:butacu.catalin@yahoo.com}{butacu.catalin@yahoo.com} $\times$  
+     \href{tel:+40753320964}{+40.753.320.964}
+   }
+ \end{tabular*}
+%----------------------------------EXPERIENCE----------------------------------
+\vspace{-5pt}
+\section{Work Experience}
+  \resumeSubHeadingListStart
+    \resumeSubheading{Gemini CAD Systems}{Iași, RO}
+    {Junior Software Engineer}{June 2023 - Present}
+    \resumeItemListStart
+        \resumeItem{Enhanced real-time 2D canvas operations for a large-scale apparel design application, implementing new features and resolving bugs in drawing and object manipulation.}
+        \resumeItem{Contributed significantly to the development of the application's permission mechanism, defining user access levels for various features and data models.}
+        \resumeItem{Engineered complex UI logic, including event filtering in treeviews and a system for managing user-defined shortcuts persisted in configuration files.}
+        \resumeItem{Resolved critical bugs in core application functionalities, including the object lifecycle, printing services, and data model retention for cloud-based assets.}
+        \resumeItem{Utilized specific Qt modules to build key features, such as generating HTML reports with QtWebEngine and refactoring components of the authentication flow using QtNetwork.}
+    \resumeItemListEnd
+    \resumeSubheading{Gemini CAD Systems}{Iași, RO}
+    {Software Engineer Intern}{August 2022 - May 2023}
+    \resumeItemListStart
+        \resumeItem{Performed targeted UI updates, including text changes and pixel-perfect modifications to align with evolving design specifications.}
+        \resumeItem{Implemented new UI components to fetch and display data from backend APIs, correctly applying the Model-View-Controller (MVC) design pattern.}
+        \resumeItem{Gained proficiency navigating and contributing to a large, mature codebase within a collaborative, agile development environment.}
+    \resumeItemListEnd
+    \resumeSubheading{Special Telecommunications Service (STS)}{Botosani, RO}
+    {IT Support Staff (Local Election)}{August 2020 - September 2020}
+    \resumeItemListStart
+         \resumeItem{Ensured the operational integrity of critical IT and communications systems at a designated polling station during the national election process.}
+        \resumeItem{Provided immediate on-site technical support, diagnosing and resolving hardware, software, and network issues to maintain continuous system availability for voter verification and data reporting.}
+    \resumeItemListEnd
+\resumeSubHeadingListEnd
+%----------------------------------EDUCATION----------------------------------
+\section{~~Education}
+\resumeSubHeadingListStart
+  \resumeSubheading
+    {Gheorghe Asachi Technical University of Iași}{Iași, RO}
+    {Master of Science in Artificial Intelligence}{October 2024 - June 2026}
+      {\par\footnotesize \textit{\textbf{Courses:} Fundamentals of Machine Learning, Deep Learning, Natural Language Processing, Big Data Techniques, Cloud Computing, Reinforcement Learning, Multiagent Systems, Edge Computing Applications}}\resumeSubheading
+    {Gheorghe Asachi Technical University of Iași}{Iași, RO}
+    {Bachelor of Science in Automatic Control and Applied Informatics}{October 2020 - June 2024}
+     {\par\footnotesize  \textit{\textbf{Courses:}Computer Programming, Data Structures \& Algorithms, Database Systems, Real-Time Programming, Systems Theory, Microprocessor-Based Systems, Embedded System, Control Engineering, Computer Networks, Neural Networks \& Fuzzy Logic, Knowledge-Based Systems}}
+
+
+  \resumeSubHeadingListEnd    
+%----------------------------------Awards----------------------------------
+\section{Certificates}
+\begin{description}[font=$\bullet$]
+
+  \item {Oracle Cloud Infrastructure 2025 Data Science Professional (1Z0-1110-25)}
+  \vspace{-5pt}
+  \item {Oracle Cloud Infrastructure 2025 Generative AI Professional (1Z0-1127-25)}
+  \vspace{-5pt}
+  \item {Oracle Cloud Infrastructure 2025 AI Vector Search Professional (1Z0-184-25)}
+  \vspace{-5pt}
+  \item {Oracle Cloud Infrastructure 2025 AI Foundations Associate (1Z0-1122-25)}
+\end{description}
+
+%----------------------------------PROJECTS----------------------------------
+\vspace{-5pt}
+\section{Projects}
+\begin{itemize}[leftmargin=0.15in, label={}]
+    \small\item
+     \textbf{Metaheuristic Optimization Framework} \hfill \textbf{2025} \\
+     \footnotesize{Co-developed a Python framework with multiple optimization algorithms. I implemented specific solvers, analyzed their benchmark performance on high-dimensional functions, and identified the most robust and efficient solutions.}
+\end{itemize}
+
+
+%----------------------------------Volunteer Experience----------------------------------
+\section{Volunteer \& Leadership}
+\resumeSubHeadingListStart
+    \resumeSubheading{LOCAL BEST GROUP IASI}{Iași, RO}
+    {IT Department Coordinator}{September 2023 - August 2024}
+    \resumeItemListStart
+        \resumeItem{Directed the IT department, ensuring the reliability and efficiency of all technical and logistical operations, and supporting organizational goals and needs.}
+        \resumeItem{Mentored and supervised a team of IT volunteers, providing technical guidance and fostering collaborative project execution.}
+        \resumeItem{Managed IT resources, including hardware, software, and network assets, to support organizational goals and needs.}
+    \resumeItemListEnd
+
+    \vspace{-5pt}
+    \resumeSubheadingSimple{Coordinator of JobShop® Career Event}{November 2022 - April 2023}
+    \resumeItemListStart
+        \resumeItem{Spearheaded the planning and execution of the JobShop® Career Event, connecting students with leading industry employers.}
+        \resumeItem{Managed all event logistics, including venue coordination, vendor management, scheduling, and budget oversight.}
+        \resumeItem{Developed and implemented event strategies to maximize attendee engagement and partner satisfaction.}
+        \resumeItem{Liaised with company representatives, university staff, and student volunteers to ensure seamless event flow.}
+    \resumeItemListEnd
+
+    \vspace{-5pt}
+    \resumeSubheadingSimple{TOPICS Responsible | Prove It 24H Techathon}{December 2021 - March 2022}
+    \resumeItemListStart
+        \resumeItem{Collaborated closely with university departments, external stakeholders, and the core-team to define event scope and objectives.}
+        \resumeItem{Facilitated the entire participant experience, from establishing regulations to providing all necessary hackathon materials and resources.}
+        \resumeItem{Managed communication channels between organizers, mentors, and participants throughout the 24-hour event.}
+    \resumeItemListEnd
+
+    \vspace{-5pt}
+    \resumeSubheadingSimple{IT Responsible | BEST Training Weekend}{January 2021 - May 2022}
+    \resumeItemListStart
+        \resumeItem{Collaborated with design and marketing teams to develop the event website.}
+        \resumeItem{Ensured all logistical requirements for the event were met.}
+    \resumeItemListEnd
+\resumeSubHeadingListEnd
+
+%----------SKILLS----------------------------------
+\vspace{-5pt}
+\section{Skills Summary}
+	\resumeSubHeadingListStart
+	\resumeSubItem{Languages}{~~~~~~C/C++, Python, Matlab, Rust, Java}
+	\resumeSubItem{Frameworks}{~~~~PyTorch, Qt, Scikit, Flask, NodeJS, Hadoop}
+	\resumeSubItem{Tools}{~~~~~~~~~~~~~Docker, GIT, SonarQube}
+	\resumeSubItem{Platforms}{~~~~~~~Jupyter/Colab, Anaconda, Wandb}
+	\resumeSubItem{Soft Skills}{~~~~~~~Team Management, Problem Solving, Communication, Fast Learning}
+
+\resumeSubHeadingListEnd
+
+\end{document}

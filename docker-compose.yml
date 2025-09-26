@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  latex-compiler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cv-latex-compiler
+    volumes:
+      - .:/latex
+      - latex-cache:/root/.texlive
+    working_dir: /latex
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+      - TZ=Europe/Bucharest
+    command: /usr/local/bin/compile-latex.sh
+    
+  # Development service for interactive compilation
+  latex-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cv-latex-dev
+    volumes:
+      - .:/latex
+      - latex-cache:/root/.texlive
+    working_dir: /latex
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+      - TZ=Europe/Bucharest
+    command: /bin/bash
+    stdin_open: true
+    tty: true
+
+volumes:
+  latex-cache:
+    driver: local

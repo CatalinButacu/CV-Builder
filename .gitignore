@@ -1,0 +1,54 @@
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.brf
+*.fdb_latexmk
+*.fls
+*.idx
+*.ilg
+*.ind
+*.lof
+*.log
+*.lot
+*.out
+*.toc
+*.synctex.gz
+*.synctex(busy)
+*.pdfsync
+*.dvi
+*.ps
+
+# LaTeX temporary files
+*.nav
+*.snm
+*.vrb
+*.run.xml
+
+# BibTeX
+*.bib.bak
+*.bib.sav
+
+# Build directories
+build/
+dist/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Keep the final PDF (optional - remove this line if you don't want to track the PDF)
+# !resume.pdf
