@@ -23,7 +23,7 @@ RUN apk add --no-cache \
     texlive \
     && rm -rf /var/cache/apk/*
 
-# Install additional LaTeX packages
+# Install TeX Live from upstream for full package support
 RUN wget -qO- https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz | tar -xz -C /tmp && \
     cd /tmp/install-tl-* && \
     echo "selected_scheme scheme-basic" > texlive.profile && \
@@ -37,8 +37,11 @@ RUN wget -qO- https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.g
     echo "option_doc 0" >> texlive.profile && \
     echo "option_src 0" >> texlive.profile && \
     ./install-tl -profile texlive.profile && \
-    rm -rf /tmp/install-tl-* && \
-    /usr/local/texlive/bin/x86_64-linux/tlmgr install \
+    rm -rf /tmp/install-tl-*
+
+# Add TeX Live to PATH and install packages
+ENV PATH="/usr/local/texlive/bin/x86_64-linuxmusl:${PATH}"
+RUN tlmgr install \
     fontawesome \
     fontawesome5 \
     academicons \
@@ -56,9 +59,6 @@ RUN wget -qO- https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.g
     babel-english \
     cm-super \
     lm
-
-# Add TeX Live to PATH
-ENV PATH="/usr/local/texlive/bin/x86_64-linux:${PATH}"
 
 # Set working directory
 WORKDIR /latex
