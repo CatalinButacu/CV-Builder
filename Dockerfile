@@ -37,13 +37,8 @@ RUN wget -qO- https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.g
     echo "option_doc 0" >> texlive.profile && \
     echo "option_src 0" >> texlive.profile && \
     ./install-tl -profile texlive.profile && \
-    rm -rf /tmp/install-tl-*
-
-# Add TeX Live to PATH
-ENV PATH="/usr/local/texlive/bin/x86_64-linux:${PATH}"
-
-# Install essential LaTeX packages
-RUN tlmgr install \
+    rm -rf /tmp/install-tl-* && \
+    /usr/local/texlive/bin/x86_64-linux/tlmgr install \
     fontawesome \
     fontawesome5 \
     academicons \
@@ -61,6 +56,9 @@ RUN tlmgr install \
     babel-english \
     cm-super \
     lm
+
+# Add TeX Live to PATH
+ENV PATH="/usr/local/texlive/bin/x86_64-linux:${PATH}"
 
 # Set working directory
 WORKDIR /latex
