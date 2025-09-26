@@ -47,15 +47,25 @@ jobs:
         fi
         
     - name: Upload PDF artifact
++     if: ${{ false }}
       uses: actions/upload-artifact@v4
       with:
-        name: resume-pdf-${{ github.sha }}
-        path: resume.pdf
-        retention-days: 90
-        
-    - name: Rename PDF for release
-      run: |
-        cp "resume.pdf" "CV_Butacu Ionel-Catalin.pdf"
+-        name: resume-pdf-${{ github.sha }}
+-        path: resume.pdf
++        name: DEPRECATED-resume-pdf-${{ github.sha }}
++        path: resume.pdf
+         retention-days: 90
+          
+     - name: Rename PDF for release
+       run: |
+         cp "resume.pdf" "CV_Butacu Ionel-Catalin.pdf"
++
++    - name: Upload Renamed PDF artifact
++      uses: actions/upload-artifact@v4
++      with:
++        name: CV_Butacu-Ionel-Catalin
++        path: CV_Butacu Ionel-Catalin.pdf
++        retention-days: 90
         
     - name: Commit and push PDF (if on main/master)
       if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
