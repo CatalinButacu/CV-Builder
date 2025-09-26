@@ -2,7 +2,6 @@
 FROM alpine:3.19
 
 # Set environment variables
-ENV PATH="/usr/local/texlive/2023/bin/x86_64-linuxmusl:${PATH}"
 ENV TEXMFCACHE="/tmp/texmf-cache"
 
 # Install system dependencies
@@ -20,55 +19,18 @@ RUN apk add --no-cache \
     git \
     make \
     bash \
+    texlive \
+    texlive-latex \
+    texlive-latex-recommended \
+    texlive-latex-extra \
+    texlive-fonts-recommended \
+    texlive-fonts-extra \
+    texlive-xetex \
+    texlive-luatex \
     && rm -rf /var/cache/apk/*
 
-# Install TeX Live (minimal scheme + required packages)
-RUN mkdir -p /tmp/texlive && \
-    cd /tmp/texlive && \
-    wget -qO- https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz | tar -xz --strip-components=1 && \
-    echo "selected_scheme scheme-minimal" > texlive.profile && \
-    echo "tlpdbopt_install_docfiles 0" >> texlive.profile && \
-    echo "tlpdbopt_install_srcfiles 0" >> texlive.profile && \
-    echo "TEXDIR /usr/local/texlive/2023" >> texlive.profile && \
-    echo "TEXMFCONFIG ~/.texlive2023/texmf-config" >> texlive.profile && \
-    echo "TEXMFHOME ~/texmf" >> texlive.profile && \
-    echo "TEXMFLOCAL /usr/local/texlive/texmf-local" >> texlive.profile && \
-    echo "TEXMFSYSCONFIG /usr/local/texlive/2023/texmf-config" >> texlive.profile && \
-    echo "TEXMFSYSVAR /usr/local/texlive/2023/texmf-var" >> texlive.profile && \
-    echo "TEXMFVAR ~/.texlive2023/texmf-var" >> texlive.profile && \
-    echo "option_doc 0" >> texlive.profile && \
-    echo "option_src 0" >> texlive.profile && \
-    ./install-tl -profile texlive.profile && \
-    rm -rf /tmp/texlive
-
-# Install essential LaTeX packages
-RUN tlmgr update --self && \
-    tlmgr install \
-    latex-bin \
-    pdftex \
-    xetex \
-    luatex \
-    collection-fontsrecommended \
-    collection-latexrecommended \
-    fontawesome \
-    fontawesome5 \
-    academicons \
-    xcolor \
-    hyperref \
-    fancyhdr \
-    ragged2e \
-    geometry \
-    enumitem \
-    titlesec \
-    parskip \
-    setspace \
-    microtype \
-    babel \
-    babel-english \
-    cm-super \
-    lm \
-    && tlmgr path add \
-    && rm -rf /usr/local/texlive/2023/texmf-var/web2c/tlmgr.log
+# Install essential LaTeX packages (remove tlmgr section since using Alpine packages)
+# Alpine's TeX Live packages already include most essential packages
 
 # Set working directory
 WORKDIR /latex
