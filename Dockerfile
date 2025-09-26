@@ -23,9 +23,27 @@ RUN apk add --no-cache \
     texlive \
     && rm -rf /var/cache/apk/*
 
-# Install additional LaTeX packages using tlmgr
-RUN apk add --no-cache perl wget && \
-    tlmgr install \
+# Install additional LaTeX packages
+RUN wget -qO- https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz | tar -xz -C /tmp && \
+    cd /tmp/install-tl-* && \
+    echo "selected_scheme scheme-basic" > texlive.profile && \
+    echo "tlpdbopt_install_docfiles 0" >> texlive.profile && \
+    echo "tlpdbopt_install_srcfiles 0" >> texlive.profile && \
+    echo "TEXDIR /usr/local/texlive" >> texlive.profile && \
+    echo "TEXMFLOCAL /usr/local/texlive/texmf-local" >> texlive.profile && \
+    echo "TEXMFSYSCONFIG /usr/local/texlive/texmf-config" >> texlive.profile && \
+    echo "TEXMFSYSVAR /usr/local/texlive/texmf-var" >> texlive.profile && \
+    echo "TEXMFHOME ~/texmf" >> texlive.profile && \
+    echo "option_doc 0" >> texlive.profile && \
+    echo "option_src 0" >> texlive.profile && \
+    ./install-tl -profile texlive.profile && \
+    rm -rf /tmp/install-tl-*
+
+# Add TeX Live to PATH
+ENV PATH="/usr/local/texlive/bin/x86_64-linux:${PATH}"
+
+# Install essential LaTeX packages
+RUN tlmgr install \
     fontawesome \
     fontawesome5 \
     academicons \
@@ -42,8 +60,7 @@ RUN apk add --no-cache perl wget && \
     babel \
     babel-english \
     cm-super \
-    lm \
-    && apk del perl wget
+    lm
 
 # Set working directory
 WORKDIR /latex
