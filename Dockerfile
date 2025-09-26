@@ -46,10 +46,13 @@ RUN tlmgr install \
     fontawesome5 \
     academicons \
     xcolor \
+    graphics \
     hyperref \
     fancyhdr \
+    marvosym \
     ragged2e \
     geometry \
+    preprint \
     enumitem \
     titlesec \
     parskip \
@@ -58,8 +61,7 @@ RUN tlmgr install \
     babel \
     babel-english \
     cm-super \
-    lm \
-    fullpage
+    lm
 
 # Set working directory
 WORKDIR /latex
