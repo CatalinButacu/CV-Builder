@@ -58,7 +58,8 @@ RUN tlmgr install \
     babel \
     babel-english \
     cm-super \
-    lm
+    lm \
+    fullpage
 
 # Set working directory
 WORKDIR /latex
