@@ -15,102 +15,85 @@ jobs:
       packages: write
     
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        fetch-depth: 0
-        
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-      
-    - name: Build LaTeX Docker image
-      run: |
-        docker build -t latex-cv-compiler .
-        
-    - name: Compile LaTeX document using Docker
-      run: |
-        docker run --rm \
-          -v ${{ github.workspace }}:/latex \
-          -w /latex \
-          latex-cv-compiler
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
           
-    - name: Verify PDF generation
-      run: |
-        if [ -f "resume.pdf" ]; then
-          echo "✅ PDF generated successfully"
-          ls -la resume.pdf
-          file resume.pdf
-        else
-          echo "❌ PDF generation failed"
-          exit 1
-        fi
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
         
-    - name: Upload PDF artifact
-+     if: ${{ false }}
-      uses: actions/upload-artifact@v4
-      with:
--        name: resume-pdf-${{ github.sha }}
--        path: resume.pdf
-+        name: DEPRECATED-resume-pdf-${{ github.sha }}
-+        path: resume.pdf
-         retention-days: 90
+      - name: Build LaTeX Docker image
+        run: |
+          docker build -t latex-cv-compiler .
           
-     - name: Rename PDF for release
-       run: |
-         cp "resume.pdf" "CV_Butacu Ionel-Catalin.pdf"
-+
-+    - name: Upload Renamed PDF artifact
-+      uses: actions/upload-artifact@v4
-+      with:
-+        name: CV_Butacu-Ionel-Catalin
-+        path: CV_Butacu Ionel-Catalin.pdf
-+        retention-days: 90
-        
-    - name: Commit and push PDF (if on main/master)
-      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        
-        # Check if PDF has changed
-        if git diff --quiet resume.pdf; then
-          echo "PDF unchanged, skipping commit"
-        else
-          git add resume.pdf
-          git commit -m "🤖 Auto-update CV PDF from commit ${{ github.sha }}" || exit 0
-          git push
-        fi
-        
-    - name: Create Release
-      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: cv-${{ github.run_number }}-${{ github.sha }}
-        name: CV Build #${{ github.run_number }}
-        body: |
-          🎓 **Automated CV Compilation**
+      - name: Compile LaTeX document using Docker
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/latex \
+            -w /latex \
+            latex-cv-compiler
+            
+      - name: Verify PDF generation
+        run: |
+          if [ -f "resume.pdf" ]; then
+            echo "✅ PDF generated successfully"
+            ls -la resume.pdf
+            file resume.pdf
+          else
+            echo "❌ PDF generation failed"
+            exit 1
+          fi
           
-          **Build Information:**
-          - Commit: ${{ github.sha }}
-          - Build Number: ${{ github.run_number }}
-          - Compiled: ${{ github.event.head_commit.timestamp }}
-          - Author: ${{ github.event.head_commit.author.name }}
+      - name: Rename PDF for release
+        run: |
+          cp "resume.pdf" "CV_Butacu Ionel-Catalin.pdf"
+
+      - name: Commit and push PDF (if on main/master)
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
           
-          **Changes in this build:**
-          ${{ github.event.head_commit.message }}
+          # Check if PDF has changed
+          if git diff --quiet resume.pdf; then
+            echo "PDF unchanged, skipping commit"
+          else
+            git add resume.pdf
+            git commit -m "🤖 Auto-update CV PDF from commit ${{ github.sha }}" || exit 0
+            git push
+          fi
           
-          📥 **Download the latest CV PDF below**
-        files: CV_Butacu Ionel-Catalin.pdf
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-    - name: Update repository statistics
-      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-      run: |
-        echo "📊 Build completed successfully!"
-        echo "Repository: ${{ github.repository }}"
-        echo "Commit: ${{ github.sha }}"
-        echo "Build: #${{ github.run_number }}"
-        echo "PDF Size: $(du -h resume.pdf | cut -f1)"
+      - name: Create Release
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: cv-${{ github.run_number }}-${{ github.sha }}
+          name: CV Build #${{ github.run_number }}
+          body: |
+            🎓 **Automated CV Compilation**
+            
+            **Build Information:**
+            - Commit: ${{ github.sha }}
+            - Build Number: ${{ github.run_number }}
+            - Compiled: ${{ github.event.head_commit.timestamp }}
+            - Author: ${{ github.event.head_commit.author.name }}
+            
+            **Changes in this build:**
+            ${{ github.event.head_commit.message }}
+            
+            📥 **Download the latest CV PDF below**
+          files: "CV_Butacu Ionel-Catalin.pdf"
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Update repository statistics
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        run: |
+          echo "📊 Build completed successfully!"
+          echo "Repository: ${{ github.repository }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Build: #${{ github.run_number }}"
+          echo "PDF Size: $(du -h resume.pdf | cut -f1)"
