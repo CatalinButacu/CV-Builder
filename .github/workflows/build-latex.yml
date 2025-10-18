@@ -61,7 +61,7 @@ jobs:
             echo "PDF unchanged, skipping commit"
           else
             git add resume.pdf
-            git commit -m "🤖 Auto-update CV PDF from commit ${{ github.sha }}" || exit 0
+            git commit -m "Auto-update CV PDF - commit #${GITHUB_SHA:0:8}" || exit 0
             git push
           fi
           
