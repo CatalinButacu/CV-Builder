@@ -1,6 +1,5 @@
-% Packages 
+% Packages
 \documentclass[a4paper,11pt]{article}
-
 \usepackage{latexsym}
 \usepackage[empty]{fullpage}
 \usepackage{titlesec}
@@ -13,53 +12,44 @@
 \usepackage{fancyhdr}
 \usepackage{ragged2e}
 \setlength{\footskip}{1cm}
-
 \pagestyle{fancy}
 \fancyhf{}
 \fancyfoot{}
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}
-
 % Adjust margins
 \addtolength{\oddsidemargin}{-0.530in}
 \addtolength{\evensidemargin}{-0.375in}
 \addtolength{\textwidth}{1in}
 \addtolength{\topmargin}{-.45in}
 \addtolength{\textheight}{1in}
-
 \urlstyle{rm}
-
 % Contact Links
 \newcommand{\linkedinLink}{https://ro.linkedin.com/in/catalin-butacu}
 \newcommand{\githubLink}{https://github.com/CatalinButacu/}
 \newcommand{\emailLink}{mailto:butacu.catalin@yahoo.com}
 \newcommand{\phoneLink}{tel:+40753320964}
-
 % Certificate Links
-\newcommand{\oracleDataScienceLink}{https://catalog-education.oracle.com/pls/certview/sharebadge?id=your-badge-id}
+\newcommand{\oracleAnalyticsCloudLink}{https://catalog-education.oracle.com/ords/certview/sharebadge?id=2D550AA768AD738FC822D0745D8F71CC4845A22B212DA7CE9CF27259DE5EEAAF}
+\newcommand{\oracleDataScienceLink}{https://catalog-education.oracle.com/ords/certview/sharebadge?id=277E72156AC389D08A7C467084A3CE568D1D9078A9A8301005E9BCC3E31FA903}
 \newcommand{\oracleVectorSearchLink}{https://catalog-education.oracle.com/ords/certview/sharebadge?id=08BDD5D7DA29BEFF7F764053FD58DD5D7536402E95B847A926A53027CC0C1FCC}
 \newcommand{\oracleGenAILink}{https://catalog-education.oracle.com/pls/certview/sharebadge?id=36F42AE9CD423CBEDFC5C81160E753619C6EC388D2CA3FB3FDBB2700CD1BE2AB}
 \newcommand{\oracleAIFoundationsLink}{https://catalog-education.oracle.com/pls/certview/sharebadge?id=615C9F04543C7A32303E280E44615A75F07207864CD9E6FA301C63CE57A7FDD9}
-
 \raggedbottom
 \justifying
 \setlength{\tabcolsep}{0in}
-
 % Sections formatting
 \titleformat{\section}{
   \vspace{-10pt}\scshape\raggedright\large\color{NavyBlue}
 }{}{0em}{}[\color{NavyBlue}\titlerule \vspace{-6pt}]
-
 %-----------------------------------------------------------------
 % Custom commands
 \newcommand{\resumeItem}[1]{\item\small{#1\vspace{-2pt}}}
-
 \newcommand{\resumeItemWithoutTitle}[1]{
   \item\small{
     {\vspace{-2pt}}
   }
 }
-
 \newcommand{\resumeSubheading}[4]{
   \vspace{-1pt}\item
     \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
@@ -67,24 +57,18 @@
       #3 & #4 \\
     \end{tabular*}\vspace{-5pt}
 }
-
 \newcommand{\resumeSubheadingSimple}[2]{
   \vspace{-1pt}\item
     \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
       #1 & #2 \\
     \end{tabular*}\vspace{-5pt}
 }
-
-
 \newcommand{\resumeSubItem}[2]{\resumeItem{\textbf{#1}}{#2}\vspace{-3pt}}
-
 \renewcommand{\labelitemii}{$\circ$}
-
 \newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=*, label={}]}
 \newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
 \newcommand{\resumeItemListStart}{\begin{itemize}}
 \newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
-
 %---------------------------------------------------------------------
 %%%%%%  CV STARTS HERE  %%%%%%
 \begin{document}
@@ -92,88 +76,85 @@
 \noindent\begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
    \color{NavyBlue}\textbf{{\LARGE BUTACU IONEL-CATALIN}} & \\  
    \small{\hspace*{-2pt}
-     \href[pdfnewwindow=true]{\linkedinLink}{linkedin.com/in/catalin-butacu\ \faExternalLink} ~\textbullet~ 
-     \href[pdfnewwindow=true]{\githubLink}{github.com/CatalinButacu\ \faExternalLink} ~\textbullet~ 
-     \href[pdfnewwindow=true]{\emailLink}{butacu.catalin@yahoo.com\ \faExternalLink} ~\textbullet~  
+     \href[pdfnewwindow=true]{\linkedinLink}{linkedin.com/in/catalin-butacu\ \faExternalLink}  \textbullet 
+     \href[pdfnewwindow=true]{\githubLink}{github.com/CatalinButacu\ \faExternalLink}        \textbullet 
+     \href[pdfnewwindow=true]{\emailLink}{butacu.catalin@yahoo.com\ \faExternalLink}        \textbullet 
      \href[pdfnewwindow=true]{\phoneLink}{0753 320 964}
    }
  \end{tabular*}
-
 %----------------------------------PROFESSIONAL SUMMARY----------------------------------
 \section{Professional Summary}
 \begin{justify}
-\small{C++ Software Engineer (3+ years) with a computer engineering background, now focused on the intersection of software and AI. I combine analytical rigour with a collaborative spirit, honed through extensive volunteer work, to drive innovation. Currently advancing my AI expertise and certified in leading cloud technologies.}
+\small{Software Engineer with a background in computer engineering, specializing in C++ and Qt framework for desktop application development. Expertise in concurrent programming, API development, and system architecture, with a focus on integrating AI solutions. Certified in leading cloud technologies and continuously advancing machine learning expertise through practical projects and advanced coursework.}
 \end{justify}
-
 %----------------------------------EXPERIENCE----------------------------------
 \vspace{-5pt}
 \section{Professional Experience}
-  \resumeSubHeadingListStart
-    \resumeSubheading{Gemini CAD Systems}{Iași, RO}
-    {Junior Software Engineer}{June 2023 - Present}
-    \resumeItemListStart
-        \resumeItem{Developed and implemented UI components for garment assembly operations using Qt framework, maintaining code quality standards through peer code reviews.}
-        \resumeItem{Created action classes and controller implementations for 2D canvas operations, implementing painting order management and refresh mechanisms for pattern design updates.}
-        \resumeItem{Designed model serialization/deserialization systems with versioning support, ensuring backward compatibility for legacy pattern files while collaborating with cross-functional teams on data structure architecture.}
-        \resumeItem{Developed cloud communication infrastructure for 3D team integration, implementing event-driven data transmission protocols and synchronization mechanisms.}
-        \resumeItem{Participated in Qt framework migration from version 5.8 to 6.12, updating deprecated APIs and ensuring component compatibility while coordinating with development team to resolve migration challenges.}
-        \resumeItem{Implemented internationalization systems including tooltips, multi-language translations, and role-based user permission frameworks for garment measurement tools and avatar dimension features.}
-    \resumeItemListEnd
-    \resumeSubheadingSimple
-    {Software Engineer Intern}{August 2022 - May 2023}
-    \resumeItemListStart
-        \resumeItem{Worked with Qt meta-object signal/slot paradigms for real-time UI interactions and event-driven communication architectures.}
-        \resumeItem{Developed static UI components and executed refactoring initiatives, improving visual consistency and rendering performance across cross-platform environments.}
-        \resumeItem{Utilized Git/GitLab workflows, Jenkins CI/CD automation pipelines, and Scrum agile methodologies for software delivery cycles.}
-    \resumeItemListEnd
-    \resumeSubheading{Special Telecommunications Service (STS)}{Botosani, RO}
-    {IT Support Staff (Local Election)}{August 2020 - September 2020}
-    \resumeItemListStart
-         \resumeItem{Provided technical support for electoral IT infrastructure (SIMPV/SICPV systems) and implemented cybersecurity protocols during national election processes.}
-        \resumeItem{Conducted training programs and technical assistance for electoral personnel while ensuring system availability and equipment functionality through monitoring and incident response.}
-    \resumeItemListEnd
+\resumeSubHeadingListStart
+  \resumeSubheading{Gemini CAD Systems}{Iași, RO}{Junior Software Engineer}{June 2023 - Present}
+  \resumeItemListStart
+      \resumeItem{Developed complex desktop applications using C++ and Qt framework, encompassing UI components, business logic, and data management layers, with a focus on delivering comprehensive features and functionality.}
+      \resumeItem{Designed and implemented action classes and controller implementations for 2D canvas operations, incorporating concurrent behavior and refresh mechanisms for pattern design updates.}
+      \resumeItem{Architected model serialization/deserialization systems with versioning support, ensuring backward compatibility for legacy pattern files while collaborating with cross-functional teams on data structure architecture.}
+      \resumeItem{Engineered cloud communication infrastructure for 3D team integration, implementing event-driven data transmission protocols and synchronization mechanisms.}
+      \resumeItem{Participated in the migration of the Qt framework from version 5.8 to 6.12, updating deprecated APIs and ensuring component compatibility while coordinating with the development team to resolve migration challenges.}
+      \resumeItem{Implemented comprehensive internationalization systems, including tooltips, multi-language translations, and role-based user permission frameworks for garment measurement tools and avatar dimension features.}
+  \resumeItemListEnd
+  \resumeSubheadingSimple{Software Engineer Intern}{August 2022 - May 2023}
+  \resumeItemListStart
+      \resumeItem{Utilized Qt meta-object signal/slot paradigms to develop real-time UI interactions and event-driven communication architectures.}
+      \resumeItem{Developed static UI components and executed refactoring initiatives to enhance visual consistency and rendering performance across cross-platform environments.}
+      \resumeItem{Employed Git/GitLab workflows, Jenkins CI/CD automation pipelines, and Scrum agile methodologies to streamline software delivery cycles.}
+  \resumeItemListEnd
+  \resumeSubheading{Special Telecommunications Service (STS)}{Botosani, RO}{IT Support Staff (Local Election)}{August 2020 - September 2020}
+  \resumeItemListStart
+      \resumeItem{Provided technical support for electoral IT infrastructure (SIMPV/SICPV systems) and implemented robust cybersecurity protocols during national election processes.}
+      \resumeItem{Conducted comprehensive training programs and provided technical assistance for electoral personnel, ensuring system availability and equipment functionality through proactive monitoring and incident response.}
+  \resumeItemListEnd
 \resumeSubHeadingListEnd
-
 %----------------------------------EDUCATION----------------------------------
 \vspace{-5pt}
 \section{~~Education}
 \resumeSubHeadingListStart
-  \resumeSubheading
-    {Gheorghe Asachi Technical University of Iași}{Iași, RO}
-    {Master of Science in Artificial Intelligence}{October 2024 - June 2026}
-      {\par\footnotesize \textit{\textbf{Advanced Coursework:} Machine Learning Fundamentals, Deep Neural Networks, Natural Language Processing (NLP), Reinforcement Learning, Multi-Agent Systems, Cloud Computing Architecture, Big Data Techniques, Edge Computing Applications}}
+  \resumeSubheading{Gheorghe Asachi Technical University of Iași}{Iași, RO}{Master of Science in Artificial Intelligence}{October 2024 - June 2026}
+    {\par\footnotesize \textit{\textbf{Advanced Coursework:} Deep Neural Networks, Machine Learning Fundamentals, Natural Language Processing (NLP), Reinforcement Learning, Multi-Agent Systems, Cloud Computing Architecture, Big Data Techniques, Edge Computing Applications}}
   \vspace{-5pt}
-      \resumeSubheadingSimple
-    {Bachelor of Science in Automatic Control and Applied Informatics}{October 2020 - June 2024}
-     {\par\footnotesize  \textit{\textbf{Core Curriculum:} Advanced Computer Programming, Data Structures \& Algorithms, Database Management Systems, Real-Time Programming, Systems Theory, Microprocessor-Based Systems, Embedded Systems Engineering, Control Engineering, Computer Networks, Neural Networks \& Fuzzy Logic, Knowledge-Based Systems}}
-  \resumeSubHeadingListEnd    
-
+  \resumeSubheadingSimple{Bachelor of Science in Automatic Control and Applied Informatics}{October 2020 - June 2024}
+    {\par\footnotesize  \textit{\textbf{Core Curriculum:} Advanced Computer Programming, Data Structures \& Algorithms, Database Management Systems, Real-Time Programming, Systems Theory, Microprocessor-Based Systems, Embedded Systems Engineering, Control Engineering, Computer Networks, Neural Networks \& Fuzzy Logic, Knowledge-Based Systems}}
+\resumeSubHeadingListEnd
 %----------------------------------Awards----------------------------------
 \section{Professional Certifications}
 \begin{description}[font=$\bullet$]
-  \item {\href[pdfnewwindow=true]{\oracleDataScienceLink}{Oracle Cloud Infrastructure 2025 Data Science Professional (1Z0-1110-25)\ \textit{(In Progress)}}}
-  \vspace{-5pt}
-  \item {\href[pdfnewwindow=true]{\oracleVectorSearchLink}{Oracle Cloud Infrastructure 2025 AI Vector Search Professional (1Z0-184-25)\ \faExternalLink}}
-  \vspace{-5pt}
-  \item {\href[pdfnewwindow=true]{\oracleGenAILink}{Oracle Cloud Infrastructure 2025 Generative AI Professional (1Z0-1127-25)\ \faExternalLink}}
-  \vspace{-5pt}
-  \item {\href[pdfnewwindow=true]{\oracleAIFoundationsLink}{Oracle Cloud Infrastructure 2025 AI Foundations Associate (1Z0-1122-25)\ \faExternalLink}}
+  \item {\href[pdfnewwindow=true]{\oracleAnalyticsCloudLink}{Oracle Analytics Cloud 2025 Certified Professional (1Z0-1041-25)\ \faExternalLink}}                \vspace{-5pt}
+  \item {\href[pdfnewwindow=true]{\oracleDataScienceLink}{Oracle Cloud Infrastructure 2025 Data Science Professional (1Z0-1110-25)\ \faExternalLink}}        \vspace{-5pt}
+  \item {\href[pdfnewwindow=true]{\oracleVectorSearchLink}{Oracle Cloud Infrastructure 2025 AI Vector Search Professional (1Z0-184-25)\ \faExternalLink}}     \vspace{-5pt}
+  \item {\href[pdfnewwindow=true]{\oracleGenAILink}{Oracle Cloud Infrastructure 2025 Generative AI Professional (1Z0-1127-25)\ \faExternalLink}}       \vspace{-5pt}
+  \item {\href[pdfnewwindow=true]{\oracleAIFoundationsLink}{Oracle Cloud Infrastructure 2025 AI Foundations Associate (1Z0-1122-25)\ \faExternalLink}}         \vspace{-5pt}
 \end{description}
-
 %----------------------------------PROJECTS----------------------------------
 \section{Technical Projects \& Research}
 \begin{itemize}[leftmargin=0.15in, label={}]
     \small\item
-    \textbf{Advanced Metaheuristic Optimization Framework} \hfill\textbf{2025} \\
-     \footnotesize{Co-developed a Python-based optimization framework featuring multiple metaheuristic algorithms. Implemented specialized solvers for high-dimensional optimization problems and conducted benchmark analysis for complex engineering applications.}
+    \textbf{AI-Enhanced Firewall \& Intrusion Detection System} \hfill\textbf{2025} \\
+     \footnotesize{Architected an AI-enhanced firewall with dynamic attack signature learning and real-time recognition of novel attack patterns. Validated against active penetration attempts.}
+    \small\item
+    \textbf{Ant Colony Optimization (ACO) Agent Simulation} \hfill\textbf{2025} \\
+     \footnotesize{Designed and implemented a multi-agent simulation of Ant Colony Optimization for complex pathfinding problems on connected graphs. Conducted comparative analysis of return strategies.}
+    \small\item
+    \textbf{Real-Time Hand Sign Recognition on Edge NPU} \hfill\textbf{2025} \\
+     \footnotesize{Developed a high-performance gesture recognition system using a custom ONNX model trained on the HaGRID dataset. Optimized inference for NXP Neurological Processing Units (NPU).}
+    \small\item
+    \textbf{RAG-Powered Pharmaceutical Assistant (Hackathon)} \hfill\textbf{2025} \\
+     \footnotesize{Co-engineered a RAG-based pharmaceutical chatbot during a hackathon. Implemented the query engine for precise medication data and contraindications.}
+    \small\item
+    \textbf{Advaed Metaheuristic Optimization Framework} \hfill\textbf{2025} \\
+     \footnotesize{Co-developed a Python-based optimization framework featuring multiple metaheuristic algorithms. Implemented specialized solvers for high-dimensional optimization problems.}
     
     \small\item
     \textbf{WiDS Datathon 2025 University Edition - Top 10 Finalist} \hfill\textbf{2025} \\
-     \footnotesize{Achieved 8th place ranking in the Women in Data Science University Edition by developing regression models for neuroimaging analysis. Engineered machine learning pipelines to predict chronological age from functional connectome matrices using fMRI data from adolescent subjects.}
-    
+     \footnotesize{Achieved 8th place in the Women in Data Science University Edition by developing regression models for neuroimaging analysis. Engineered ML pipelines for age prediction using fMRI data.}
     
 \end{itemize}
-
 %----------------------------------Volunteer Experience----------------------------------
 \section{Leadership \& Volunteer Experience}
 \resumeSubHeadingListStart
@@ -182,18 +163,16 @@
     \resumeItemListStart
         \resumeItem{Coordinated IT department operations and managed technical infrastructure to support organizational activities.}
         \resumeItem{Supervised a team of IT volunteers, providing technical guidance and coordinating project execution.}
-        \resumeItem{Managed IT resources including hardware assets, software licensing, and network infrastructure.}
+        \resumeItem{Managed IT resources, including hardware assets, software licensing, and network infrastructure.}
     \resumeItemListEnd
-
     \vspace{-1pt}
     \resumeSubheadingSimple{Event Coordinator - JobShop® Career Event (23rd Edition)}{November 2022 - April 2023}
     \resumeItemListStart
         \resumeItem{Planned and executed the JobShop® Career Event, facilitating connections between students and industry employers.}
-        \resumeItem{Coordinated event logistics including venue management, vendor coordination, scheduling, and budget oversight.}
+        \resumeItem{Coordinated event logistics, including venue management, vendor coordination, scheduling, and budget oversight.}
         \resumeItem{Developed event strategies to enhance attendee engagement and partner satisfaction.}
         \resumeItem{Facilitated communications with executives, university administration, and volunteer teams.}
     \resumeItemListEnd
-
     \vspace{-1pt}
     \resumeSubheadingSimple{TOPICS Responsible | Prove It 24H Techathon (2nd Edition)}{December 2021 - March 2022}
     \resumeItemListStart
@@ -201,34 +180,29 @@
         \resumeItem{Managed participant experience from establishing technical regulations to providing hackathon resources and infrastructure.}
         \resumeItem{Coordinated communication between organizers, industry mentors, and participants during the 24-hour competition.}
     \resumeItemListEnd
-
     \vspace{-1pt}
     \resumeSubheadingSimple{IT Responsible | BEST Training Weekend}{January 2021 - May 2022}
     \resumeItemListStart
-        \resumeItem{Developed responsive event website using HTML5, CSS3, and JavaScript.}
+        \resumeItem{Developed a responsive event website using HTML5, CSS3, and JavaScript.}
         \resumeItem{Collaborated with design and marketing teams to resolve UI and JavaScript issues during event operations.}
     \resumeItemListEnd
 \resumeSubHeadingListEnd
 %----------------------------------CORE COMPETENCIES----------------------------------
 \vspace{-5pt}
 \section{TECHNICAL SPECIALTIES}
-\begin{itemize}[leftmargin=0.15in, label={}]
-    \small\item \textbf{Software Development:} C++17/20, OOP, Cross-Platform Development, Real-Time Systems
-    \small\item \textbf{Qt Technologies:} Qt Framework (5.8-6.12), Qt Widgets, QML, Signal/Slot, MVC
+\begin{itemize}[leftmargin=0.15in, label={}, noitemsep, topsep=0pt, parsep=0pt, partopsep=3pt]
+    \small\item \textbf{Programming Languages:} C++17/20, Python, Java, JavaScript (ES6+), SQL, Bash/PowerShell
+    \small\item \textbf{Frameworks \& Libraries:} Qt Framework (5.8-6.12), PyTorch, TensorFlow, Scikit-Learn, Keras
+    \small\item \textbf{Software Development:} Object-Oriented Programming, Design Patterns, Software Architecture, Concurrent Programming, Real-Time Systems
     \small\item \textbf{Development Practices:} Agile/Scrum, Code Reviews, Git/GitLab, CI/CD Pipelines, Unit Testing
-    \small\item \textbf{Performance Engineering:} Multithreading, Memory Management, Code Refactoring, Profiling, Debugging
-    \small\item \textbf{AI/ML Technologies:} Python, PyTorch, TensorFlow, Machine Learning, Deep Learning, NLP
-    \small\item \textbf{Cloud \& DevOps:} Oracle Cloud (OCI), Docker, Jenkins, CI, Technical Documentation
+    \small\item \textbf{Performance Optimization:} Multithreading, Memory Management, Code Refactoring, Profiling, Debugging
+    \small\item \textbf{AI/ML Technologies:} Machine Learning, Deep Learning, Natural Language Processing (NLP)
+    \small\item \textbf{Cloud \& DevOps:} Oracle Cloud (OCI), AWS, Azure, Docker, Jenkins, CI, Technical Documentation
+    \small\item \textbf{Tools \& Platforms:} Jupyter/Colab, Anaconda, Weights \& Biases, Qt Widgets, QML, Signal/Slot, MVC
 \end{itemize}
-
 \vspace{-5pt}
-\section{ADDITIONAL TECHNICAL SKILLS}
+\section{ADDITIONAL SKILLS}
 \begin{itemize}[leftmargin=0.15in, label={}]
-    \small\item \textbf{Programming Languages:} Python, MATLAB, Rust, Java, JavaScript (ES6+), SQL, Bash/PowerShell
-    \small\item \textbf{AI/ML Frameworks:} PyTorch, Scikit-Learn, TensorFlow, Keras, Hadoop, Apache Spark
-    \small\item \textbf{Development Tools:} Docker, SonarQube, Jupyter/Colab, Anaconda, Weights \& Biases, Git/GitLab, Jenkins
-    \small\item \textbf{Cloud Platforms:} Oracle Cloud (OCI), AWS, Azure, Google Cloud (GCP)
-    \small\item \textbf{Leadership \& Collaboration:} Technical Mentoring, Cross-Functional Collaboration, Agile PM, Problem Solving
+    \small\item \textbf{Soft Skills:} Technical Mentoring, Cross-Functional Collaboration, Agile Project Management, Problem Solving
 \end{itemize}
-
 \end{document}
