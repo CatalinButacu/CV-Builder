@@ -44,7 +44,7 @@
 }{}{0em}{}[\color{NavyBlue}\titlerule \vspace{-6pt}]
 %-----------------------------------------------------------------
 % Custom commands
-\newcommand{\resumeItem}[1]{\item\small{#1\vspace{-2pt}}}
+\newcommand{\resumeItem}[1]{\item\small{#1\vspace{0pt}}}
 \newcommand{\resumeItemWithoutTitle}[1]{
   \item\small{
     {\vspace{-2pt}}
@@ -55,20 +55,20 @@
     \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
       \color{NavyBlue}\textbf{#1} & #2 \\
       #3 & #4 \\
-    \end{tabular*}\vspace{-5pt}
+    \end{tabular*}\vspace{-3pt}
 }
 \newcommand{\resumeSubheadingSimple}[2]{
   \vspace{-1pt}\item
     \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
       #1 & #2 \\
-    \end{tabular*}\vspace{-5pt}
+    \end{tabular*}\vspace{-3pt}
 }
 \newcommand{\resumeSubItem}[2]{\resumeItem{\textbf{#1}}{#2}\vspace{-3pt}}
 \renewcommand{\labelitemii}{$\circ$}
-\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=*, label={}]}
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
 \newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
-\newcommand{\resumeItemListStart}{\begin{itemize}}
-\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=0.15in]}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-3pt}}
 %---------------------------------------------------------------------
 %%%%%%  CV STARTS HERE  %%%%%%
 \begin{document}
@@ -76,49 +76,50 @@
 \noindent\begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
    \color{NavyBlue}\textbf{{\LARGE BUTACU IONEL-CATALIN}} & \\  
    \small{\hspace*{-2pt}
-     \href[pdfnewwindow=true]{\linkedinLink}{linkedin.com/in/catalin-butacu\ \faExternalLink}  \textbullet 
-     \href[pdfnewwindow=true]{\githubLink}{github.com/CatalinButacu\ \faExternalLink}        \textbullet 
-     \href[pdfnewwindow=true]{\emailLink}{butacu.catalin@yahoo.com\ \faExternalLink}        \textbullet 
+     \href[pdfnewwindow=true]{\linkedinLink}{linkedin.com/in/catalin-butacu\ \faExternalLink}\ \ \textbullet\ \ 
+     \href[pdfnewwindow=true]{\githubLink}{github.com/CatalinButacu\ \faExternalLink}\ \ \textbullet\ \ 
+     \href[pdfnewwindow=true]{\emailLink}{butacu.catalin@yahoo.com\ \faExternalLink}\ \ \textbullet\ \ 
      \href[pdfnewwindow=true]{\phoneLink}{0753 320 964}
    }
  \end{tabular*}
 %----------------------------------PROFESSIONAL SUMMARY----------------------------------
 \section{Summary}
+\hspace{0.15in}\begin{minipage}{0.97\textwidth}
 \begin{justify}
-\small{Machine-Learning–driven Software Engineer with strong C++/Python foundations and hands-on experience in applied AI, generative models, and cloud AI workflows. Fast at understanding unfamiliar systems, spotting issues, and adapting to new domains. Currently completing an MSc in Artificial Intelligence with focus on Generative AI and modern ML techniques.}
+\small{Machine Learning Engineer with 3+ years of production experience, dedicated to bridging the gap between research and deployment. Leverages strong C++/Python skills to build high-performance AI integration layers, from RAG agents to edge-optimized NPU models. Combines academic AI depth with industrial engineering discipline to ensure intelligent systems are robust, scalable, and production-ready.}
 \end{justify}
+\end{minipage}
 %----------------------------------CORE COMPETENCIES----------------------------------
-\vspace{-5pt}
-\section{Core Skills}
-\begin{itemize}[leftmargin=0.15in, label={}, noitemsep, topsep=0pt, parsep=0pt, partopsep=3pt]
-    \small\item \textbf{Machine Learning \& AI:} Deep Learning, Generative AI, NLP, RAG Systems, Optimization Algorithms, Anomaly Detection, Model Evaluation, Data Preprocessing
-    \small\item \textbf{Programming Languages:} Python, C++17/20, SQL, Java, JavaScript (ES6+), Bash/PowerShell
-    \small\item \textbf{Frameworks \& Libraries:} PyTorch, TensorFlow, Scikit-Learn, Keras, NumPy, Pandas, Qt Framework (5.8--6.12)
-    \small\item \textbf{Cloud \& MLOps:} Oracle Cloud, AWS (Foundational), Docker, CI/CD Pipelines, Model Deployment Basics
-    \small\item \textbf{Software Engineering:} Concurrent Programming, Multithreading, Data Modeling, Qt Widgets/QML, Signal–Slot Architecture, Object-Oriented Design, Design Patterns
-    \small\item \textbf{Development Practices:} Git/GitLab, Agile/Scrum, Code Reviews, Unit Testing, Profiling, Debugging
-    \small\item \textbf{Tools \& Platforms:} Jupyter/Colab, Anaconda, Weights \& Biases, ONNX, Linux, MVC Architectures
-    \small\item \textbf{Soft Skills:} Technical Mentoring, Fast Learning, Adaptability, Problem Framing, Cross-Functional Collaboration
+\vspace{2pt}
+\section{Core Specialties}
+\begin{itemize}[leftmargin=0.15in, label={}, noitemsep, topsep=0pt, parsep=0pt, partopsep=0pt]
+    \item \small
+    \begin{tabular}{@{} l @{\hspace{2ex}} l @{}}
+         \textbf{ML Core:} & Deep Learning, NLP, Model Optimization, Fine-tuning, Model Deployment \\[3pt]
+         \textbf{AI Systems:} & RAG, Agentic Systems, Small Models, Prompt Engineering, Guardrails \\[3pt]
+         \textbf{Production Software:} & C++/Qt, Multithreading, REST APIs, Serialization, UI Components, Real-Time Systems \\[3pt]
+         \textbf{Languages \& Tools:} & Python, C++17/20, SQL, PyTorch, TensorFlow, Docker, Git, CMake, Oracle Cloud
+    \end{tabular}
 \end{itemize}
 
 %----------------------------------EXPERIENCE----------------------------------
-\vspace{-5pt}
+\vspace{2pt}
 \section{Professional Experience}
 \resumeSubHeadingListStart
 
-  \resumeSubheading{Gemini CAD Systems}{Iași, RO}{Junior Software Engineer}{June 2023 -- Present}
+  \resumeSubheading{Gemini CAD Systems}{Iași, RO}{Software Engineer}{June 2023 -- Present}
   \resumeItemListStart
-      \resumeItem{Built cross-platform desktop modules in C++/Qt across UI, logic, and data layers.}
-      \resumeItem{Implemented concurrent features and optimized 2D canvas operations.}
-      \resumeItem{Developed serialization systems with versioning and backward compatibility.}
-      \resumeItem{Contributed to cloud-integrated, event-driven communication workflows.}
-      \resumeItem{Supported migration from Qt 5.8 to Qt 6.12 and resolved deprecated components.}
-      \resumeItem{Enhanced internationalization, translations, and permission-based UI flows.}
+      \resumeItem{Engineered production-grade C++ modules for performance and cross-platform compatibility.}
+      \resumeItem{Implemented multithreaded rendering pipeline using QThread/QtConcurrent.}
+      \resumeItem{Designed versioned serialization system for backward-compatible data migration.}
+      \resumeItem{Built REST API integration layer using QNetworkAccessManager for cloud sync.}
+      \resumeItem{Led Qt 5.8 to 6.12 migration, refactoring deprecated APIs for production stability.}
+      \resumeItem{Implemented internationalization and role-based UI visibility using Qt Translator.}
   \resumeItemListEnd
 
   \resumeSubheadingSimple{Software Engineer Intern}{August 2022 -- May 2023}
   \resumeItemListStart
-      \resumeItem{Developed real-time UI interactions using Qt signal/slot and event-driven patterns.}
+      \resumeItem{Developed interactive UI using Qt signal/slot and event-driven patterns.}
       \resumeItem{Refactored static UI components to improve rendering performance.}
       \resumeItem{Used GitLab, Jenkins CI/CD, and Agile workflows to deliver incremental updates.}
   \resumeItemListEnd
@@ -133,51 +134,51 @@
 \resumeSubHeadingListEnd
 
 %----------------------------------EDUCATION----------------------------------
-\vspace{-5pt}
+\vspace{2pt}
 \section{Education}
 \resumeSubHeadingListStart
   \resumeSubheading{Gheorghe Asachi Technical University of Iași}{Iași, RO}{Master of Science in Artificial Intelligence}{October 2024 - June 2026}
-    {\par\footnotesize \textit{\textbf{Advanced Coursework:} Deep Neural Networks, Machine Learning Fundamentals, Natural Language Processing (NLP), Reinforcement Learning, Multi-Agent Systems, Cloud Computing Architecture, Big Data Techniques, Edge Computing Applications}}
-  \vspace{-5pt}
+    {\par\footnotesize \textit{\textbf{Advanced Coursework:} Neural Networks, Machine Learning, Natural Language Processing (NLP), Reinforcement Learning, Multi-Agent Systems, Cloud Computing, Big Data Techniques, Edge Computing Applications, Intelligent Cyber-Security}}
   \resumeSubheadingSimple{Bachelor of Science in Automatic Control and Applied Informatics}{October 2020 - June 2024}
     {\par\footnotesize  \textit{\textbf{Core Curriculum:} Advanced Computer Programming, Data Structures \& Algorithms, Database Management Systems, Real-Time Programming, Systems Theory, Microprocessor-Based Systems, Embedded Systems Engineering, Control Engineering, Computer Networks, Neural Networks \& Fuzzy Logic, Knowledge-Based Systems}}
 \resumeSubHeadingListEnd
 %----------------------------------Awards----------------------------------
 \section{Certifications}
-\begin{description}[font=$\bullet$]
-  \item {\href[pdfnewwindow=true]{\oracleAnalyticsCloudLink}{Oracle Analytics Cloud 2025 Certified Professional (1Z0-1041-25)\ \faExternalLink}}                \vspace{-5pt}
-  \item {\href[pdfnewwindow=true]{\oracleDataScienceLink}{Oracle Cloud Infrastructure 2025 Data Science Professional (1Z0-1110-25)\ \faExternalLink}}        \vspace{-5pt}
-  \item {\href[pdfnewwindow=true]{\oracleVectorSearchLink}{Oracle Cloud Infrastructure 2025 AI Vector Search Professional (1Z0-184-25)\ \faExternalLink}}     \vspace{-5pt}
-  \item {\href[pdfnewwindow=true]{\oracleGenAILink}{Oracle Cloud Infrastructure 2025 Generative AI Professional (1Z0-1127-25)\ \faExternalLink}}       \vspace{-5pt}
-  \item {\href[pdfnewwindow=true]{\oracleAIFoundationsLink}{Oracle Cloud Infrastructure 2025 AI Foundations Associate (1Z0-1122-25)\ \faExternalLink}}         \vspace{-5pt}
-\end{description}
+\begin{itemize}[leftmargin=0.15in, label={$\circ$}, itemsep=3pt, topsep=0pt, parsep=0pt]
+  \small\item {\href[pdfnewwindow=true]{\oracleDataScienceLink}{Oracle Cloud Infrastructure 2025 Data Science Professional (1Z0-1110-25)\ \faExternalLink}}
+  \small\item {\href[pdfnewwindow=true]{\oracleGenAILink}{Oracle Cloud Infrastructure 2025 Generative AI Professional (1Z0-1127-25)\ \faExternalLink}}
+  \small\item {\href[pdfnewwindow=true]{\oracleVectorSearchLink}{Oracle Cloud Infrastructure 2025 AI Vector Search Professional (1Z0-184-25)\ \faExternalLink}}
+  \small\item {\href[pdfnewwindow=true]{\oracleAIFoundationsLink}{Oracle Cloud Infrastructure 2025 AI Foundations Associate (1Z0-1122-25)\ \faExternalLink}}
+  \small\item {\href[pdfnewwindow=true]{\oracleAnalyticsCloudLink}{Oracle Analytics Cloud 2025 Certified Professional (1Z0-1041-25)\ \faExternalLink}}
+\end{itemize}
+\vspace{2pt}
 %----------------------------------PROJECTS----------------------------------
 \section{Projects}
-\begin{itemize}[leftmargin=0.15in, label={}, noitemsep]
+\begin{itemize}[leftmargin=0.15in, label={}, itemsep=8pt, topsep=0pt, parsep=0pt]
 
     \small\item
-    \textbf{AI-Enhanced Firewall \& Intrusion Detection} \hfill \textbf{2025} \\
-    \footnotesize{Built anomaly-detection models for real-time attack signature learning and adaptive threat response.}
+    \textbf{AI-Enhanced Firewall \& Intrusion Detection} \hfill \textbf{2026} \\
+    \footnotesize{Built IDS/IPS pipeline with Snort for SQL injection detection. Trained real-time classifier and clustering-based pattern recognition to block threats.}
 
     \small\item
     \textbf{Ant Colony Optimization Simulation} \hfill \textbf{2025} \\
-    \footnotesize{Developed a multi-agent ACO system for graph pathfinding and compared solver strategies.}
+    \footnotesize{Multi-agent simulation using Mesa and Solara for interactive visualization. Compared pheromone-based pathfinding on dynamic graphs.}
 
     \small\item
-    \textbf{Real-Time Hand Sign Recognition (Edge NPU)} \hfill \textbf{2025} \\
-    \footnotesize{Trained a custom ONNX model on HaGRID and optimized inference for NXP NPUs.}
+    \textbf{Real-Time Hand Sign Recognition} \hfill \textbf{2025} \\
+    \footnotesize{YOLOv5n-based detector trained on HaGRID (Hand Gesture Recognition). Deployed on NPU, CPU, and GPU via ONNX/TFLite INT8 quantization for embedded devices.}
 
     \small\item
     \textbf{RAG-Based Pharmaceutical Assistant} \hfill \textbf{2025} \\
-    \footnotesize{Implemented the retrieval engine for a RAG chatbot providing medication data and contraindications.}
+    \footnotesize{Local RAG system with vector embeddings for medication retrieval. Provides drug interactions, dosage, and contraindication alerts via LLM chat.}
 
     \small\item
     \textbf{Metaheuristic Optimization Framework} \hfill \textbf{2025} \\
-    \footnotesize{Co-built Python solvers integrating multiple metaheuristics for high-dimensional optimization.}
+    \footnotesize{Optuna-style Python framework implementing GA (Genetic Algorithm), EA (Evolutionary Algorithm), and SOA (Stochastic Optimization Algorithm) solvers for constraint satisfaction and optimization problems.}
 
     \small\item
-    \textbf{WiDS Datathon — Top 10 Finalist} \hfill \textbf{2025} \\
-    \footnotesize{Developed ML pipelines for fMRI-based age prediction; achieved 8th place nationally.}
+    \textbf{WiDS Datathon — 8th Place National} \hfill \textbf{2025} \\
+    \footnotesize{ML pipeline for fMRI-based brain age prediction. Feature engineering on neuroimaging data, ensemble modeling, and hyperparameter tuning.}
 
 \end{itemize}
 
@@ -213,5 +214,17 @@
     \resumeItemListEnd
 
 \resumeSubHeadingListEnd
+
+%----------------------------------ADDITIONAL SKILLS----------------------------------
+\section{Additional Skills}
+\begin{itemize}[leftmargin=0.15in, label={}, noitemsep, topsep=0pt, parsep=0pt, partopsep=0pt]
+    \item \small
+    \begin{tabular}{@{} l @{\hspace{2ex}} l @{}}
+         \textbf{Web \& Data:} & React, Next.js, TypeScript, Node.js, Firebase, MySQL, PostgreSQL, WordPress \\[3pt]
+         \textbf{Development:} & CI/CD, Jenkins, GitHub Actions, Agile/Scrum, Code Reviews, Unit Testing, Linux \\[3pt]
+         \textbf{Soft Skills:} & Problem Solving, Clear Technical Communication, Simplifying Complex Ideas
+    \end{tabular}
+\end{itemize}
+
 %----------------------------------------END-OF-FILE-------------------------------------
 \end{document}
