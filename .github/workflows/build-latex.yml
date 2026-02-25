@@ -40,11 +40,11 @@ jobs:
 
       - name: Verify PDF generation
         run: |
-          if [ -f "resume.pdf" ]; then
-            echo "✅ PDF generated successfully ($(du -h resume.pdf | cut -f1))"
-            ls -la resume.pdf
+          if [ -f "CV_Butacu.Ionel-Catalin.pdf" ]; then
+            echo "PDF generated successfully ($(du -h CV_Butacu.Ionel-Catalin.pdf | cut -f1))"
+            ls -la CV_Butacu.Ionel-Catalin.pdf
           else
-            echo "❌ PDF generation failed"
+            echo "ERROR: PDF generation failed"
             exit 1
           fi
 
@@ -54,11 +54,11 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
-          git add resume.pdf
+          git add CV_Butacu.Ionel-Catalin.pdf
           if git diff --cached --quiet; then
             echo "PDF unchanged, skipping commit"
           else
-            git commit -m "ci: update resume.pdf [skip ci]"
+            git commit -m "ci: update CV_Butacu.Ionel-Catalin.pdf [skip ci]"
             git push
           fi
 
@@ -74,8 +74,8 @@ jobs:
             **Build:** #${{ github.run_number }}
             **Changes:** ${{ github.event.head_commit.message }}
 
-            📥 Download the compiled CV PDF below.
-          files: resume.pdf
+            Download the compiled CV PDF below.
+          files: CV_Butacu.Ionel-Catalin.pdf
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
