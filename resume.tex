@@ -1,4 +1,4 @@
-% Packages
+﻿% Packages
 \documentclass[a4paper,11pt]{article}
 \usepackage{latexsym}
 \usepackage[empty]{fullpage}
@@ -65,6 +65,7 @@
 }
 \newcommand{\resumeSubItem}[2]{\resumeItem{\textbf{#1}}{#2}\vspace{-3pt}}
 \renewcommand{\labelitemii}{$\circ$}
+\renewcommand{\labelitemi}{$\circ$}
 \newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
 \newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
 \newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=0.15in]}
@@ -86,7 +87,7 @@
 \section{Summary}
 \hspace{0.15in}\begin{minipage}{0.97\textwidth}
 \begin{justify}
-\small{Machine Learning Engineer with 3+ years of production experience, specializing in bridging research and deployment. Expert in Python/C++ integration for high-performance AI systems, from Generative AI and RAG agents to edge-optimized NPU models. Dedicated to building scalable, production-ready solutions (LLMs, multimodal AI) with industrial engineering discipline.}
+\small{M.Sc.\ candidate in Artificial Intelligence with 3 years of production software engineering experience. Applies ML research to real systems---RAG pipelines, on-device quantised models, and cloud data layers---while bringing software engineering discipline (clean architecture, systematic debugging, CI/CD) to applied ML teams.}
 \end{justify}
 \end{minipage}
 %----------------------------------EXPERIENCE----------------------------------
@@ -96,18 +97,18 @@
 
   \resumeSubheading{Gemini CAD Systems}{Iași, RO}{Software Engineer}{June 2023 -- Present}
   \resumeItemListStart
-      \resumeItem{Engineered modular C++/Qt backend components, enforcing MVC patterns for maintainability.}
-      \resumeItem{Architected thread-safe synchronization for real-time cloud state, eliminating race conditions.}
-      \resumeItem{Optimized UI responsiveness by offloading heavy computations to non-blocking worker threads.}
-      \resumeItem{Spearheaded Qt 5-to-6 migration, refactoring legacy code for modern C++ cloud compatibility.}
-      \resumeItem{Implemented robust REST API clients with automatic retry logic for unstable network environments.}
+      \resumeItem{Engineered data-driven features across cloud synchronisation, model/view, and UI layers of a production industrial platform.}
+      \resumeItem{Decomposed complex cloud synchronisation requirements into incremental, testable modules, consistently meeting sprint commitments.}
+      \resumeItem{Reduced technical debt through targeted refactoring, improving codebase robustness and long-term maintainability.}
+      \resumeItem{Diagnosed production crashes and state inconsistencies through systematic root cause analysis.}
+      \resumeItem{Participated in the full Scrum lifecycle: sprint planning, estimation, code reviews, sprint demos, and retrospectives.}
   \resumeItemListEnd
 
   \resumeSubheadingSimple{Software Engineer Intern}{August 2022 -- May 2023}
   \resumeItemListStart
-      \resumeItem{Translated high-level design requirements into functional Qt/C++ widgets using Signal/Slot patterns.}
-      \resumeItem{Refactored static UI components into dynamic modules to improve rendering performance.}
-      \resumeItem{Collaborated in Agile workflows using Jira and GitLab to deliver incremental feature updates.}
+      \resumeItem{Developed data-driven UI components from design specifications and integrated them into existing production views.}
+      \resumeItem{Delivered pixel-accurate UI and extended feature configurability through import/export workflows.}
+      \resumeItem{Applied full Git workflow: branching strategies, commit conventions, merge requests, code reviews, and CI/CD pipelines.}
   \resumeItemListEnd
 
   \resumeSubheading{Special Telecommunications Service (STS)}{Botoșani, RO}{IT Support Staff — Electoral IT Systems}{August 2020 -- September 2020}
@@ -132,9 +133,9 @@
 \begin{itemize}[leftmargin=0.1in, label={}, noitemsep, topsep=0pt, parsep=0pt, partopsep=0pt]
     \item \small
     \begin{tabular}{@{} l @{\hspace{1.5ex}} l @{}}
-         \textbf{ML Core:} & Deep Learning, NLP, NumPy, Pandas, scikit-learn, Model Optimization \\[2pt]
-         \textbf{AI Systems:} & LLMs, RAG, Vector Search, Agentic Systems, Prompt Engineering \\[2pt]
-         \textbf{Software:} & Python, C++17/20, Qt, SQL, PyTorch, TensorFlow, Docker, CI/CD, Oracle Cloud
+         \textbf{Machine Learning:} & PyTorch, scikit-learn, XGBoost, LightGBM, TFLite, Model Optimisation \\[2pt]
+         \textbf{AI Systems:}       & LLMs, RAG, Vector Search, Agentic Systems, Prompt Engineering, SSMs \\[2pt]
+         \textbf{Data \& MLOps:}    & Python, Pandas, NumPy, Docker, CI/CD, Oracle Cloud AI, Experiment Tracking
     \end{tabular}
 \end{itemize}
 %----------------------------------EDUCATION----------------------------------
@@ -151,40 +152,39 @@
 \begin{itemize}[leftmargin=0.15in, label={}, itemsep=8pt, topsep=0pt, parsep=0pt]
 
     \small\item
-    \textbf{M.Sc. Thesis: SSM for Motion Generation (Research)} \hfill \textbf{2026} \\
-    \footnotesize{Implementing S4 and Mamba architectures for temporal consistency in text-to-motion (KIT-ML dataset). Integrated physics constraints (ground contact) to resolve jitter and improve long-range dependencies.}
+    \textbf{M.Sc. Thesis: SSM for Motion Generation} \hfill \textbf{2026} \\
+    \footnotesize{Developing S4 and Mamba-based architectures for temporally consistent text-to-motion generation (KIT-ML dataset). Incorporated physics constraints to eliminate motion jitter and improve long-range dependency modelling.}
 
     \small\item
-    \textbf{Intelligent IDS: SQL Injection Detection} \hfill \textbf{2026} \\
-    \footnotesize{Developed an IDS pipeline with Snort and Python-based Random Forest classifiers. Evaluated performance across latency (\textless 5ms per request), false-positive rates, and cold-start learning overhead.}
+    \textbf{Intelligent IDS: SQL Injection Detection} \href[pdfnewwindow=true]{https://github.com/CatalinButacu/AI_1B_ICS_CyberSentinel}{\faExternalLink} \hfill \textbf{2026} \\
+    \footnotesize{Built an ML-powered IDS pipeline integrating Snort with a Python Random Forest classifier. Evaluated across inference latency (\textless5ms/req), false-positive rate, and cold-start overhead.}
 
     \small\item
-    \textbf{HandSense: NPU Gesture Recognition} \hfill \textbf{2025} \\
-    \footnotesize{End-to-end YOLOv5n deployment for real-time gesture recognition (HaGRID dataset). Optimized for NPU/CPU using TFLite INT8 quantization and CLAHE/temporal smoothing for environmental robustness.}
+    \textbf{HandSense: NPU Gesture Recognition} \href[pdfnewwindow=true]{https://github.com/TUIASI-AC-CTI/edge-computing-applications-benexus}{\faExternalLink} \hfill \textbf{2025} \\
+    \footnotesize{End-to-end YOLOv5n deployment for real-time gesture recognition (HaGRID dataset). Optimised for NPU/CPU with TFLite INT8 quantisation, CLAHE preprocessing, and temporal smoothing.}
 
     \small\item
-    \textbf{PharmaRAG: Local LLM Assistant} \hfill \textbf{2025} \\
-    \footnotesize{Local RAG system using FAISS vector embeddings and Mistral-7B for medication retrieval. Implemented chain-of-thought prompting for drug interaction analysis and contraindication alerts via LLM chat.}
+    \textbf{PharmaRAG: Local LLM Assistant} \href[pdfnewwindow=true]{https://github.com/CatalinButacu/RAG-General-Medical-Assistant}{\faExternalLink} \hfill \textbf{2025} \\
+    \footnotesize{Offline RAG system with FAISS vector search and Mistral-7B for medication retrieval. Chain-of-thought prompting for drug interaction analysis and contraindication detection.}
 
     \small\item
-    \textbf{HeuristicOpt: Optimization Framework} \hfill \textbf{2025} \\
-    \footnotesize{Python framework implementing Genetic, Evolutionary, and Stochastic solvers for complex constraint satisfaction. Optimized for convergence speed and solution quality in large-scale search spaces.}
+    \textbf{HeuristicOpt: Optimization Framework} \href[pdfnewwindow=true]{https://github.com/CatalinButacu/OCS_FRAMEWORK}{\faExternalLink} \hfill \textbf{2025} \\
+    \footnotesize{Python framework with Genetic, Evolutionary, and Stochastic solvers for constraint satisfaction. Benchmarked across convergence speed and solution quality in large-scale search spaces.}
 
     \small\item
-    \textbf{WiDS: fMRI Brain-Age Prediction (8th National)} \hfill \textbf{2025} \\
-    \footnotesize{ML pipeline for neuroimaging age prediction. Engineered spectral features and developed an ensemble model (XGBoost/LightGBM) to achieve a top-ranking score in the national datathon.}
+    \textbf{WiDS: fMRI Brain-Age Prediction \textnormal{(8\textsuperscript{th} National)}} \href[pdfnewwindow=true]{https://github.com/CatalinButacu/widsdatathon2025-university}{\faExternalLink} \hfill \textbf{2025} \\
+    \footnotesize{ML pipeline for neuroimaging age prediction. Engineered spectral features; ensemble of XGBoost/LightGBM ranked 8th nationally in the WiDS datathon.}
 
 \end{itemize}
-
 %----------------------------------VOLUNTEER EXPERIENCE----------------------------------
 \section{Volunteer Experience}
 \resumeSubHeadingListStart
 
     \resumeSubheading{LOCAL BEST Group Iași}{Iași, RO}{IT Department Coordinator}{Sep 2023 -- Aug 2024}
     \resumeItemListStart
-        \resumeItem{Led IT operations and supported the technical infrastructure for organizational events.}
-        \resumeItem{Mentored volunteers and coordinated execution of technical projects.}
-        \resumeItem{Managed hardware, software licensing, and network resources.}
+        \resumeItem{Directed IT operations and maintained technical infrastructure across organizational events.}
+        \resumeItem{Mentored volunteers and oversaw delivery of technical projects.}
+        \resumeItem{Administered hardware, software licensing, and network resources.}
     \resumeItemListEnd
 
     \resumeSubheadingSimple{Event Coordinator | JobShop Career Event}{Nov 2022 -- Apr 2023}
@@ -204,7 +204,7 @@
     \resumeSubheadingSimple{IT Responsible | BEST Training Weekend}{Jan 2021 -- May 2022}
     \resumeItemListStart
         \resumeItem{Developed and maintained the event website using HTML, CSS, and JavaScript.}
-        \resumeItem{Collaborated with design and marketing teams to fix UI/JS issues.}
+        \resumeItem{Collaborated with design and marketing teams on content strategy, branding, and technical setup.}
     \resumeItemListEnd
 
 \resumeSubHeadingListEnd
@@ -214,11 +214,10 @@
 \begin{itemize}[leftmargin=0.15in, label={}, noitemsep, topsep=0pt, parsep=0pt, partopsep=0pt]
     \item \small
     \begin{tabular}{@{} l @{\hspace{2ex}} l @{}}
-         \textbf{Web \& Data:} & React, Next.js, TypeScript, Node.js, Firebase, MySQL, PostgreSQL, WordPress \\[3pt]
-         \textbf{Development:} & CI/CD, Jenkins, GitHub Actions, Agile/Scrum, Code Reviews, Unit Testing, Linux \\[3pt]
-         \textbf{Soft Skills:} & Problem Solving, Clear Technical Communication, Simplifying Complex Ideas
+         \textbf{Software Eng.:} & C++17/20, Qt 5/6, Multithreading, REST APIs, Desktop Applications \\[3pt]
+         \textbf{Web \& Data:}   & React, TypeScript, Node.js, Firebase, PostgreSQL, MySQL \\[3pt]
+         \textbf{Soft Skills:}   & Research-to-Product Thinking, Clear Communication, Rapid Self-directed Learning
     \end{tabular}
 \end{itemize}
-
 %----------------------------------------END-OF-FILE-------------------------------------
 \end{document}

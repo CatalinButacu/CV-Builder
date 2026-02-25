@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # Local LaTeX CV Compilation Script
+# Compiles resume.tex from whatever branch is checked out.
+# On the 'mle' branch, resume-mle.tex should be renamed to resume.tex.
 # Usage: ./scripts/local-compile.sh
 
 set -e
@@ -17,30 +19,22 @@ fi
 echo "🔨 Building LaTeX Docker image..."
 docker build -t latex-cv-compiler .
 
-# Compile the CV
-echo "📄 Compiling CV..."
+# Compile the resume
+echo "📄 Compiling resume.tex..."
 docker run --rm \
     -v "$(pwd)":/latex \
     -w /latex \
     latex-cv-compiler
 
-# Check if PDF was generated
 if [ -f "resume.pdf" ]; then
-    echo "✅ CV compiled successfully!"
-    echo "📊 PDF Info:"
-    ls -la resume.pdf
-    echo "📏 PDF Size: $(du -h resume.pdf | cut -f1)"
-    
-    # Open PDF if on macOS or Linux with GUI
+    echo "✅ resume.pdf ready ($(du -h resume.pdf | cut -f1))"
     if command -v open > /dev/null 2>&1; then
-        echo "🔍 Opening PDF..."
         open resume.pdf
     elif command -v xdg-open > /dev/null 2>&1; then
-        echo "🔍 Opening PDF..."
         xdg-open resume.pdf
     fi
 else
-    echo "❌ PDF compilation failed!"
+    echo "❌ resume.pdf not found after compilation!"
     exit 1
 fi
 
