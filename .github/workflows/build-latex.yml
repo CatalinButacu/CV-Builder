@@ -58,10 +58,17 @@ jobs:
           if git diff --cached --quiet; then
             echo "PDF unchanged, skipping commit"
           else
+            # Save the newly generated PDF
+            cp CV_Butacu.Ionel-Catalin.pdf /tmp/CV_Butacu.Ionel-Catalin.pdf
+            
+            # Update to the latest remote commit to avoid conflicts
+            git fetch origin ${{ github.ref_name }}
+            git reset --hard origin/${{ github.ref_name }}
+            
+            # Restore the PDF and commit
+            cp /tmp/CV_Butacu.Ionel-Catalin.pdf CV_Butacu.Ionel-Catalin.pdf
+            git add CV_Butacu.Ionel-Catalin.pdf
             git commit -m "ci: update CV_Butacu.Ionel-Catalin.pdf [skip ci]"
-            git stash --include-untracked
-            git pull --rebase origin ${{ github.ref_name }}
-            git stash pop || true
             git push origin ${{ github.ref_name }}
           fi
 
