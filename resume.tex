@@ -1,10 +1,14 @@
 ﻿% Packages
 \documentclass[a4paper,11pt]{article}
+\usepackage[T1]{fontenc}   % vector fonts; fixes \textbf rendering in PDF viewers
+\usepackage{lmodern}       % Latin Modern — T1-compatible vector replacement for Computer Modern
 \usepackage{latexsym}
 \usepackage[empty]{fullpage}
 \usepackage{titlesec}
 \usepackage{marvosym}
-\usepackage[usenames,dvipsnames]{color}
+\usepackage[usenames,dvipsnames]{xcolor}  % replaces color; xcolor is superset and TikZ-compatible
+\usepackage{graphicx}      % profile photo
+\usepackage{tikz}          % circular clip for bubble image
 \usepackage{verbatim}
 \usepackage{enumitem}
 \usepackage{fontawesome}
@@ -24,17 +28,30 @@
 \addtolength{\topmargin}{-.45in}
 \addtolength{\textheight}{1in}
 \urlstyle{rm}
+\definecolor{boldcolor}{gray}{0.25}
+\newcommand{\lightbold}[1]{\textbf{\textcolor{boldcolor}{#1}}}
+
 % Contact Links
 \newcommand{\linkedinLink}{https://ro.linkedin.com/in/catalin-butacu}
 \newcommand{\githubLink}{https://github.com/CatalinButacu/}
 \newcommand{\emailLink}{mailto:butacu.catalin@yahoo.com}
 \newcommand{\phoneLink}{tel:+40753320964}
+
 % Certificate Links
 \newcommand{\oracleAnalyticsCloudLink}{https://catalog-education.oracle.com/ords/certview/sharebadge?id=2D550AA768AD738FC822D0745D8F71CC4845A22B212DA7CE9CF27259DE5EEAAF}
 \newcommand{\oracleDataScienceLink}{https://catalog-education.oracle.com/ords/certview/sharebadge?id=277E72156AC389D08A7C467084A3CE568D1D9078A9A8301005E9BCC3E31FA903}
 \newcommand{\oracleVectorSearchLink}{https://catalog-education.oracle.com/ords/certview/sharebadge?id=08BDD5D7DA29BEFF7F764053FD58DD5D7536402E95B847A926A53027CC0C1FCC}
 \newcommand{\oracleGenAILink}{https://catalog-education.oracle.com/pls/certview/sharebadge?id=36F42AE9CD423CBEDFC5C81160E753619C6EC388D2CA3FB3FDBB2700CD1BE2AB}
 \newcommand{\oracleAIFoundationsLink}{https://catalog-education.oracle.com/pls/certview/sharebadge?id=615C9F04543C7A32303E280E44615A75F07207864CD9E6FA301C63CE57A7FDD9}
+
+% Project Links
+\newcommand{\projOcs}{https://github.com/CatalinButacu/OCS_FRAMEWORK}
+\newcommand{\projMed}{https://github.com/CatalinButacu/General-Medical-Assistant}
+\newcommand{\projBenexus}{https://github.com/CatalinButacu/edge-computing-applications-benexus}
+\newcommand{\projWids}{https://github.com/CatalinButacu/WiDS-Datathon2025-University}
+\newcommand{\projGenai}{https://github.com/CatalinButacu/GenAI-Flickr}
+\newcommand{\projIcs}{https://github.com/CatalinButacu/IDS-CyberSentinel}
+
 \raggedbottom
 \justifying
 \setlength{\tabcolsep}{0in}
@@ -53,14 +70,13 @@
 \newcommand{\resumeSubheading}[4]{
   \vspace{-1pt}\item
     \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
-      \color{NavyBlue}\textbf{#1} & #2 \\
-      #3 & #4 \\
+      \color{NavyBlue}\textbf{#1} & #2 \\ \lightbold{#3} & #4 \\
     \end{tabular*}\vspace{-3pt}
 }
 \newcommand{\resumeSubheadingSimple}[2]{
   \vspace{-1pt}\item
     \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
-      #1 & #2 \\
+      \lightbold{#1} & #2 \\
     \end{tabular*}\vspace{-3pt}
 }
 \newcommand{\resumeSubItem}[2]{\resumeItem{\textbf{#1}}{#2}\vspace{-3pt}}
@@ -74,41 +90,52 @@
 %%%%%%  CV STARTS HERE  %%%%%%
 \begin{document}
 %----------HEADING----------------------------------
-\noindent\begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
-   \color{NavyBlue}\textbf{{\LARGE BUTACU IONEL-CATALIN}} & \\  
-   \small{\hspace*{-2pt}
-     \href[pdfnewwindow=true]{\linkedinLink}{linkedin.com/in/catalin-butacu\ \faExternalLink}\ \ \textbullet\ \ 
-     \href[pdfnewwindow=true]{\githubLink}{github.com/CatalinButacu\ \faExternalLink}\ \ \textbullet\ \ 
-     \href[pdfnewwindow=true]{\emailLink}{butacu.catalin@yahoo.com\ \faExternalLink}\ \ \textbullet\ \ 
-     \href[pdfnewwindow=true]{\phoneLink}{0753 320 964}
-   }
- \end{tabular*}
+\noindent\begin{minipage}[c]{2cm}
+  \begin{tikzpicture}
+    % light-blue circular background behind the photo
+    \fill[NavyBlue!12] (0,0) circle (1.15cm);
+    \begin{scope}
+      \clip (0,0) circle (1.1cm);
+      \node[anchor=center] at (0,0) {\includegraphics[width=2.55cm]{profile-preview}};
+    \end{scope}
+    \draw[NavyBlue, line width=0.5pt] (0,0) circle (1.15cm);
+  \end{tikzpicture}
+\end{minipage}%
+\hspace{0.75cm}%
+\begin{minipage}[c]{\dimexpr\textwidth-2.8cm\relax}
+  \color{NavyBlue}\textbf{{\LARGE BUTACU IONEL-CATALIN}}\\[4pt]
+  \small
+  \begin{tabular}{@{} l @{\quad\textbar\quad} l @{} }
+    \faLinkedinSquare~\href{\linkedinLink}{linkedin.com/in/catalin-butacu} & \faEnvelope~\href{\emailLink}{butacu.catalin@yahoo.com} \\
+    \faGithub~\href{\githubLink}{github.com/CatalinButacu} & \faPhone~\href{\phoneLink}{+40 753 320 964} \\
+  \end{tabular}
+\end{minipage}
 %----------------------------------PROFESSIONAL SUMMARY----------------------------------
 \section{Summary}
 \hspace{0.15in}\begin{minipage}{0.97\textwidth}
 \begin{justify}
-\small{C++ Software Engineer with 3 years of production experience delivering features end-to-end on a large-scale industrial CAD/CAM platform. Background in control systems and applied informatics. Currently completing an M.Sc.\ in Artificial Intelligence, with applied work in machine learning and embedded systems.}
+\small{C++ Software Engineer with 3+ years of professional experience developing desktop application features in Qt on a commercial industrial CAD/CAM product. Background in control systems engineering and applied informatics. Currently completing a Master's degree in Artificial Intelligence.}
 \end{justify}
 \end{minipage}
 %----------------------------------EXPERIENCE----------------------------------
-\vspace{2pt}
+\vspace{4pt}
 \section{Professional Experience}
 \resumeSubHeadingListStart
 
   \resumeSubheading{Gemini CAD Systems}{Iași, RO}{Software Engineer}{June 2023 -- Present}
   \resumeItemListStart
-      \resumeItem{Designed and implemented features across Qt UI, networking, model/view, and event-handling layers of a production CAD/CAM platform.}
-      \resumeItem{Translated complex product requirements into scoped, deliverable tasks, consistently meeting sprint commitments.}
-      \resumeItem{Reduced technical debt through targeted refactoring, improving build stability and long-term codebase maintainability.}
+      \resumeItem{Built features spanning Qt’s UI, networking, model/view, and event-handling layers}
+      \resumeItem{Decomposed complex requirements into scoped deliverables, consistently meeting sprint estimations.}
+      \resumeItem{Reduced technical debt through targeted refactoring and clean code, improving codebase resilience.}
       \resumeItem{Diagnosed and resolved production crashes and regressions through systematic root cause analysis.}
       \resumeItem{Participated in the full Scrum lifecycle: sprint planning, estimation, code reviews, sprint demos, and retrospectives.}
   \resumeItemListEnd
 
   \resumeSubheadingSimple{Software Engineer Intern}{August 2022 -- May 2023}
   \resumeItemListStart
-      \resumeItem{Developed UI components from design specifications and integrated them into existing production views.}
-      \resumeItem{Delivered pixel-accurate UI and extended feature configurability via import/export workflows.}
-      \resumeItem{Applied full Git workflow: branching strategies, commit conventions, merge requests, code reviews, and CI/CD pipelines.}
+      \resumeItem{Built UI components from design specifications, integrating them into existing production views.}
+      \resumeItem{Delivered pixel-accurate UI and extended feature parameters through import/export integrations.}
+      \resumeItem{Practised all Git workflow stages: branching, commits, merge requests, code reviews, and CI/CD.}
   \resumeItemListEnd
 
   \resumeSubheading{Special Telecommunications Service (STS)}{Botoșani, RO}{IT Support Staff — Electoral IT Systems}{August 2020 -- September 2020}
@@ -133,9 +160,9 @@
 \begin{itemize}[leftmargin=0.1in, label={}, noitemsep, topsep=0pt, parsep=0pt, partopsep=0pt]
     \item \small
     \begin{tabular}{@{} l @{\hspace{1.5ex}} l @{}}
-         \textbf{Languages:}   & C++17/20, C\#, Python, SQL \\[2pt]
-         \textbf{Frameworks:}  & Qt 5/6, .NET 8, STL \\[2pt]  
-         \textbf{Engineering:} & Event-driven Architecture, Design Patterns, Multithreading, API Integration, Performance Profiling, CI/CD \\[2pt]
+         \textbf{Languages:}   & C++17/20 (STL), C\#, Python, SQL \\[2pt]
+         \textbf{Frameworks:}  & Qt 5/6, .NET 8 \\[2pt]  
+         \textbf{Engineering:} & Event-driven Architecture, Design Patterns, Multithreading, API Integration, CI/CD \\[2pt]
          \textbf{Tooling:}     & MSVC, CMake, Visual Studio, GitLab, Docker, NuGet, SonarQube, Jira
     \end{tabular}
 \end{itemize}
@@ -143,7 +170,7 @@
 \vspace{2pt}
 \section{Education}
 \resumeSubHeadingListStart
-  \resumeSubheading{Gheorghe Asachi Technical University of Iași}{Iași, RO}{Master of Science in Artificial Intelligence}{October 2024 - June 2026}
+  \resumeSubheading{Technical University of Iași}{Iași, RO}{Master of Science in Artificial Intelligence}{October 2024 - June 2026}
     {\par\footnotesize \textit{\textbf{Advanced Coursework:} Neural Networks, Machine Learning, Natural Language Processing (NLP), Reinforcement Learning, Multi-Agent Systems, Cloud Computing, Big Data Techniques, Edge Computing Applications, Intelligent Cyber-Security}}
   \resumeSubheadingSimple{Bachelor of Science in Automatic Control and Applied Informatics}{October 2020 - June 2024}
     {\par\footnotesize  \textit{\textbf{Core Curriculum:} Advanced Computer Programming, Data Structures \& Algorithms, Database Management Systems, Real-Time Programming, Systems Theory, Microprocessor-Based Systems, Embedded Systems Engineering, Control Engineering, Computer Networks, Neural Networks \& Fuzzy Logic, Knowledge-Based Systems}}
@@ -153,28 +180,28 @@
 \begin{itemize}[leftmargin=0.15in, label={}, itemsep=8pt, topsep=0pt, parsep=0pt]
 
     \small\item
-    \textbf{M.Sc. Thesis: SSM for Motion Generation} \hfill \textbf{2026} \\
-    \footnotesize{Developing S4 and Mamba-based architectures for temporally consistent text-to-motion generation (KIT-ML dataset). Incorporated physics constraints to eliminate motion jitter and improve long-range dependency modelling.}
+    \textbf{Text-to-Video Generation with Physics Simulation (M.Sc. Thesis)} \href[pdfnewwindow=true]{\projGenai}{\faExternalLink} \hfill \textbf{2026} \\
+    \footnotesize{Eight-module pipeline converting natural-language prompts into physics-realistic MP4 videos. Parses text into a 3-D scene, generates assets (Shap-E), synthesises motion (SSM/KIT-ML dataset), simulates rigid-body physics (PyBullet), and optionally enhances frames with ControlNet.}
 
     \small\item
-    \textbf{Intelligent IDS: SQL Injection Detection} \href[pdfnewwindow=true]{https://github.com/CatalinButacu/AI_1B_ICS_CyberSentinel}{\faExternalLink} \hfill \textbf{2026} \\
-    \footnotesize{Developed a clustering-based rule generator for SQL injection detection, embedded within a multi-component IDS alongside an adversarial attack agent and a classification model. Each module evaluated under two independent benchmarking strategies.}
+    \textbf{Adaptive SQL Injection Detection \& Defense System} \href[pdfnewwindow=true]{\projIcs}{\faExternalLink} \hfill \textbf{2026} \\
+    \footnotesize{Team project (3 members); personal contribution: DBSCAN-based smart firewall that clusters observed attack payloads at runtime and auto-generates Snort rules, reducing ML detector load. Full system also includes a CNN classifier (95\%+ accuracy) and an RL+BiLSTM adversarial attack agent.}
 
     \small\item
-    \textbf{HandSense: NPU Gesture Recognition} \href[pdfnewwindow=true]{https://github.com/TUIASI-AC-CTI/edge-computing-applications-benexus}{\faExternalLink} \hfill \textbf{2025} \\
-    \footnotesize{End-to-end YOLOv5n deployment for real-time gesture recognition (HaGRID dataset). Optimised for NPU/CPU with TFLite INT8 quantisation, CLAHE preprocessing, and temporal smoothing.}
+    \textbf{Edge-Deployed Hand Gesture Recognition on NPU} \href[pdfnewwindow=true]{\projBenexus}{\faExternalLink} \hfill \textbf{2025} \\
+    \footnotesize{End-to-end YOLOv5n object-detection pipeline for hand gesture recognition (HaGRID dataset). Optimised for NPU/CPU deployment via TFLite INT8 quantisation, CLAHE contrast preprocessing, and temporal smoothing to reduce false positives.}
 
     \small\item
-    \textbf{PharmaRAG: Local LLM Assistant} \href[pdfnewwindow=true]{https://github.com/CatalinButacu/RAG-General-Medical-Assistant}{\faExternalLink} \hfill \textbf{2025} \\
-    \footnotesize{Offline RAG system with FAISS vector search and Mistral-7B for medication retrieval. Chain-of-thought prompting for drug interaction analysis and contraindication detection.}
+    \textbf{AI Medication Assistant (RAG Chatbot)} \href[pdfnewwindow=true]{\projMed}{\faExternalLink} \hfill \textbf{2025} \\
+    \footnotesize{Full-stack RAG application: React/TypeScript frontend (GitHub Pages) backed by a Gradio API (Hugging Face Spaces). FAISS-indexed knowledge base of 1200+ medications across 20 medical categories; answers symptom queries and surfaces direct pharmacy links.}
 
     \small\item
-    \textbf{HeuristicOpt: Optimization Framework} \href[pdfnewwindow=true]{https://github.com/CatalinButacu/OCS_FRAMEWORK}{\faExternalLink} \hfill \textbf{2025} \\
-    \footnotesize{Python framework with Genetic, Evolutionary, and Stochastic solvers for constraint satisfaction. Benchmarked across convergence speed and solution quality in large-scale search spaces.}
+    \textbf{Evolutionary Algorithms Benchmarking Framework} \href[pdfnewwindow=true]{\projOcs}{\faExternalLink} \hfill \textbf{2025} \\
+    \footnotesize{Python library implementing Canonical GA, Real-Valued GA, Differential Evolution, and Random Search. Each solver is benchmarked on standard mathematical test functions with automated CSV reporting and convergence visualisation.}
 
     \small\item
-    \textbf{WiDS: fMRI Brain-Age Prediction \textnormal{(8\textsuperscript{th} National)}} \href[pdfnewwindow=true]{https://github.com/CatalinButacu/widsdatathon2025-university}{\faExternalLink} \hfill \textbf{2025} \\
-    \footnotesize{ML pipeline for fMRI-based brain-age prediction on neuroimaging connectivity data ($\sim$20k features). Applied ElasticNet with spectral feature selection and gender-stratified training.}
+    \textbf{fMRI Brain-Age Prediction — 8\textsuperscript{th} Place (WiDS Datathon 2025)} \href[pdfnewwindow=true]{\projWids}{\faExternalLink} \hfill \textbf{2025} \\
+    \footnotesize{Competition ML pipeline predicting biological brain age from $\sim$20k fMRI neuroimaging connectivity features. Gender-stratified ElasticNet model with spectral feature selection; ranked 8th nationally at the WiDS Datathon 2025 University Edition.}
 
 \end{itemize}
 %----------------------------------VOLUNTEER EXPERIENCE----------------------------------
@@ -215,8 +242,9 @@
 \begin{itemize}[leftmargin=0.15in, label={}, noitemsep, topsep=0pt, parsep=0pt, partopsep=0pt]
     \item \small
     \begin{tabular}{@{} l @{\hspace{2ex}} l @{}}
-         \textbf{AI / ML:}     & Machine Learning, Deep Learning, LLMs, RAG Systems, PyTorch, Prompt Engineering \\[3pt]
-         \textbf{Web Apps:} & React, TypeScript, Node.js, Firebase, PostgreSQL, WordPress \\[3pt]
+         \textbf{AI / ML:}     & PyTorch, scikit-learn, NumPy, Pandas, HuggingFace Transformers, FAISS, LangChain \\[3pt]
+         \textbf{Web Apps:}    & React, TypeScript, Node.js, Firebase, PostgreSQL \\[3pt]
+         \textbf{Languages:}   & Romanian (native), English (professional) \\[3pt]
          \textbf{Soft Skills:} & Problem Decomposition, Clear Communication, Knowledge Sharing, Self-directed Learning
     \end{tabular}
 \end{itemize}
