@@ -7,34 +7,35 @@
 
 set -e
 
-echo "🐳 Starting local CV compilation with Docker..."
+echo "Starting local CV compilation with Docker..."
 
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
-    echo "❌ Docker is not running. Please start Docker and try again."
+    echo "ERROR: Docker is not running. Please start Docker and try again."
     exit 1
 fi
 
 # Build the Docker image
-echo "🔨 Building LaTeX Docker image..."
+echo "Building LaTeX Docker image..."
 docker build -t latex-cv-compiler .
 
 # Compile the resume
-echo "📄 Compiling resume.tex..."
+echo "Compiling resume.tex..."
 docker run --rm \
     -v "$(pwd)":/latex \
     -w /latex \
     latex-cv-compiler
 
-if [ -f "resume.pdf" ]; then
-    echo "✅ resume.pdf ready ($(du -h resume.pdf | cut -f1))"
+OUTPUT_PDF="CV_Butacu.Ionel-Catalin.pdf"
+if [ -f "$OUTPUT_PDF" ]; then
+    echo "OK: $OUTPUT_PDF ready ($(du -h "$OUTPUT_PDF" | cut -f1))"
     if command -v open > /dev/null 2>&1; then
-        open resume.pdf
+        open "$OUTPUT_PDF"
     elif command -v xdg-open > /dev/null 2>&1; then
-        xdg-open resume.pdf
+        xdg-open "$OUTPUT_PDF"
     fi
 else
-    echo "❌ resume.pdf not found after compilation!"
+    echo "ERROR: $OUTPUT_PDF not found after compilation!"
     exit 1
 fi
 
