@@ -59,7 +59,8 @@ jobs:
             echo "PDF unchanged, skipping commit"
           else
             git commit -m "ci: update CV_Butacu.Ionel-Catalin.pdf [skip ci]"
-            git push
+            git pull --rebase origin ${{ github.ref_name }}
+            git push origin ${{ github.ref_name }}
           fi
 
       - name: Create Release
