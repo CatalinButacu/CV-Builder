@@ -59,7 +59,9 @@ jobs:
             echo "PDF unchanged, skipping commit"
           else
             git commit -m "ci: update CV_Butacu.Ionel-Catalin.pdf [skip ci]"
+            git stash --include-untracked
             git pull --rebase origin ${{ github.ref_name }}
+            git stash pop || true
             git push origin ${{ github.ref_name }}
           fi
 
