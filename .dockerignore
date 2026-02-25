@@ -51,9 +51,6 @@ Thumbs.db
 .vscode
 .idea
 
-# Web files
-index.html
-
 # Docker files (avoid recursive copying)
 Dockerfile
 .dockerignore
