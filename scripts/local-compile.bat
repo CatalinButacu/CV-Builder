@@ -1,5 +1,7 @@
 @echo off
 REM Local LaTeX CV Compilation Script for Windows
+REM Compiles resume.tex from whatever branch is checked out.
+REM On the 'mle' branch, resume-mle.tex should be renamed to resume.tex.
 REM Usage: scripts\local-compile.bat
 
 echo 🐳 Starting local CV compilation with Docker...
@@ -19,25 +21,19 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Compile the CV
-echo 📄 Compiling CV...
+REM Compile the resume
+echo 📄 Compiling resume.tex...
 docker run --rm -v "%cd%":/latex -w /latex latex-cv-compiler
 if errorlevel 1 (
     echo ❌ CV compilation failed!
     exit /b 1
 )
 
-REM Check if PDF was generated
 if exist "resume.pdf" (
-    echo ✅ CV compiled successfully!
-    echo 📊 PDF Info:
-    dir resume.pdf
-    
-    REM Open PDF with default application
-    echo 🔍 Opening PDF...
+    echo ✅ resume.pdf ready — opening...
     start resume.pdf
 ) else (
-    echo ❌ PDF compilation failed!
+    echo ❌ resume.pdf not found after compilation!
     exit /b 1
 )
 

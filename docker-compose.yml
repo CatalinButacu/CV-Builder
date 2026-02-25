@@ -1,33 +1,28 @@
 version: '3.8'
 
+x-latex-base: &latex-base
+  build:
+    context: .
+    dockerfile: Dockerfile
+  volumes:
+    - .:/latex
+    - latex-cache:/root/.texlive
+  working_dir: /latex
+  environment:
+    - DEBIAN_FRONTEND=noninteractive
+    - TZ=Europe/Bucharest
+
 services:
+  # Compiles resume.tex from whatever branch is checked out
   latex-compiler:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    <<: *latex-base
     container_name: cv-latex-compiler
-    volumes:
-      - .:/latex
-      - latex-cache:/root/.texlive
-    working_dir: /latex
-    environment:
-      - DEBIAN_FRONTEND=noninteractive
-      - TZ=Europe/Bucharest
     command: /usr/local/bin/compile-latex.sh
-    
-  # Development service for interactive compilation
+
+  # Interactive development shell
   latex-dev:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    <<: *latex-base
     container_name: cv-latex-dev
-    volumes:
-      - .:/latex
-      - latex-cache:/root/.texlive
-    working_dir: /latex
-    environment:
-      - DEBIAN_FRONTEND=noninteractive
-      - TZ=Europe/Bucharest
     command: /bin/bash
     stdin_open: true
     tty: true
