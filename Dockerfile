@@ -24,7 +24,7 @@ RUN apk add --no-cache \
     && rm -rf /var/cache/apk/*
 
 # Install TeX Live from upstream for full package support
-RUN wget -qO- https://ftp.tug.org/historic/systems/texlive/2025/install-tl-unx.tar.gz | tar -xz -C /tmp && \
+RUN wget -qO- https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz | tar -xz -C /tmp && \
     cd /tmp/install-tl-* && \
     echo "selected_scheme scheme-basic" > texlive.profile && \
     echo "tlpdbopt_install_docfiles 0" >> texlive.profile && \
@@ -36,7 +36,7 @@ RUN wget -qO- https://ftp.tug.org/historic/systems/texlive/2025/install-tl-unx.t
     echo "TEXMFHOME ~/texmf" >> texlive.profile && \
     echo "option_doc 0" >> texlive.profile && \
     echo "option_src 0" >> texlive.profile && \
-    ./install-tl -profile texlive.profile -repository https://ftp.tug.org/historic/systems/texlive/2025/tlnet-final/ && \
+    ./install-tl -profile texlive.profile && \
     rm -rf /tmp/install-tl-*
 
 # Add TeX Live to PATH and install packages
