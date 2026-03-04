@@ -19,8 +19,6 @@ RUN apk add --no-cache \
     git \
     make \
     bash \
-    texmf-dist \
-    texlive \
     && rm -rf /var/cache/apk/*
 
 # Install TeX Live from upstream for full package support
