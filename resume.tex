@@ -7,8 +7,6 @@
 \usepackage{titlesec}
 \usepackage{marvosym}
 \usepackage[usenames,dvipsnames]{xcolor}  % replaces color; xcolor is superset and TikZ-compatible
-\usepackage{graphicx}      % profile photo
-\usepackage{tikz}          % circular clip for bubble image
 \usepackage{verbatim}
 \usepackage{enumitem}
 \usepackage{fontawesome}
@@ -90,31 +88,19 @@
 %%%%%%  CV STARTS HERE  %%%%%%
 \begin{document}
 %----------HEADING----------------------------------
-\noindent\begin{minipage}[c]{2cm}
-  \begin{tikzpicture}
-    % light-blue circular background behind the photo
-    \fill[NavyBlue!12] (0,0) circle (1.15cm);
-    \begin{scope}
-      \clip (0,0) circle (1.1cm);
-      \node[anchor=center] at (0,0) {\includegraphics[width=2.55cm]{profile-preview}};
-    \end{scope}
-    \draw[NavyBlue, line width=0.5pt] (0,0) circle (1.15cm);
-  \end{tikzpicture}
-\end{minipage}%
-\hspace{0.75cm}%
-\begin{minipage}[c]{\dimexpr\textwidth-2.8cm\relax}
+\noindent\begin{minipage}[c]{\textwidth}
   \color{NavyBlue}\textbf{{\LARGE BUTACU IONEL-CATALIN}}\\[4pt]
-  \small
-  \begin{tabular}{@{} l @{\quad\textbar\quad} l @{} }
-    \faLinkedinSquare~\href{\linkedinLink}{linkedin.com/in/catalin-butacu} & \faEnvelope~\href{\emailLink}{butacu.catalin@yahoo.com} \\
-    \faGithub~\href{\githubLink}{github.com/CatalinButacu} & \faPhone~\href{\phoneLink}{+40 753 320 964} \\
+  \footnotesize
+  \begin{tabular}{@{} l @{\hspace{1.5ex}\textbar\hspace{1.5ex}} l @{\hspace{1.5ex}\textbar\hspace{1.5ex}} l @{\hspace{1.5ex}\textbar\hspace{1.5ex}} l @{} }
+    \faLinkedinSquare~\href{\linkedinLink}{linkedin.com/in/catalin-butacu} & \faGithub~\href{\githubLink}{github.com/CatalinButacu} & \faEnvelope~\href{\emailLink}{butacu.catalin@yahoo.com} & \faPhone~\href{\phoneLink}{+40 753 320 964} \\
   \end{tabular}
 \end{minipage}
 %----------------------------------PROFESSIONAL SUMMARY----------------------------------
+\vspace{0.5pt}
 \section{Summary}
 \hspace{0.15in}\begin{minipage}{0.97\textwidth}
 \begin{justify}
-\small{C++ Software Engineer with 3+ years of professional experience developing desktop application features in Qt on a commercial industrial CAD/CAM product. Background in control systems engineering and applied informatics. Currently completing a Master's degree in Artificial Intelligence.}
+\footnotesize{C++ Software Engineer with 3+ years of professional experience developing desktop application features in Qt on a commercial industrial CAD/CAM product. Background in control systems engineering and applied informatics. Currently completing a Master's degree in Artificial Intelligence.}
 \end{justify}
 \end{minipage}
 %----------------------------------EXPERIENCE----------------------------------
@@ -148,15 +134,6 @@
   \resumeItemListEnd
 
 \resumeSubHeadingListEnd
-%----------------------------------Awards----------------------------------
-\section{Certifications}
-\begin{itemize}[leftmargin=0.15in, label={$\circ$}, itemsep=3pt, topsep=0pt, parsep=0pt]
-  \small\item {\href[pdfnewwindow=true]{\oracleDataScienceLink}{Oracle Cloud Infrastructure 2025 Data Science Professional (1Z0-1110-25)\ \faExternalLink}}
-  \small\item {\href[pdfnewwindow=true]{\oracleGenAILink}{Oracle Cloud Infrastructure 2025 Generative AI Professional (1Z0-1127-25)\ \faExternalLink}}
-  \small\item {\href[pdfnewwindow=true]{\oracleVectorSearchLink}{Oracle Cloud Infrastructure 2025 AI Vector Search Professional (1Z0-184-25)\ \faExternalLink}}
-  % \small\item {\href[pdfnewwindow=true]{\oracleAIFoundationsLink}{Oracle Cloud Infrastructure 2025 AI Foundations Associate (1Z0-1122-25)\ \faExternalLink}}
-  \small\item {\href[pdfnewwindow=true]{\oracleAnalyticsCloudLink}{Oracle Analytics Cloud 2025 Certified Professional (1Z0-1041-25)\ \faExternalLink}}
-\end{itemize}
 %----------------------------------SKILLS & COMPETENCIES----------------------------------
 \vspace{2pt}
 \section{Skills \& Competencies}
@@ -168,6 +145,15 @@
          $\circ$~Object-Oriented Design and Design Patterns      & $\circ$~Memory Management, RAII, Smart Pointers \\[3pt]
          $\circ$~Multithreading and Concurrent Programming       & $\circ$~Code Review, GitLab CI/CD, Agile/Scrum \\[3pt]
     \end{tabular}
+\end{itemize}
+%----------------------------------Awards----------------------------------
+\section{Certifications}
+\begin{itemize}[leftmargin=0.15in, label={$\circ$}, itemsep=3pt, topsep=0pt, parsep=0pt]
+  \small\item {\href[pdfnewwindow=true]{\oracleDataScienceLink}{Oracle Cloud Infrastructure 2025 Data Science Professional (1Z0-1110-25)\ \faExternalLink}}
+  \small\item {\href[pdfnewwindow=true]{\oracleGenAILink}{Oracle Cloud Infrastructure 2025 Generative AI Professional (1Z0-1127-25)\ \faExternalLink}}
+  \small\item {\href[pdfnewwindow=true]{\oracleVectorSearchLink}{Oracle Cloud Infrastructure 2025 AI Vector Search Professional (1Z0-184-25)\ \faExternalLink}}
+  % \small\item {\href[pdfnewwindow=true]{\oracleAIFoundationsLink}{Oracle Cloud Infrastructure 2025 AI Foundations Associate (1Z0-1122-25)\ \faExternalLink}}
+  \small\item {\href[pdfnewwindow=true]{\oracleAnalyticsCloudLink}{Oracle Analytics Cloud 2025 Certified Professional (1Z0-1041-25)\ \faExternalLink}}
 \end{itemize}
 %----------------------------------EDUCATION----------------------------------
 \vspace{2pt}
@@ -248,9 +234,10 @@
 \section{Additional Skills}
 \begin{itemize}[leftmargin=0.15in, label={}, noitemsep, topsep=0pt, parsep=0pt, partopsep=0pt]
     \item \small
-    \begin{tabular}{@{} l @{\hspace{2ex}} l @{}}
-         \textbf{AI / ML:}     & Machine Learning, Deep Learning, LLMs, RAG Systems, PyTorch/TF, Prompt Engineering \\[3pt]
-         \textbf{Web Apps:}    & Flask, Hadoop, React, TypeScript, Node.js, Firebase, PostgreSQL, WordPress \\[3pt]
+    \begin{tabular}{@{} l @{\hspace{2ex}} p{0.75\textwidth} @{}}
+         \textbf{AI / ML:}     & Machine Learning, Deep Learning, Scikit-Learn, XGBoost, PyTorch, TensorFlow, LLMs, RAG \\[3pt]
+         \textbf{Data / Cloud:} & Docker, Kubernetes, Terraform, GCP, AWS, PostgreSQL, BigQuery, Spark, Kafka, dbt, Mage \\[3pt]
+         \textbf{Web Apps:}    & Flask, React, TypeScript, Node.js, Firebase \\[3pt]
          \textbf{Soft Skills:} & Problem Decomposition, Clear Communication, Knowledge Sharing, Self-directed Learning
     \end{tabular}
 \end{itemize}
