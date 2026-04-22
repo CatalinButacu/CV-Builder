@@ -51,7 +51,7 @@
 \newcommand{\projMed}{https://github.com/CatalinButacu/General-Medical-Assistant}
 \newcommand{\projBenexus}{https://github.com/TUIASI-AC-CTI/edge-computing-applications-benexus/}
 \newcommand{\projWids}{https://github.com/CatalinButacu/WiDS-Datathon2025-University}
-\newcommand{\projGenai}{https://github.com/CatalinButacu/GenAI-Flickr}
+\newcommand{\projGenai}{https://github.com/CatalinButacu/GenAI-Text2Motion}
 \newcommand{\projIcs}{https://github.com/CatalinButacu/IDS-CyberSentinel}
 
 \raggedbottom
@@ -107,7 +107,7 @@
 }
 
 \newcommand{\skillrating}[2]{%
-  #1~\textbf{#2}{\color{gray}\scalebox{0.5}{/5.0}}~%
+  #1~\textbf{#2}{\color{gray}\scalebox{0.7}{/5}}~%
   \smash{\begin{tikzpicture}[baseline=(char.base)]
     \node[black!30, inner sep=0pt] (char) {\faStar};
     \begin{scope}
@@ -121,37 +121,58 @@
 \renewcommand{\labelitemi}{$\circ$}
 \newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
 \newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
-\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=0.15in]}
-\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-3pt}}
+\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=0.15in, itemsep=1pt, topsep=2pt, parsep=0pt]}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-4pt}}
 %---------------------------------------------------------------------
 %%%%%%  CV STARTS HERE  %%%%%%
 \begin{document}
 %----------HEADING----------------------------------
-\noindent\begin{minipage}[c]{2cm}
-  \begin{tikzpicture}
-    % light-blue circular background behind the photo
-    \fill[NavyBlue!12] (0,0) circle (1.15cm);
-    \begin{scope}
-      \clip (0,0) circle (1.1cm);
-      \node[anchor=center] at (0,0) {\includegraphics[width=2.55cm]{profile-preview}};
-    \end{scope}
-    \draw[NavyBlue, line width=0.5pt] (0,0) circle (1.15cm);
-  \end{tikzpicture}
-\end{minipage}%
-\hspace{0.75cm}%
-\begin{minipage}[c]{\dimexpr\textwidth-2.8cm\relax}
-  \color{NavyBlue}\textbf{{\LARGE BUTACU IONEL-CATALIN}}\\[4pt]
-  \small
-  \begin{tabular}{@{} l @{\quad\textbar\quad} l @{} }
-    \faLinkedinSquare~\href{\linkedinLink}{linkedin.com/in/catalin-butacu} & \faEnvelope~\href{\emailLink}{butacu.catalin@yahoo.com} \\
-    \faGithub~\href{\githubLink}{github.com/CatalinButacu} & \faPhone~\href{\phoneLink}{+40 753 320 964} \\
-  \end{tabular}
-\end{minipage}
+\begin{tikzpicture}[remember picture,overlay]
+    % Light blue banner across the top
+    \fill[NavyBlue!12] (current page.north west) rectangle ([yshift=-3.5cm]current page.north east);
+    
+    % Name centered in the banner, slightly moved up
+    \node[anchor=north] at ([yshift=-1.0cm]current page.north) {
+        \color{NavyBlue}\textbf{{\huge BUTACU IONEL-CATALIN}}
+    };
+
+    % Subtitle clarifies target role for recruiters
+    \node[anchor=north] at ([yshift=-1.68cm]current page.north) {
+      \color{NavyBlue!85}{\small Machine Learning Engineer | Desktop \& Enterprise Software Engineer}
+    };
+    
+     % Left wing: Portfolio aligned with the photo midpoint
+     \node[anchor=east, align=right, font=\small] at ([xshift=-1.5cm, yshift=-3.52cm]current page.north) {
+       \textcolor{NavyBlue}{\faLinkedinSquare}~\href{\linkedinLink}{\lightbold{linkedin.com/in/catalin-butacu}} \\[4pt]
+       \textcolor{NavyBlue}{\faGithubSquare}~\href{\githubLink}{\lightbold{github.com/CatalinButacu}}
+    };
+    
+     % Right wing: Contact info aligned with the photo midpoint
+     \node[anchor=west, align=left, font=\small] at ([xshift=1.5cm, yshift=-3.52cm]current page.north) {
+       \href{\emailLink}{\lightbold{butacu.catalin@yahoo.com}}~\textcolor{NavyBlue}{\faEnvelopeSquare} \\[4pt]
+       \href{\phoneLink}{\lightbold{+40 753 320 964}}~\textcolor{NavyBlue}{\faPhoneSquare}
+    };
+
+     % Profile picture moved slightly lower to clear the subtitle
+    \node[anchor=center] at ([yshift=-3.52cm]current page.north) {
+       \begin{tikzpicture}
+          % White halo
+          \fill[white] (0,0) circle (1.25cm);
+          \begin{scope}
+            \clip (0,0) circle (1.15cm);
+            \node[anchor=center] at (0,0) {\includegraphics[width=2.55cm]{profile-preview}};
+          \end{scope}
+          \draw[NavyBlue!40, line width=0.7pt] (0,0) circle (1.25cm);
+       \end{tikzpicture}
+    };
+\end{tikzpicture}
+
+\vspace{2.48cm} % Push the content down to clear the banner & picture
 %----------------------------------PROFESSIONAL SUMMARY----------------------------------
 \section{Summary}
 \hspace{0.15in}\begin{minipage}{0.97\textwidth}
 \begin{justify}
-\small{Machine Learning Engineer with a background in software development, bringing a strong academic foundation in deep learning, NLP, and computer vision. Currently pursuing a Master's in Artificial Intelligence, with hands-on experience in model training, feature engineering, and AI application development.}
+\small{Software Engineer with over 3 years of building desktop and enterprise software in C++ and Qt, plus machine learning engineering through graduate study, certifications, and ML projects. Built computer vision, RAG, and predictive systems covering model training, evaluation, inference, vector search, and edge deployment.}
 \end{justify}
 \end{minipage}
 %----------------------------------EXPERIENCE----------------------------------
@@ -161,54 +182,30 @@
 
   \resumeSubheading{Gemini CAD Systems}{Iași, RO}{Software Engineer}{June 2023 -- Present}
   \resumeItemListStart
-      \resumeItem{Built features spanning Qt’s UI, networking, model/view, and event-handling layers for real time applications.}
-      \resumeItem{Designed scalable software components by applying core OOP principles and industry-standard design patterns.}
-      \resumeItem{Utilized C++ STL containers and algorithms to implement efficient business logic and data processing.}
-      \resumeItem{Decomposed complex requirements into scoped deliverables, consistently meeting sprint estimations.}
-      \resumeItem{Reduced technical debt through targeted refactoring and clean code, improving codebase resilience.}
-      \resumeItem{Diagnosed and resolved production crashes and memory leaks using debugging tools and root cause analysis.}
-      \resumeItem{Participated in the full Scrum lifecycle: sprint planning, estimation, code reviews, sprint demos, and retrospectives.}
+      \resumeItem{Built production C++/Qt features across UI, networking, and event-driven desktop modules.}
+      \resumeItem{Implemented business logic and data processing with STL containers and algorithms.}
+      \resumeItem{Turned product requirements into scoped tasks and production-ready implementations.}
+      \resumeItem{Refactored legacy modules to reduce technical debt and improve maintainability.}
+      \resumeItem{Resolved crashes, memory leaks, and regressions through root cause analysis.}
+      \resumeItem{Contributed across Agile Scrum: planning, estimation, reviews, demos, and retrospectives.}
   \resumeItemListEnd
 
   \resumeSubheadingSimple{Software Engineer Intern}{August 2022 -- May 2023}
   \resumeItemListStart
-      \resumeItem{Built UI components from design specifications, integrating them into existing production views.}
-      \resumeItem{Delivered pixel-accurate UI and extended feature parameters through import/export integrations.}
-      \resumeItem{Practised all Git workflow stages: branching, commits, merge requests, code reviews, and CI/CD.}
+      \resumeItem{Built desktop UI components from specs and integrated them into production views.}
+      \resumeItem{Delivered pixel-accurate UI updates and extended real-time canvas functionalities.}
+      \resumeItem{Worked across Git workflows, code reviews, and GitLab CI/CD.}
   \resumeItemListEnd
 
   \resumeSubheading{Special Telecommunications Service (STS)}{Botoșani, RO}{IT Technician -- Electoral Bureau}{August 2020 -- September 2020}
   \resumeItemListStart
-      \resumeItem{Supported the electoral process by ensuring IT infrastructure was operational at electoral bureaus.}
-      \resumeItem{Assisted in verifying and transmitting electoral data through IT systems (SIMPV/SICPV).}
-      \resumeItem{Offered technical assistance and guidance to electoral bureau staff.}
+      \resumeItem{Kept IT infrastructure operational across local electoral bureaus during the election process.}
+      \resumeItem{Verified and transmitted electoral data through SIMPV and SICPV systems.}
+      \resumeItem{Provided technical support and guidance to electoral bureau staff.}
   \resumeItemListEnd
 
 \resumeSubHeadingListEnd
-%----------------------------------Awards----------------------------------
-\section{Certifications}
-\begin{itemize}[leftmargin=0.15in, label={$\circ$}, itemsep=3pt, topsep=0pt, parsep=0pt]
-  \small\item {\href[pdfnewwindow=true]{\oracleDataScienceLink}{Oracle Cloud Infrastructure 2025 Data Science Professional (1Z0-1110-25)\ \faExternalLink}}
-  \small\item {\href[pdfnewwindow=true]{\oracleGenAILink}{Oracle Cloud Infrastructure 2025 Generative AI Professional (1Z0-1127-25)\ \faExternalLink}}
-  \small\item {\href[pdfnewwindow=true]{\oracleVectorSearchLink}{Oracle Cloud Infrastructure 2025 AI Vector Search Professional (1Z0-184-25)\ \faExternalLink}}
-  % \small\item {\href[pdfnewwindow=true]{\oracleAIFoundationsLink}{Oracle Cloud Infrastructure 2025 AI Foundations Associate (1Z0-1122-25)\ \faExternalLink}}
-  \small\item {\href[pdfnewwindow=true]{\oracleAnalyticsCloudLink}{Oracle Analytics Cloud 2025 Certified Professional (1Z0-1041-25)\ \faExternalLink}}
-\end{itemize}
-%----------------------------------SKILLS & COMPETENCIES----------------------------------
-\vspace{2pt}
-\section{Skills \& Competencies}
-\begin{itemize}[leftmargin=0.1in, label={}, noitemsep, topsep=0pt, parsep=0pt, partopsep=0pt]
-    \item \small
-    \begin{tabular}{@{} p{0.45\textwidth} @{\hspace{0.03\textwidth}} p{0.45\textwidth} @{}}
-         $\circ$~Feature Engineering \& Data Preprocessing   & $\circ$~Model Training \& Hyperparameter Tuning \\[3pt]
-         $\circ$~ML Experiment Design \& Evaluation          & $\circ$~Object Detection \& Image Processing \\[3pt]
-         $\circ$~Cloud Infrastructure \& API Development     & $\circ$~LLM Integration \& RAG Systems \\[3pt]
-         $\circ$~Vector Databases \& Semantic Search         & $\circ$~Model Quantization \& Edge Deployment \\[3pt]
-         $\circ$~Software Architecture \& Clean Code         & $\circ$~Version Control \& CI/CD Pipelines \\[3pt]
-    \end{tabular}
-\end{itemize}
 %----------------------------------EDUCATION----------------------------------
-\vspace{2pt}
 \section{Education}
 \resumeSubHeadingListStart
   \resumeSubheading{Technical University of Iași}{Iași, RO}{Master of Science in Artificial Intelligence}{October 2024 - June 2026}
@@ -219,15 +216,64 @@
     {\par\footnotesize  
       \textit{\textbf{Core Curriculum:} Advanced Computer Programming, Data Structures \& Algorithms, Real-Time Programming, Database Management Systems, Data Processing, Microprocessor-Based Systems, Embedded Systems Engineering, Control Engineering, Computer Networks, Numerical Methods, Neural Networks, 	Optimization Techniques, Fuzzy Logic, Knowledge-Based Systems}
     }
+    %{\par\footnotesize
+    %\textit{\textbf{Independent Training:} DataTalksClub coursework in Machine Learning, MLOps, and Data Engineering covering Docker, FastAPI, MLflow, Terraform, Kubernetes, dbt, Spark, and Kafka fundamentals.}
+    %}
 \resumeSubHeadingListEnd
+%----------------------------------Awards----------------------------------
+\section{Certifications}
+\begin{itemize}[leftmargin=0.15in, label={$\circ$}, itemsep=2pt, topsep=0pt, parsep=0pt]
+  \small\item {\href[pdfnewwindow=true]{\oracleDataScienceLink}{Oracle Cloud Infrastructure 2025 Data Science Professional (1Z0-1110-25)\ \faExternalLink}}
+  \small\item {\href[pdfnewwindow=true]{\oracleGenAILink}{Oracle Cloud Infrastructure 2025 Generative AI Professional (1Z0-1127-25)\ \faExternalLink}}
+  \small\item {\href[pdfnewwindow=true]{\oracleVectorSearchLink}{Oracle Cloud Infrastructure 2025 AI Vector Search Professional (1Z0-184-25)\ \faExternalLink}}
+  % \small\item {\href[pdfnewwindow=true]{\oracleAIFoundationsLink}{Oracle Cloud Infrastructure 2025 AI Foundations Associate (1Z0-1122-25)\ \faExternalLink}}
+  \small\item {\href[pdfnewwindow=true]{\oracleAnalyticsCloudLink}{Oracle Analytics Cloud 2025 Certified Professional (1Z0-1041-25)\ \faExternalLink}}
+\end{itemize}
+%----------------------------------COMPETENCIES----------------------------------
+\vspace{2pt}
+\section{Competencies}
+\begin{itemize}[leftmargin=0.1in, label={}, noitemsep, topsep=0pt, parsep=0pt, partopsep=0pt]
+    \item \small
+    \begin{tabular}{@{} p{0.45\textwidth} @{\hspace{0.03\textwidth}} p{0.45\textwidth} @{}}
+     \color{NavyBlue}\textbf{Software Engineering}        & \color{NavyBlue}\textbf{Machine Learning \& AI} \\[2pt]
+     $\circ$~C++/Qt Desktop \& Enterprise Development     & $\circ$~ML Model Training \& Evaluation \\[1pt]
+     $\circ$~Software Architecture \& Design Patterns     & $\circ$~Agentic AI \& Multi-Agent Systems \\[1pt]
+     $\circ$~Production Debugging \& Root Cause Analysis  & $\circ$~Deep Learning \& Computer Vision \\[1pt]
+     $\circ$~Code Review, CI/CD \& Agile Delivery         & $\circ$~LLM Applications, RAG \& Vector Search \\[1pt]
+     $\circ$~Multithreading, Performance \& System Design & $\circ$~Model Deployment \& Inference Serving \\[1pt]
+    \end{tabular}
+\end{itemize}
+%----------------------------------SKILLS----------------------------------
+\section{Skills}
+\begin{itemize}[leftmargin=0.15in, label={}, noitemsep, topsep=0pt, parsep=0pt, partopsep=0pt]
+    \item \small
+    \begin{tabular}{@{} l @{\hspace{2ex}} l @{}}
+      {\textbf{Languages:}}           & \skillrating{Python}{4.0}    \skillrating{C++}{4.5}          \skillrating{SQL}{3.5}        \skillrating{Bash}{3.5}   \skillrating{TypeScript}{3.0} \\[2pt]
+      {\textbf{Desktop Engineering:}} & \skillrating{Qt}{4.5}        \skillrating{STL}{3.5}          \skillrating{CMake}{3.5}      \skillrating{REST}{3.5}   \skillrating{gRPC}{2.5}       \\[2pt]
+      {\textbf{Machine Learning:}}    & \skillrating{PyTorch}{4.0}   \skillrating{Scikit-learn}{3.5} \skillrating{Pandas}{4.0}     \skillrating{OpenCV}{3.0} \skillrating{NumPy}{4.5}      \\[2pt]
+      {\textbf{Cloud/IaC:}}           & \skillrating{Docker}{4.0}    \skillrating{Kubernetes}{2.0}    \skillrating{Terraform}{3.0} \skillrating{OCI}{3.5}    \skillrating{AWS}{3.0}        \\[2pt]
+      {\textbf{Tools:}}               & \skillrating{Git}{4.0}       \skillrating{SonarQube}{4.0}    \skillrating{Flask}{3.5}      \skillrating{LangChain}{3.5}  \skillrating{MLflow}{3.0}        \\
+    \end{tabular}
+\end{itemize}
+
+    % inline legend for Skills section (small, non-numbered)
+    \vspace{3pt}
+    \noindent{\tiny
+      \skillrating{}{5}~owned in production\quad
+      \skillrating{}{4}~strong hands-on use\quad
+      \skillrating{}{3}~comfortable, still learning\quad
+      \skillrating{}{2}~guided exposure\quad
+      \skillrating{}{1}~foundational awareness
+    }
+
 %----------------------------------PROJECTS----------------------------------
 \section{Projects}
-\begin{itemize}[leftmargin=0.15in, label={}, itemsep=8pt, topsep=0pt, parsep=0pt]
+\begin{itemize}[leftmargin=0.15in, label={}, itemsep=5pt, topsep=0pt, parsep=0pt]
 
     \small\item
-    \textbf{GenAI with Physics Constraints (in progress)} \href[pdfnewwindow=true]{\projGenai}{\faExternalLink} \hfill \textbf{2026} \\
-    \footnotesize{Text-to-video pipeline that generates physics-realistic 3D animations from natural language prompts. Integrates Shap-E for 3D asset generation, motion synthesis models, and PyBullet for rigid-body physics simulation, enhanced by ControlNet.}
-
+    \textbf{Text2Motion with Physics-Constrained \textit{(in progress)}} \href[pdfnewwindow=true]{\projGenai}{\faExternalLink} \hfill \textbf{2026} \\
+    \footnotesize{Generative AI pipeline converting natural language into realistic 3D motion sequences. Features a modular architecture integrating MoMask for generative transformers, SBERT for semantic parsing, and a PyBullet physics engine to enforce biomechanical constraints and environmental interactions.}
+    
     \small\item
     \textbf{IDS/IPS Smart Firewall} \href[pdfnewwindow=true]{\projIcs}{\faExternalLink} \hfill \textbf{2026} \\
     \footnotesize{Collaborative intelligent firewall system featuring a CNN threat classifier and an RL adversarial agent. Personal contribution focused on system architecture, Snort rule configuration, and developing a DBSCAN clustering module that analyzes runtime payloads to auto-generate rules, reducing ML inference load.}
@@ -282,17 +328,5 @@
 
 \resumeSubHeadingListEnd
 
-%----------------------------------ADDITIONAL SKILLS----------------------------------
-\section{Additional Skills}
-\begin{itemize}[leftmargin=0.15in, label={}, noitemsep, topsep=0pt, parsep=0pt, partopsep=0pt]
-    \item \small
-    \begin{tabular}{@{} l @{\hspace{2ex}} l @{}}
-         \textbf{Frameworks:}       & PyTorch, TensorFlow, Scikit-learn, Hugging Face, LangChain\&LangGraph, OpenCV \\[3pt]
-         \textbf{MLOps \& Cloud:}   & Docker, MLflow, W\&B, ONNX, Oracle OCI/OAC, Azure ML \\[3pt]
-         \textbf{Data \& Dev:}      & Python, C++, SQL, Spark, Flask, FastAPI, React, NodeJS \\[3pt]
-         \textbf{Soft Skills:}      & Problem Decomposition, Clear Communication, Knowledge Sharing, Self-directed Learning
-    
-    \end{tabular}
-\end{itemize}
 %----------------------------------------END-OF-FILE-------------------------------------
 \end{document}
