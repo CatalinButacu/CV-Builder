@@ -172,7 +172,7 @@
 \section{Summary}
 \hspace{0.15in}\begin{minipage}{0.97\textwidth}
 \begin{justify}
-\small{Software Engineer with over 3 years of building desktop and enterprise software in C++ and Qt, plus machine learning engineering through graduate study, certifications, and ML projects. Built computer vision, RAG, and predictive systems covering model training, evaluation, inference, vector search, and edge deployment.}
+\small{Software Engineer with 4 years of building desktop and enterprise software in C++ and Qt, plus machine learning engineering through graduate study, certifications, and ML projects. Built computer vision, RAG, and predictive systems covering model training, evaluation, inference, vector search, and edge deployment.}
 \end{justify} 
 \end{minipage}
 %----------------------------------EXPERIENCE----------------------------------
@@ -183,8 +183,8 @@
   \resumeSubheading{Gemini CAD Systems}{Iași, RO}{Software Engineer}{June 2023 -- Present}
   \resumeItemListStart
       \resumeItem{Built production C++/Qt features across UI, networking, and event-driven desktop modules.}
-      \resumeItem{Implemented business logic and data processing with STL containers and algorithms.}
-      \resumeItem{Turned product requirements into scoped tasks and production-ready implementations.}
+      \resumeItem{Built multi-instance crash recovery via shared-memory IPC and a dedicated crash-handler process.}
+      \resumeItem{Integrated REST APIs and bidirectional cloud sync for core product features using Qt Network.}
       \resumeItem{Refactored legacy modules to reduce technical debt and improve maintainability.}
       \resumeItem{Resolved crashes, memory leaks, and regressions through root cause analysis.}
       \resumeItem{Contributed across Agile Scrum: planning, estimation, reviews, demos, and retrospectives.}
@@ -248,11 +248,11 @@
 \begin{itemize}[leftmargin=0.15in, label={}, noitemsep, topsep=0pt, parsep=2pt, partopsep=0pt]
     \item \small
     \begin{tabular}{@{} l @{\hspace{2ex}} l @{}}
-      {\textbf{Languages:}}           & \skillrating{Python}{4.0}    \skillrating{C++}{4.5}          \skillrating{SQL}{3.5}        \skillrating{Bash}{3.5}   \skillrating{TypeScript}{3.0} \\[2pt]
-      {\textbf{Desktop Engineering:}} & \skillrating{Qt}{4.5}        \skillrating{STL}{3.5}          \skillrating{CMake}{3.5}      \skillrating{REST}{3.5}   \skillrating{gRPC}{2.5}       \\[2pt]
-      {\textbf{Machine Learning:}}    & \skillrating{PyTorch}{4.0}   \skillrating{Scikit-learn}{3.5} \skillrating{Pandas}{4.0}     \skillrating{OpenCV}{3.0} \skillrating{NumPy}{4.5}      \\[2pt]
-      {\textbf{Cloud/IaC:}}           & \skillrating{Docker}{4.0}    \skillrating{Kubernetes}{2.0}    \skillrating{Terraform}{3.0} \skillrating{OCI}{3.5}    \skillrating{AWS}{3.0}        \\[2pt]
-      {\textbf{Tools:}}               & \skillrating{Git}{4.0}       \skillrating{SonarQube}{4.0}    \skillrating{Flask}{3.5}      \skillrating{LangChain}{3.5}  \skillrating{MLflow}{3.0}        \\
+      {\textbf{Languages:}}            & \skillrating{Python}{4.0}    \skillrating{C++}{4.5}          \skillrating{SQL}{3.5}        \skillrating{Bash}{3.5}        \skillrating{TypeScript}{3.0} \\[2pt]
+      {\textbf{Backend \& Systems:}}   & \skillrating{Qt}{4.5}        \skillrating{STL}{3.5}          \skillrating{CMake}{3.5}      \skillrating{REST}{3.5}        \skillrating{Flask}{3.5}      \\[2pt]
+      {\textbf{AI / ML Stack:}}        & \skillrating{PyTorch}{4.0}   \skillrating{Scikit-learn}{3.5} \skillrating{Pandas}{4.0}     \skillrating{NumPy}{4.5}       \skillrating{LangChain}{3.5}  \\[2pt]
+      {\textbf{DevOps \& Cloud:}}      & \skillrating{Docker}{4.0}    \skillrating{MLflow}{3.5}       \skillrating{W\&B}{3.0}       \skillrating{AWS}{3.0}         \skillrating{OCI}{3.5}        \\[2pt]
+      {\textbf{Tooling \& Platforms:}} & \skillrating{Git}{4.0}       \skillrating{SonarQube}{4.0}    \skillrating{Jupyter}{3.5}    \skillrating{HuggingFace}{3.0} \skillrating{FAISS}{3.0}      \\
     \end{tabular}
     \end{itemize}
 
@@ -283,8 +283,8 @@
     \footnotesize{YOLOv5n object-detection pipeline for hand gesture recognition (HaGRID dataset). Optimised for NPU/CPU deployment via TFLite INT8 quantisation, CLAHE contrast preprocessing, and temporal smoothing to reduce false positives.}
 
     \small\item
-    \textbf{AI Medication Assistant} \href[pdfnewwindow=true]{\projMed}{\faExternalLink} \hfill \textbf{2025} \\
-    \footnotesize{Full-stack RAG application: React/TypeScript frontend (GitHub Pages) backed by a Gradio API (Hugging Face Spaces). FAISS-indexed knowledge base of 1200+ medications across 20 medical categories; answers symptom queries and surfaces direct pharmacy links.}
+    \textbf{Med Assist --- Romanian Pharmacy AI Assistant} \href[pdfnewwindow=true]{\projMed}{\faExternalLink} \hfill \textbf{2025--2026} \\
+    \footnotesize{Built end-to-end: a Romanian-language pharmacy chatbot with retrieval-augmented generation over the country's official drug registry (7{,}555 entries, ANMDM). Implemented a safety layer that detects symptom severity and routes users to professional care, plus conversation orchestration that grounds every medicine recommendation in the verified database. Stack: React + TypeScript frontend, FastAPI + Postgres backend, Auth0 JWT authentication, Terraform-managed cloud infrastructure, automated CI quality gates.}
 
     \small\item
     \textbf{Metaheuristic Framework} \href[pdfnewwindow=true]{\projOcs}{\faExternalLink} \hfill \textbf{2025} \\
