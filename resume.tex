@@ -107,7 +107,7 @@
 }
 
 \newcommand{\skillrating}[2]{%
-  #1~\textbf{#2}{\color{gray}\scalebox{0.7}{/5}}~%
+  #1\,\textbf{\color{black!75}#2}\,%
   \smash{\begin{tikzpicture}[baseline=(char.base)]
     \node[black!30, inner sep=0pt] (char) {\faStar};
     \begin{scope}
@@ -117,6 +117,7 @@
     \end{scope}
   \end{tikzpicture}}%
 }
+\newcommand{\skillsep}{\hspace{0.35em}{\scriptsize\color{black!30}\textbullet}\hspace{0.35em}}
 \renewcommand{\labelitemii}{$\circ$}
 \renewcommand{\labelitemi}{$\circ$}
 \newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
@@ -173,7 +174,7 @@
 \hspace{0.15in}\begin{minipage}{0.97\textwidth}
 \begin{justify}
 \small{Software Engineer with 4 years of building desktop and enterprise software in C++ and Qt, plus machine learning engineering through graduate study, certifications, and ML projects. Built computer vision, RAG, and predictive systems covering model training, evaluation, inference, vector search, and edge deployment.}
-\end{justify} 
+\end{justify}
 \end{minipage}
 %----------------------------------EXPERIENCE----------------------------------
 \vspace{4pt}
@@ -213,12 +214,11 @@
       \textit{\textbf{Advanced Coursework:} Machine Learning, Deep Learning, Natural Language Processing (NLP), Reinforcement Learning, Multi-Agent Systems, Cloud Computing, Big Data Techniques, Edge Computing Applications, Intelligent Cyber-Security}
     }
   \resumeSubheadingSimple{Bachelor of Science in Systems Engineering}{October 2020 - June 2024}
-    {\par\footnotesize  
+    {\par\footnotesize
       \textit{\textbf{Core Curriculum:} Advanced Computer Programming, Data Structures \& Algorithms, Real-Time Programming, Database Management Systems, Data Processing, Microprocessor-Based Systems, Embedded Systems Engineering, Control Engineering, Computer Networks, Numerical Methods, Neural Networks, 	Optimization Techniques, Fuzzy Logic, Knowledge-Based Systems}
+      \par\vspace{1pt}
+      \textit{\textbf{Independent Coursework:} DataTalksClub Zoomcamps in Machine Learning Engineering and Data Engineering --- Docker, MLflow, FastAPI, Terraform, Kubernetes, dbt, Spark, Kafka, and Airflow.}
     }
-    %{\par\footnotesize
-    %\textit{\textbf{Independent Training:} DataTalksClub coursework in Machine Learning, MLOps, and Data Engineering covering Docker, FastAPI, MLflow, Terraform, Kubernetes, dbt, Spark, and Kafka fundamentals.}
-    %}
 \resumeSubHeadingListEnd
 %----------------------------------Awards----------------------------------
 \section{Certifications}
@@ -247,23 +247,21 @@
 \section{Skills\textsuperscript{1}}
 \begin{itemize}[leftmargin=0.15in, label={}, noitemsep, topsep=0pt, parsep=2pt, partopsep=0pt]
     \item \small
-    \begin{tabular}{@{} l @{\hspace{2ex}} l @{}}
-      {\textbf{Languages:}}            & \skillrating{Python}{4.0}    \skillrating{C++}{4.5}          \skillrating{SQL}{3.5}        \skillrating{Bash}{3.5}        \skillrating{TypeScript}{3.0} \\[2pt]
-      {\textbf{Backend \& Systems:}}   & \skillrating{Qt}{4.5}        \skillrating{STL}{3.5}          \skillrating{CMake}{3.5}      \skillrating{REST}{3.5}        \skillrating{Flask}{3.5}      \\[2pt]
-      {\textbf{AI / ML Stack:}}        & \skillrating{PyTorch}{4.0}   \skillrating{Scikit-learn}{3.5} \skillrating{Pandas}{4.0}     \skillrating{NumPy}{4.5}       \skillrating{LangChain}{3.5}  \\[2pt]
-      {\textbf{DevOps \& Cloud:}}      & \skillrating{Docker}{4.0}    \skillrating{MLflow}{3.5}       \skillrating{W\&B}{3.0}       \skillrating{AWS}{3.0}         \skillrating{OCI}{3.5}        \\[2pt]
-      {\textbf{Tooling \& Platforms:}} & \skillrating{Git}{4.0}       \skillrating{SonarQube}{4.0}    \skillrating{Jupyter}{3.5}    \skillrating{HuggingFace}{3.0} \skillrating{FAISS}{3.0}      \\
+    \begin{tabular}{@{} l @{\hspace{1.5ex}} l @{}}
+      {\textbf{\color{NavyBlue}Generative AI:}}    & \skillrating{HuggingFace}{3.5}\skillsep\skillrating{FAISS}{3.5}\skillsep\skillrating{BM25}{3.0}\skillsep\skillrating{CrossEncoder}{3.0} \\[3pt]
+      {\textbf{\color{NavyBlue}Machine Learning:}} & \skillrating{PyTorch}{4.0}\skillsep\skillrating{Scikit-learn}{3.5}\skillsep\skillrating{NumPy}{4.5}\skillsep\skillrating{Pandas}{4.0}\skillsep\skillrating{OpenCV}{3.0} \\[3pt]
+      {\textbf{\color{NavyBlue}Python Backend:}}   & \skillrating{FastAPI}{3.5}\skillsep\skillrating{Pydantic}{3.5}\skillsep\skillrating{REST}{3.5}\skillsep\skillrating{gRPC}{3.0}\skillsep\skillrating{\textit{pytest}}{2.0} \\[3pt]
+      {\textbf{\color{NavyBlue}C++ Stack:}}        & \skillrating{Qt}{4.5}\skillsep\skillrating{MSBuild}{4.0} \skillsep\skillrating{STL}{3.5} \skillsep\skillrating{CMake}{3.5}\skillsep\skillrating{SonarQube}{4.0} \\[3pt]
+      {\textbf{\color{NavyBlue}Languages:}}        & \skillrating{Python}{4.0}\skillsep\skillrating{C++}{4.5}\skillsep\skillrating{SQL}{3.5}\skillsep\skillrating{Bash}{3.5}\skillsep\skillrating{TypeScript}{3.0} \\[3pt]
+      {\textbf{\color{NavyBlue}DevOps \& Cloud:}}  & \skillrating{Docker}{4.0}\skillsep\skillrating{Linux/WSL}{4.0}\skillsep\skillrating{Git}{4.0}\skillsep\skillrating{OCI}{3.5}\skillsep\skillrating{AWS}{3.0} \skillsep\skillrating{Terraform}{2.5}\\[3pt]
+      {\textbf{\color{NavyBlue}Data Engineering:}} & \skillrating{\textit{Kafka}}{2.0}\skillsep\skillrating{\textit{Airflow}}{2.0}\skillsep\skillrating{\textit{Spark}}{2.0}\skillsep\skillrating{\textit{dbt}}{2.0} \\
     \end{tabular}
     \end{itemize}
 
     % place the legend as the numbered footnote for the Skills section
     \vspace{3pt}
-    \footnotetext[1]{\tiny
-      \skillrating{}{5}~owned in production\quad
-      \skillrating{}{4}~strong hands-on use\quad
-      \skillrating{}{3}~comfortable, still learning\quad
-      \skillrating{}{2}~guided exposure\quad
-      \skillrating{}{1}~foundational awareness
+    \footnotetext[1]{\tiny\color{black!55}
+      \textit{Scale (out of 5):}\quad\textbf{5} owned in production\quad\textbf{4} strong hands-on use\quad\textbf{3} comfortable, still learning\quad\textbf{2} coursework-level / guided exposure (\textit{italicised})\quad\textbf{1} foundational awareness
     }
 
 %----------------------------------PROJECTS----------------------------------
@@ -271,20 +269,20 @@
 \begin{itemize}[leftmargin=0.15in, label={}, itemsep=5pt, topsep=0pt, parsep=0pt]
 
     \small\item
-    \textbf{Text2Motion with Physics-Constrained \textit{(in progress)}} \href[pdfnewwindow=true]{\projGenai}{\faExternalLink} \hfill \textbf{2026} \\
-    \footnotesize{Generative AI pipeline converting natural language into realistic 3D motion sequences. Features a modular architecture integrating MoMask for generative transformers, SBERT for semantic parsing, and a PyBullet physics engine to enforce biomechanical constraints and environmental interactions.}
+    \textbf{Text2Motion with Physics-Constrained Generation \textit{(MSc Dissertation, in progress)}} \href[pdfnewwindow=true]{\projGenai}{\faExternalLink} \hfill \textbf{2026} \\
+    \footnotesize{Generative AI pipeline converting natural language prompts into realistic 3D motion sequences. Modular Python architecture: MoMask generative transformers for motion synthesis, SBERT for semantic parsing of input prompts, and a PyBullet physics engine enforcing biomechanical constraints and environmental interactions.}
     
-    % \small\item
-    % \textbf{IDS/IPS Smart Firewall} \href[pdfnewwindow=true]{\projIcs}{\faExternalLink} \hfill \textbf{2026} \\
-    % \footnotesize{Collaborative intelligent firewall system featuring a CNN threat classifier and an RL adversarial agent. Personal contribution focused on system architecture, Snort rule configuration, and developing a DBSCAN clustering module that analyzes runtime payloads to auto-generate rules, reducing ML inference load.}
+    \small\item
+    \textbf{IDS/IPS Smart Firewall} \href[pdfnewwindow=true]{\projIcs}{\faExternalLink} \hfill \textbf{2026} \\
+    \footnotesize{Collaborative intelligent firewall system featuring a CNN threat classifier and an RL adversarial agent. Personal contribution focused on system architecture, Snort rule configuration, and developing a DBSCAN clustering module that analyzes runtime payloads to auto-generate rules, reducing ML inference load. Deployed on Ubuntu Server / Kali Linux.}
 
     \small\item
     \textbf{Hand Gesture Recognition} \href[pdfnewwindow=true]{\projBenexus}{\faExternalLink} \hfill \textbf{2025} \\
-    \footnotesize{YOLOv5n object-detection pipeline for hand gesture recognition (HaGRID dataset). Optimised for NPU/CPU deployment via TFLite INT8 quantisation, CLAHE contrast preprocessing, and temporal smoothing to reduce false positives.}
+    \footnotesize{YOLOv5n object-detection pipeline for hand gesture recognition (HaGRID dataset). Optimised for NPU/CPU deployment via TFLite INT8 quantisation, CLAHE contrast preprocessing, and temporal smoothing to reduce false positives. Developed and benchmarked on Android OS for NXP i.MX.}
 
     \small\item
     \textbf{Med Assist --- Romanian Pharmacy AI Assistant} \href[pdfnewwindow=true]{\projMed}{\faExternalLink} \hfill \textbf{2025--2026} \\
-    \footnotesize{Built end-to-end: a Romanian-language pharmacy chatbot with retrieval-augmented generation over the country's official drug registry (7{,}555 entries, ANMDM). Implemented a safety layer that detects symptom severity and routes users to professional care, plus conversation orchestration that grounds every medicine recommendation in the verified database. Stack: React + TypeScript frontend, FastAPI + Postgres backend, Auth0 JWT authentication, Terraform-managed cloud infrastructure, automated CI quality gates.}
+    \footnotesize{Full-stack RAG chatbot over the Romanian official ANMDM drug registry (7{,}555 entries). React + TypeScript frontend; FastAPI + Pydantic + Postgres backend. Hybrid retrieval combines FAISS dense embeddings, BM25 sparse search, and a cross-encoder reranker; Google Gemini generates the final response, with a safety layer escalating severe symptoms to professional care. Auth0 JWT, Docker, Terraform-managed cloud infrastructure.}
 
     \small\item
     \textbf{Metaheuristic Framework} \href[pdfnewwindow=true]{\projOcs}{\faExternalLink} \hfill \textbf{2025} \\

@@ -53,3 +53,6 @@ Thumbs.db
 # Keep the final PDF (optional - remove this line if you don't want to track the PDF)
 # !resume.pdf
 .docs/
+
+# Local project clones for skill leveling — never commit
+.projects/
