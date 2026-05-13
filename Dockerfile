@@ -60,7 +60,8 @@ RUN tlmgr install \
     babel-english \
     cm-super \
     lm \
-    pgf
+    pgf \
+    xstring
 
 # Set working directory
 WORKDIR /latex
