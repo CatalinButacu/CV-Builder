@@ -119,3 +119,112 @@
         font-size: 0.75rem;
         color: var(--fg-subtle);
     }
+
+/* Hero panel */
+.stack-layers {
+    margin: 0;
+    padding: 1.5rem;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-elev-2);
+}
+
+    .stack-layers figcaption {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .stack-layers .lights {
+        display: flex;
+        gap: 0.375rem;
+    }
+
+        .stack-layers .lights i {
+            width: 0.625rem;
+            height: 0.625rem;
+            border-radius: 50%;
+            background: var(--line-strong);
+        }
+
+            .stack-layers .lights i:last-child {
+                background: var(--accent);
+            }
+
+    .stack-layers .range {
+        margin-left: auto;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: var(--fg-subtle);
+    }
+
+    .stack-layers ol {
+        position: relative;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+        .stack-layers ol::before {
+            content: "";
+            position: absolute;
+            top: 0.75rem;
+            bottom: 0.75rem;
+            left: 11px;
+            width: 1px;
+            background: linear-gradient(var(--accent), var(--line-strong), var(--counter));
+        }
+
+    .stack-layers ol > li {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1.5rem minmax(0, 1fr);
+        gap: 1rem;
+        padding-block: 0.75rem;
+        border-bottom: 1px solid var(--line);
+    }
+
+        .stack-layers ol > li:last-child {
+            border-bottom: 0;
+        }
+
+    .stack-layers .step {
+        display: grid;
+        place-items: center;
+        width: 23px;
+        height: 23px;
+        margin-top: 0.25rem;
+        border: 1px solid var(--line-strong);
+        border-radius: 50%;
+        background: var(--surface);
+        color: var(--fg-subtle);
+        font-family: var(--font-mono);
+        font-size: 10px;
+    }
+
+    .stack-layers li:first-child .step {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    .stack-layers li > div {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.375rem 1rem;
+    }
+
+    .stack-layers .label {
+        font-weight: 600;
+    }
+
+    .stack-layers a.chip {
+        text-decoration: none;
+        transition: border-color 0.2s, color 0.2s;
+    }
+
+        .stack-layers a.chip:hover {
+            border-color: var(--accent);
+            color: var(--fg);
+        }

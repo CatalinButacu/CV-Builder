@@ -1,0 +1,50 @@
+@* Hero panel: the kinds of work I do, each with the projects that back it up. *@
+<figure class="stack-layers surface">
+    <figcaption>
+        <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="mono-label">What I build</span>
+        <span class="range" aria-hidden="true">model → desktop</span>
+    </figcaption>
+    <ol>
+        @for (var i = 0; i < Layers.Length; i++)
+        {
+            var layer = Layers[i];
+            <li>
+                <span class="step" aria-hidden="true">@((i + 1).ToString("00"))</span>
+                <div>
+                    <span class="label">@layer.Label</span>
+                    <ul class="chips" aria-label="Backed by">
+                        @foreach (var slug in layer.Proof)
+                        {
+                            var project = ProjectCatalog.Find(slug);
+                            <li>
+                                @if (project is not null)
+                                {
+                                    <a class="chip" href="@project.Repo" target="_blank" rel="noopener">@project.Title</a>
+                                }
+                                else
+                                {
+                                    <span class="chip">@slug</span>
+                                }
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </li>
+        }
+    </ol>
+</figure>
+
+@code {
+    private sealed record Layer(string Label, string[] Proof);
+
+    // Proof entries are project slugs; anything else is shown as plain text.
+    private static readonly Layer[] Layers =
+    [
+        new("Generative AI & LLM apps", ["med-assist", "text2motion"]),
+        new("Computer vision at the edge", ["hand-gesture"]),
+        new("ML & optimisation", ["brain-age", "metaheuristics"]),
+        new("ML for security", ["smart-firewall"]),
+        new("Desktop & enterprise C++/Qt", ["Gemini CAD Systems"]),
+    ];
+}
