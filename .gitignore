@@ -69,3 +69,9 @@ Makefile
 # .NET build output
 bin/
 obj/
+# Playwright CLI output (may contain credentials)
+.playwright-cli/
+.playwright/
+
+# Record of installed agent skills (the skills live in the ignored .claude/ folder)
+skills-lock.json
