@@ -1,21 +1,30 @@
-// Animated background: a first-person view from inside a neural network.
+// Animated background: a first-person view from inside a transformer.
 //
-// You are standing between the layers, looking along the direction the data
-// flows. Each layer is an ordered grid of neurons on a plane facing you; the
-// planes recede into the distance, each wired to the next. The view drifts
-// slowly forward, so layers pass by you and new ones come out of the haze,
+// You are standing in the residual stream, looking along the direction the
+// data flows. The network is a stack of identical blocks, and each block is
+// three planes of neurons facing you:
+//
+//   1. the stream: one column of neurons per token, eight tokens side by side;
+//   2. the stream after ATTENTION: signals cross from one token's column to
+//      another's along curved arcs, the only place where tokens exchange
+//      information;
+//   3. the FEED-FORWARD hidden layer: each token on its own is widened into
+//      two columns, then narrowed back into the next block's stream.
+//
+// Straight wires run through from each neuron to its counterpart further on:
+// the residual connection. The view drifts slowly forward, block after block,
 // without end.
 //
-// Every few seconds a signal starts on the layer just ahead of you and travels
-// away into the network. It is a real cascade: a neuron that fires hands the
-// signal to one or two of the neurons it is wired to, a spark runs along that
-// wire, and the neuron at the far end fires in turn. No spark starts or ends
-// in mid-air, so a signal can be followed from layer to layer.
+// Every few seconds a signal starts just ahead of you and travels away. A
+// neuron that fires passes the signal down the wires it has, a spark runs
+// along each wire, and the neuron at the far end fires in turn, so a signal
+// can be followed: across tokens through attention, out and back through the
+// feed-forward layer, block after block.
 //
-// Nothing here is truly random. The wiring of layer k and the path of signal
-// number w are fixed by formulas, and UTC time only says where the viewer is
-// and how far each signal has got. A refresh, or another visitor, picks the
-// scene up exactly where it was.
+// Nothing here is truly random. Which token attends to which, and the path of
+// signal number w, are fixed by formulas, and UTC time only says where the
+// viewer is and how far each signal has got. A refresh, or another visitor,
+// picks the scene up exactly where it was.
 (() => {
     const canvas = document.querySelector('.backdrop canvas');
     if (!canvas) return;
@@ -24,13 +33,13 @@
     const root = document.documentElement;
     const still = matchMedia('(prefers-reduced-motion: reduce)');
 
-    const COLS = 9, ROWS = 6;      // neurons in one layer
-    const SIZE = COLS * ROWS;
-    const SPEED = 0.11;            // layers the viewer drifts past per second
-    const FAR = 7;                 // layers further ahead than this are lost in the haze
-    const EVERY = 2.4;             // seconds between one signal starting and the next
-    const HOP = 0.75;              // seconds for a signal to cross from one layer to the next
-    const REACH = 8;               // layers a signal travels before it is out of sight
+    const TOKENS = 8;    // columns
+    const WIDTH = 6;     // neurons per token in the stream
+    const SPEED = 0.14;  // planes the viewer drifts past per second
+    const FAR = 7.5;     // planes further ahead than this are lost in the haze
+    const EVERY = 2.6;   // seconds between one signal starting and the next
+    const HOP = 0.8;     // seconds for a signal to cross from one plane to the next
+    const REACH = 9;     // planes a signal travels before it is out of sight
     const FRAME = 1000 / 30;
 
     // A repeatable value between 0 and 1 for a pair of whole numbers.
@@ -41,64 +50,93 @@
         return ((h ^ (h >>> 15)) >>> 0) / 4294967296;
     };
 
-    // --- The network. A neuron is (layer k, index i); i runs across the grid row by row.
-    // Position on its plane, in plane units: an even grid with a slight hand-set wobble.
+    // --- The architecture. Plane k is one of three kinds, repeating.
+    const STREAM = 0, ATTENDED = 1, HIDDEN = 2;
+    const kind = (k) => ((k % 3) + 3) % 3;
+    const count = (k) => kind(k) === HIDDEN ? TOKENS * WIDTH * 2 : TOKENS * WIDTH;
+
+    // A neuron is (plane k, index i). In the stream i = token * WIDTH + row;
+    // in the hidden layer each token has two sub-columns of WIDTH neurons.
+    const where = (k, i) => {
+        if (kind(k) !== HIDDEN) return { token: Math.floor(i / WIDTH), half: -1, row: i % WIDTH };
+        return { token: Math.floor(i / (WIDTH * 2)), half: Math.floor(i / WIDTH) % 2, row: i % WIDTH };
+    };
+    const columnX = (token) => -1.6 + 3.2 * (token + 0.5) / TOKENS;
+    const rowY = (row) => -0.9 + 1.8 * (row + 0.5) / WIDTH;
     const spot = (k, i) => {
-        const col = i % COLS, row = Math.floor(i / COLS);
-        return [
-            -1.6 + 3.2 * (col + 0.5) / COLS + (hash(k * 131 + i, 1) - 0.5) * 0.05,
-            -1 + 2 * (row + 0.5) / ROWS + (hash(k * 131 + i, 2) - 0.5) * 0.05,
-        ];
+        const { token, half, row } = where(k, i);
+        return [columnX(token) + (half < 0 ? 0 : (half - 0.5) * 0.17), rowY(row)];
     };
 
-    // The three neurons of the next layer that neuron (k, i) is wired to: the
-    // one straight ahead and two of its neighbours.
+    // The tokens that read from `token` in the attention step of plane k: one or two others.
+    const readers = (k, token) => {
+        const out = [];
+        for (let n = 0; out.length < 2 && n < 6; n++) {
+            const other = Math.floor(hash(k * 16 + token, 20 + n) * TOKENS);
+            if (other !== token && !out.includes(other) && (out.length === 0 || hash(k * 16 + token, 9) < 0.6)) out.push(other);
+        }
+        return out;
+    };
+
+    // The wires leaving neuron (k, i) for the next plane. `arc` marks attention, which crosses between tokens.
     const wiring = new Map();
     const wires = (k, i) => {
-        const key = k * SIZE + i;
+        const key = k * 128 + i;
         let out = wiring.get(key);
         if (out) return out;
-        const col = i % COLS, row = Math.floor(i / COLS);
-        out = [i];
-        for (let n = 0; out.length < 3 && n < 12; n++) {
-            const c = col + Math.round((hash(key, 10 + n) - 0.5) * 3), r = row + Math.round((hash(key, 40 + n) - 0.5) * 3);
-            const j = r * COLS + c;
-            if (c >= 0 && c < COLS && r >= 0 && r < ROWS && !out.includes(j)) out.push(j);
+        const { token, half, row } = where(k, i);
+        const type = kind(k);
+        if (type === STREAM) {
+            // Attention: straight on (the residual), and across to every token that reads from this one.
+            out = [{ to: i, arc: false }, ...readers(k, token).map((other) => ({ to: other * WIDTH + row, arc: true }))];
+        } else if (type === ATTENDED) {
+            // Feed-forward, widening: to both sub-columns of the same token, and one neighbour.
+            const near = Math.max(0, Math.min(WIDTH - 1, row + (hash(key, 3) < 0.5 ? -1 : 1)));
+            const base = token * WIDTH * 2;
+            out = [{ to: base + row, arc: false }, { to: base + WIDTH + row, arc: false }, { to: base + (hash(key, 4) < 0.5 ? 0 : WIDTH) + near, arc: false }];
+        } else {
+            // Feed-forward, narrowing: back to the same token's stream.
+            const near = Math.max(0, Math.min(WIDTH - 1, row + (half ? 1 : -1)));
+            out = [{ to: token * WIDTH + row, arc: false }, { to: token * WIDTH + near, arc: false }];
         }
-        if (wiring.size > 4000) wiring.clear();
+        if (wiring.size > 6000) wiring.clear();
         wiring.set(key, out);
         return out;
     };
 
-    // --- The signals. Signal w starts at a fixed time on the layer then just ahead of the viewer.
+    // --- The signals. Signal w starts at a fixed time on a plane then just ahead of the viewer.
     const startsAt = (w) => w * EVERY + hash(w, 7) * 0.8;
     // Between half a step and a step and a half ahead, so the first flash is close but in view.
-    const startLayer = (w) => Math.floor(startsAt(w) * SPEED + 0.5) + 1;
+    const startPlane = (w) => Math.floor(startsAt(w) * SPEED + 0.5) + 1;
 
-    // The whole path of signal w: for each layer it crosses, which neurons fire
+    // The whole path of signal w: for each plane it crosses, which neurons fire
     // and which wires carry it onward.
     const paths = new Map();
     const pathOf = (w) => {
         let steps = paths.get(w);
         if (steps) return steps;
 
-        const first = startLayer(w);
-        // It begins on three or four neurons of the first layer.
-        let firing = Array.from({ length: SIZE }, (_, i) => i)
-            .sort((p, q) => hash(w * 977 + p, 3) - hash(w * 977 + q, 3)).slice(0, 3 + Math.floor(hash(w, 4) * 2));
+        const first = startPlane(w);
+        // It begins on a few neurons of one token.
+        const token = Math.floor(hash(w, 4) * TOKENS);
+        const perToken = count(first) / TOKENS;
+        let firing = [0, 1, 2].map((n) => token * perToken + Math.floor(hash(w * 13 + n, 5) * perToken));
+        firing = [...new Set(firing)];
         steps = [];
         for (let hop = 0; hop < REACH; hop++) {
             const k = first + hop;
             const sparks = [];
             for (const i of firing) {
-                // Each firing neuron passes the signal down its favourite wire, and sometimes a second.
-                const ranked = wires(k, i).map((j) => ({ j, pick: hash(w * 31 + k, i * 64 + j) })).sort((p, q) => p.pick - q.pick);
-                sparks.push({ from: i, to: ranked[0].j });
-                if (ranked[1] && ranked[1].pick < 0.42) sparks.push({ from: i, to: ranked[1].j });
+                const options = wires(k, i);
+                // Attention always carries the signal across to the reading tokens. Elsewhere the
+                // neuron uses its first wire and, about half the time, a second.
+                options.forEach((wire, n) => {
+                    if (wire.arc || n === 0 || hash(w * 31 + k, i * 8 + n) < 0.5) sparks.push({ from: i, to: wire.to, arc: wire.arc });
+                });
             }
             steps.push({ k, firing, sparks });
-            // The neurons reached fire next; the cascade is kept from flooding the layer.
-            firing = [...new Set(sparks.map((s) => s.to))].slice(0, 9);
+            // The neurons reached fire next; the cascade is kept from flooding the plane.
+            firing = [...new Set(sparks.map((s) => s.to))].slice(0, 10);
         }
         if (paths.size > 12) paths.clear();
         paths.set(w, steps);
@@ -116,7 +154,7 @@
         canvas.width = width * ratio;
         canvas.height = height * ratio;
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-        // A layer one step ahead just about fills the window, so you are inside it.
+        // A plane one step ahead just about fills the window, so you are inside it.
         focal = Math.max(width / 3.3, height / 2.05);
     };
 
@@ -130,46 +168,75 @@
     const clamp = (v) => Math.max(0, Math.min(1, v));
     const smooth = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
 
-    // Perspective: a point on layer k, seen from where the viewer is now.
+    // Perspective: a point at a given depth ahead of the viewer.
     const project = (x, y, depth) => [width / 2 + (x - swayX) * focal / depth, height / 2 + (y - swayY) * focal / depth];
     const see = (k, i) => { const [x, y] = spot(k, i); return project(x, y, k - viewer); };
-    // Faint in the distance, and fading out as a layer passes the viewer.
+    // Faint in the distance, and fading out as a plane passes the viewer.
     const haze = (depth) => clamp((FAR - depth) / 3.5) * clamp((depth - 0.12) / 0.45);
 
-    // One layer at rest: its grid lines, the wires leaving it, and its neurons.
-    const drawLayer = (k) => {
+    // The screen path of a wire from (k, from) to (k + 1, to): two ends and, for
+    // attention, a control point that lifts it into an arc over (or under) the columns.
+    const route = (k, from, to, arc) => {
+        const [ax, ay] = spot(k, from), [bx, by] = spot(k + 1, to);
+        const [x1, y1] = project(ax, ay, k - viewer), [x2, y2] = project(bx, by, k + 1 - viewer);
+        if (!arc) return [x1, y1, (x1 + x2) / 2, (y1 + y2) / 2, x2, y2];
+        const lift = (0.3 + 0.5 * Math.abs(bx - ax) / 3.2) * (ay < 0 ? -1 : 1);
+        const [cx, cy] = project((ax + bx) / 2, ay + lift, k + 0.5 - viewer);
+        return [x1, y1, cx, cy, x2, y2];
+    };
+    const stroke = (r) => { ctx.moveTo(r[0], r[1]); ctx.quadraticCurveTo(r[2], r[3], r[4], r[5]); };
+    const pointOn = (r, u) => {
+        const v = 1 - u;
+        return [v * v * r[0] + 2 * v * u * r[2] + u * u * r[4], v * v * r[1] + 2 * v * u * r[3] + u * u * r[5]];
+    };
+
+    // A spine down each column, which is what makes a column read as one token.
+    const drawSpines = (points, fog) => {
+        ctx.strokeStyle = colours[0];
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.16 * fog;
+        ctx.beginPath();
+        for (let i = 0; i < points.length; i += WIDTH) {
+            ctx.moveTo(points[i][0], points[i][1]);
+            ctx.lineTo(points[i + WIDTH - 1][0], points[i + WIDTH - 1][1]);
+        }
+        ctx.stroke();
+    };
+
+    // The wires from plane k to the next, at rest. Straight ones are the residual
+    // stream and the feed-forward fans. Attention arcs are in the second colour,
+    // and only the top and bottom rows are drawn, so they form a canopy without
+    // hiding the columns.
+    const drawWires = (k, total, fade) => {
+        ctx.strokeStyle = colours[0];
+        ctx.globalAlpha = 0.06 * fade;
+        ctx.beginPath();
+        for (let i = 0; i < total; i++) for (const wire of wires(k, i)) if (!wire.arc) stroke(route(k, i, wire.to, false));
+        ctx.stroke();
+        if (kind(k) !== STREAM) return;
+
+        ctx.strokeStyle = colours[1];
+        ctx.globalAlpha = 0.2 * fade;
+        ctx.beginPath();
+        for (let i = 0; i < total; i++) {
+            const edge = i % WIDTH === 0 || i % WIDTH === WIDTH - 1;
+            if (edge) for (const wire of wires(k, i)) if (wire.arc) stroke(route(k, i, wire.to, true));
+        }
+        ctx.stroke();
+    };
+
+    // One plane at rest: its token columns, the wires leaving it, and its neurons.
+    const drawPlane = (k) => {
         const depth = k - viewer;
         const fog = haze(depth);
         if (fog <= 0) return;
-        const points = Array.from({ length: SIZE }, (_, i) => see(k, i));
+        const total = count(k);
+        const points = Array.from({ length: total }, (_, i) => see(k, i));
 
-        // The lattice that makes the plane read as a layer.
-        ctx.strokeStyle = colours[0];
-        ctx.lineWidth = 1;
-        ctx.globalAlpha = 0.13 * fog;
-        ctx.beginPath();
-        for (let i = 0; i < SIZE; i++) {
-            if (i % COLS < COLS - 1) { ctx.moveTo(points[i][0], points[i][1]); ctx.lineTo(points[i + 1][0], points[i + 1][1]); }
-            if (i + COLS < SIZE) { ctx.moveTo(points[i][0], points[i][1]); ctx.lineTo(points[i + COLS][0], points[i + COLS][1]); }
-        }
-        ctx.stroke();
+        drawSpines(points, fog);
+        const ahead = Math.min(fog, haze(depth + 1));
+        if (ahead > 0) drawWires(k, total, ahead);
 
-        // The wires on to the next layer, running away from you.
-        const next = depth + 1;
-        if (haze(next) > 0) {
-            ctx.globalAlpha = 0.07 * Math.min(fog, haze(next));
-            ctx.beginPath();
-            for (let i = 0; i < SIZE; i++) {
-                for (const j of wires(k, i)) {
-                    const [x, y] = see(k + 1, j);
-                    ctx.moveTo(points[i][0], points[i][1]);
-                    ctx.lineTo(x, y);
-                }
-            }
-            ctx.stroke();
-        }
-
-        // The neurons at rest.
         const radius = Math.max(0.8, Math.min(11, 0.014 * focal / depth));
         ctx.fillStyle = colours[0];
         ctx.globalAlpha = 0.3 * fog;
@@ -196,19 +263,18 @@
         ctx.fill();
     };
 
-    // The wire from (k, from) to (k + 1, to), lit, with a spark `u` of the way along it.
+    // A wire lit up, with a spark `u` of the way along it.
     const drawSpark = (k, spark, u, colour) => {
         const near = k - viewer, far = near + 1;
         const fog = Math.min(haze(near), haze(far));
         if (fog <= 0) return;
-        const [x1, y1] = see(k, spark.from), [x2, y2] = see(k + 1, spark.to);
+        const r = route(k, spark.from, spark.to, spark.arc);
         ctx.strokeStyle = ctx.fillStyle = colour;
         // The wire glows while the spark is on it, and cools afterwards.
         ctx.globalAlpha = fog * (u < 1 ? 0.25 + 0.5 * Math.sin(u * Math.PI) : 0.35 * (1 - (u - 1) / 0.8));
         ctx.lineWidth = Math.max(1, Math.min(2.4, 0.003 * focal / far));
         ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
+        stroke(r);
         ctx.stroke();
         if (u >= 1) return;
         const head = smooth(u);
@@ -217,9 +283,10 @@
         for (let tail = 0; tail < 4; tail++) {
             const at = head - tail * 0.05;
             if (at <= 0) return;
+            const [x, y] = pointOn(r, at);
             ctx.globalAlpha = fog * (1 - tail * 0.23);
             ctx.beginPath();
-            ctx.arc(x1 + (x2 - x1) * at, y1 + (y2 - y1) * at, size * (1 - tail * 0.16), 0, Math.PI * 2);
+            ctx.arc(x, y, size * (1 - tail * 0.16), 0, Math.PI * 2);
             ctx.fill();
         }
     };
@@ -232,7 +299,7 @@
 
     // One signal, as far as it has got.
     const drawSignal = (w, t) => {
-        const phase = (t - startsAt(w)) / HOP; // layers crossed so far
+        const phase = (t - startsAt(w)) / HOP; // planes crossed so far
         if (phase < 0) return;
         const colour = colours[((w % 2) + 2) % 2];
         for (const [hop, step] of pathOf(w).entries()) {
@@ -254,8 +321,8 @@
         ctx.globalCompositeOperation = dark ? 'lighter' : 'source-over'; // overlapping lights add up
         ctx.lineCap = 'round';
 
-        // The layers ahead, from the furthest to the nearest.
-        for (let k = Math.floor(viewer + FAR); k > viewer; k--) drawLayer(k);
+        // The planes ahead, from the furthest to the nearest.
+        for (let k = Math.floor(viewer + FAR); k > viewer; k--) drawPlane(k);
 
         // Every signal still within sight.
         const latest = Math.floor(t / EVERY);
