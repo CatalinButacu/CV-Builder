@@ -72,9 +72,9 @@ body::before {
     pointer-events: none;
 }
 
-/* Animated background: js/backdrop.js trains a small neural network on this
-   canvas, on a schedule set by the UTC clock. Kept faint, and fainter still
-   towards the bottom left, so the page text stays easy to read over it. */
+/* Animated background: js/backdrop.js draws a web of neurons with waves of
+   activity passing through it. Fainter towards the bottom left, so the page
+   text stays easy to read over it. */
 .backdrop {
     position: fixed;
     inset: 0;
