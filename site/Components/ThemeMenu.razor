@@ -1,0 +1,71 @@
+@* Header control for colour mode and accent. The choice is stored by js/theme.js. *@
+@inject IJSRuntime JS
+
+<div class="theme-menu" @onkeydown="OnKeyDown">
+    <button type="button" class="theme-button" aria-label="Theme settings" aria-expanded="@(open ? "true" : "false")" @onclick="() => open = !open">
+        ◐
+    </button>
+
+    @if (open)
+    {
+        <div class="theme-panel surface">
+            <p class="mono-label">Mode</p>
+            <div class="segmented" role="radiogroup" aria-label="Colour mode">
+                @foreach (var option in Modes)
+                {
+                    <button type="button" role="radio" aria-checked="@(option == mode ? "true" : "false")" @onclick="() => Apply(option, accent)">
+                        @option
+                    </button>
+                }
+            </div>
+
+            <p class="mono-label">Accent</p>
+            <div class="swatches" role="radiogroup" aria-label="Accent colour">
+                @foreach (var option in Accents)
+                {
+                    <button type="button" role="radio" class="swatch" style="--swatch-h: @option.Hue" title="@option.Name" aria-label="@option.Name"
+                            aria-checked="@(option.Name == accent ? "true" : "false")" @onclick="() => Apply(mode, option.Name)">
+                    </button>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private sealed record Prefs(string Mode, string Accent);
+
+    private sealed record AccentOption(string Name, int Hue);
+
+    private static readonly string[] Modes = ["system", "light", "dark"];
+
+    // Hues match the [data-accent] rules in css/tokens.css.
+    private static readonly AccentOption[] Accents =
+    [
+        new("blue", 255), new("violet", 300), new("cyan", 215), new("emerald", 160), new("amber", 75), new("rose", 15),
+    ];
+
+    private bool open;
+    private string mode = "system";
+    private string accent = "blue";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        var saved = await JS.InvokeAsync<Prefs>("theme.get");
+        (mode, accent) = (saved.Mode, saved.Accent);
+        StateHasChanged();
+    }
+
+    private async Task Apply(string newMode, string newAccent)
+    {
+        (mode, accent) = (newMode, newAccent);
+        await JS.InvokeVoidAsync("theme.set", mode, accent);
+    }
+
+    private void OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape") open = false;
+    }
+}

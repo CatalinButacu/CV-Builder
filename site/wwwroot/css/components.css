@@ -521,6 +521,7 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
+    margin-left: auto;
 }
 
     .header nav a {
@@ -809,4 +810,90 @@
 
     .certs li::marker {
         color: var(--success);
+    }
+
+/* Theme menu */
+.theme-menu {
+    position: relative;
+}
+
+.theme-button {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--fg-muted);
+    font-size: 1.125rem;
+    cursor: pointer;
+}
+
+    .theme-button:hover {
+        background: var(--accent-soft);
+        color: var(--fg);
+    }
+
+.theme-panel {
+    position: absolute;
+    top: calc(100% + 0.75rem);
+    right: 0;
+    display: grid;
+    gap: 0.75rem;
+    width: 16rem;
+    padding: 1rem;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-elev-3);
+}
+
+    .theme-panel p {
+        margin: 0;
+    }
+
+.segmented {
+    display: flex;
+    padding: 0.25rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    background: var(--bg);
+}
+
+    .segmented button {
+        flex: 1;
+        min-height: 2.25rem;
+        border: 0;
+        border-radius: var(--radius-pill);
+        background: transparent;
+        color: var(--fg-muted);
+        font: inherit;
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: capitalize;
+        cursor: pointer;
+    }
+
+        .segmented button[aria-checked="true"] {
+            background: var(--surface-raised);
+            color: var(--fg);
+            box-shadow: var(--shadow-elev-1);
+        }
+
+.swatches {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.swatch {
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    background: oklch(0.62 0.16 var(--swatch-h));
+    background-clip: padding-box;
+    cursor: pointer;
+}
+
+    .swatch[aria-checked="true"] {
+        border-color: var(--fg);
     }
