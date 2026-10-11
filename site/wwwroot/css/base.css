@@ -35,17 +35,14 @@ a {
         text-decoration: underline;
     }
 
-/* The palette's two colours as soft washes fixed behind the page. */
+/* The palette's two colours as one clear diagonal blend fixed behind the
+   page: first colour top-left, second colour bottom-right. */
 body::before {
     content: "";
     position: fixed;
     inset: 0;
     z-index: -1;
-    background:
-        radial-gradient(70rem 46rem at 0% 0%, var(--mesh-a), transparent 62%),
-        radial-gradient(64rem 50rem at 100% 28%, var(--mesh-b), transparent 60%),
-        radial-gradient(60rem 44rem at 12% 100%, var(--mesh-b), transparent 60%),
-        radial-gradient(54rem 40rem at 95% 100%, var(--mesh-a), transparent 60%);
+    background: linear-gradient(125deg in oklab, var(--mesh-a) 12%, var(--mesh-b) 88%);
     pointer-events: none;
 }
 
