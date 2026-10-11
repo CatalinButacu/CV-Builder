@@ -1,21 +1,21 @@
-// Animated background: a small language-model-style network computing, drawn
-// in 2.5D.
+// Animated background: a small language-model-style network drawn as a stack
+// of solid 3D blocks, computing from top to bottom.
 //
 // The network is a real transformer (two layers, two attention heads) with
 // fixed random weights. Once a minute it is given the UTC date and time as 12
-// digits and run forward. Its ten layers are drawn as tilted sheets standing
-// side by side, all visible at once, and the calculation moves through them
-// one sheet at a time, so the path of the signal can be followed.
+// digits and run forward. Each stage of the calculation is a slab seen from
+// above at an angle; its top face is a grid with one cell per number, lit by
+// the size of that number. The view scrolls down the stack as the data moves
+// from block to block, then rewinds.
 //
-// Every light is a real number from that calculation:
-//   - a cell's brightness is the size of that neuron's activation, its colour the sign;
-//   - a connection's brightness is the strength of the signal it carries
-//     (attention weight, or weight x activation for the feed-forward parts).
+// Reading a block: rows across are the 12 tokens (the digits of the time),
+// the other direction is the values each token carries at that stage. In an
+// attention block a cell shows how much one token looks at another.
 //
-// The input and the step being shown both come from UTC time alone, so a
-// refresh, or another visitor anywhere, sees the same moment of the same pass.
-// The weights are random, not trained, so the prediction is meaningless; what
-// is real is how the numbers flow.
+// The input and the moment being shown both come from UTC time alone, so a
+// refresh, or another visitor anywhere, sees the same thing. The weights are
+// random, not trained, so the prediction is meaningless; what is real is how
+// the numbers flow.
 (() => {
     const canvas = document.querySelector('.backdrop canvas');
     if (!canvas) return;
@@ -31,8 +31,8 @@
     const LAYERS = 2;
     const HIDDEN = 32; // feed-forward width
 
-    const PASS = 60;  // seconds: one forward pass per UTC minute
-    const STAGE = 5;  // seconds for the signal to cross from one sheet to the next
+    const PASS = 60;    // seconds: one forward pass per UTC minute
+    const STAGE = 5;    // seconds per block
     const FRAME = 1000 / 30;
 
     // --- Fixed random weights: the same model for every visitor.
@@ -80,135 +80,78 @@
             + two(d.getUTCHours()) + two(d.getUTCMinutes())).split('').map(Number);
     };
 
-    // --- Where things sit on a layer. Tokens run left to right; the units of
-    // each token are stacked in a column (two columns for the wide layers).
-    const columnX = (token) => -1.5 + 3 * (token + 0.5) / T;
-    const place = (token, unit, count) => {
-        if (count === 1) return [columnX(token), 0];
-        if (count === HIDDEN) return [columnX(token) + (unit % 2 - 0.5) * 0.09, -0.8 + 1.6 * ((unit >> 1) + 0.5) / (count / 2)];
-        const reach = count === V ? 0.5 : 0.8;
-        return [columnX(token), -reach + 2 * reach * (unit + 0.5) / count];
-    };
-
-    // A layer as drawn: its neurons, and the connections arriving from the layer before.
-    const plane = (label, grid, kind) => {
-        const count = grid[0].length;
+    // One slab: a grid of numbers plus how to turn each into a brightness.
+    // kind: 'signed' values, 'share' values between 0 and 1, or 'digit' text.
+    const slab = (grid, kind) => {
         let biggest = 1e-9;
         for (const row of grid) for (const v of row) biggest = Math.max(biggest, Math.abs(v));
-        const nodes = [];
-        grid.forEach((row, token) => row.forEach((v, unit) => {
-            const [x, y] = place(token, unit, count);
-            nodes.push({ x, y, value: v, glow: kind === 'share' ? Math.sqrt(v) : Math.abs(v) / biggest, text: kind === 'digit' ? String(v) : '' });
-        }));
-        return { label, nodes, links: [], count };
+        const brightness = (v) => {
+            if (kind === 'digit') return 1;
+            return kind === 'share' ? Math.sqrt(v) : Math.abs(v) / biggest;
+        };
+        const glow = grid.map((row) => row.map(brightness));
+        return { grid, glow, kind, tokens: grid.length, units: grid[0].length };
     };
 
-    // Connections between two dense layers: for each target unit, its two
-    // strongest incoming signals (weight x activation), per token.
-    const wire = (target, from, weights, source) => {
-        const signals = [];
-        let biggest = 1e-9;
-        source.forEach((row, token) => {
-            for (let u = 0; u < weights[0].length; u++) {
-                const ranked = row.map((a, c) => ({ c, s: a * weights[c][u] })).sort((p, q) => Math.abs(q.s) - Math.abs(p.s)).slice(0, 2);
-                for (const r of ranked) {
-                    biggest = Math.max(biggest, Math.abs(r.s));
-                    signals.push({ token, from: r.c, to: u, s: r.s });
-                }
-            }
-        });
-        for (const g of signals) {
-            const [ax, ay] = place(g.token, g.from, from.count), [bx, by] = place(g.token, g.to, target.count);
-            target.links.push({ ax, ay, bx, by, glow: Math.abs(g.s) / biggest, tone: g.s >= 0 ? 0 : 1 });
-        }
-    };
-
-    // The forward pass for one minute, turned into the layers to draw.
+    // The forward pass for one minute, as the rows of blocks to draw.
     const memo = new Map();
     const build = (minute) => {
-        let planes = memo.get(minute);
-        if (planes) return planes;
+        let rows = memo.get(minute);
+        if (rows) return rows;
 
         const tokens = digitsAt(minute * 60);
-        planes = [plane('UTC time', tokens.map((t) => [t]), 'digit')];
+        rows = [{ label: 'input: UTC date and time', slabs: [slab(tokens.map((t) => [t]), 'digit')] }];
 
         let x = add(tokens.map((t) => tokenEmbedding[t]), positionEmbedding);
-        let current = plane('embedding', x);
-        // Each digit fans out into its 16 embedding values.
-        current.nodes.forEach((n, k) => {
-            current.links.push({ ax: columnX(Math.floor(k / C)), ay: 0, bx: n.x, by: n.y, glow: n.glow, tone: n.value >= 0 ? 0 : 1 });
-        });
-        planes.push(current);
+        rows.push({ label: 'embedding', slabs: [slab(x, 'signed')] });
 
         layers.forEach((layer, l) => {
             const a = normalise(x);
             const q = multiply(a, layer.query), k = multiply(a, layer.key), v = multiply(a, layer.value);
             const width = C / HEADS;
             const mixed = Array.from({ length: T }, () => new Array(C).fill(0));
-            const beams = [];
+            const heads = [];
             for (let h = 0; h < HEADS; h++) {
                 const from = h * width;
-                q.forEach((qi, i) => {
-                    // How much token i attends to each token j.
-                    const share = softmax(k.map((kj) => {
-                        let dot = 0;
-                        for (let c = from; c < from + width; c++) dot += qi[c] * kj[c];
-                        return dot / Math.sqrt(width);
-                    }));
-                    share.forEach((w, j) => {
-                        for (let c = from; c < from + width; c++) mixed[i][c] += w * v[j][c];
-                        // One head arcs over the top of the columns, the other under the bottom.
-                        if (w > 0.05) beams.push({ ax: columnX(j), ay: h ? 0.92 : -0.92, bx: columnX(i), by: h ? 0.92 : -0.92, glow: Math.sqrt(w), tone: h });
-                    });
-                });
+                // attention[i][j]: how much token i looks at token j.
+                const attention = q.map((qi) => softmax(k.map((kj) => {
+                    let dot = 0;
+                    for (let c = from; c < from + width; c++) dot += qi[c] * kj[c];
+                    return dot / Math.sqrt(width);
+                })));
+                attention.forEach((weights, i) => weights.forEach((w, j) => {
+                    for (let c = from; c < from + width; c++) mixed[i][c] += w * v[j][c];
+                }));
+                heads.push(slab(attention, 'share'));
             }
+            rows.push({ label: `layer ${l + 1}: attention, two heads`, slabs: heads });
             x = add(x, multiply(mixed, layer.out));
-            const attended = plane(`L${l + 1} attention`, x);
-            attended.links = beams;
-            planes.push(attended);
 
-            const input = normalise(x);
-            const hidden = multiply(input, layer.up).map((row) => row.map(gelu));
-            const wide = plane(`L${l + 1} feed-forward`, hidden);
-            wire(wide, attended, layer.up, input);
-            planes.push(wide);
+            const hidden = multiply(normalise(x), layer.up).map((row) => row.map(gelu));
+            rows.push({ label: `layer ${l + 1}: feed-forward`, slabs: [slab(hidden, 'signed')] });
 
             x = add(x, multiply(hidden, layer.down));
-            const merged = plane(`L${l + 1} residual`, x);
-            wire(merged, wide, layer.down, hidden);
-            planes.push(merged);
-            current = merged;
+            rows.push({ label: `layer ${l + 1}: output`, slabs: [slab(x, 'signed')] });
         });
 
-        const final = normalise(x);
-        const probability = multiply(final, unembedding).map(softmax);
-        const scores = plane('probabilities', probability, 'share');
-        wire(scores, current, unembedding, final);
-        planes.push(scores);
-
-        const answer = plane('prediction', probability.map((row) => [row.indexOf(Math.max(...row))]), 'digit');
-        probability.forEach((row, token) => {
-            const best = row.indexOf(Math.max(...row));
-            const [ax, ay] = place(token, best, V);
-            answer.links.push({ ax, ay, bx: columnX(token), by: 0, glow: Math.sqrt(row[best]), tone: 0 });
-        });
-        planes.push(answer);
+        const probability = multiply(normalise(x), unembedding).map(softmax);
+        rows.push(
+            { label: 'probability of each digit', slabs: [slab(probability, 'share')] },
+            { label: 'prediction', slabs: [slab(probability.map((row) => [row.indexOf(Math.max(...row))]), 'digit')] },
+        );
 
         if (memo.size > 3) memo.clear();
-        memo.set(minute, planes);
-        return planes;
+        memo.set(minute, rows);
+        return rows;
     };
 
-    // --- The 2.5D view. Nothing is in perspective: a point on sheet k at
-    // sheet coordinates (x, y) lands at  origin + x * EX + y * EY + k * EZ.
-    // EX tilts each sheet away from the viewer, EZ steps to the next sheet.
-    const EX = [0.34, 0.17], EY = [0, 0.5], EZ = [0.95, -0.12];
-    const SHEETS = 3 + LAYERS * 3 + 1; // input, embedding, three per layer, probabilities, prediction
+    // --- Layout. Blocks are drawn in isometric view: one step along the token
+    // axis goes right and down, one step along the unit axis goes left and down.
+    const RIGHT = 0.866, DOWN = 0.5;
+    const BLOCKS = 4 + LAYERS * 3;
 
-    let width = 0, height = 0, unit = 0, originX = 0, originY = 0;
-    let colours = ['#888', '#888'], ink = '#888', paper = '#000', lastDraw = 0;
-
-    const project = (x, y, k) => [originX + (x * EX[0] + k * EZ[0]) * unit, originY + (x * EX[1] + y * EY[1] + k * EZ[1]) * unit];
+    let width = 0, height = 0, cell = 0, thick = 0, gap = 0;
+    let colours = ['#888', '#888'], ink = '#888', surface = '#222', lastDraw = 0;
 
     const resize = () => {
         const ratio = Math.min(devicePixelRatio || 1, 2);
@@ -218,132 +161,173 @@
         canvas.height = height * ratio;
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
-        // Size of the whole row of sheets in units, then scale it to fit the window.
-        const wide = 3.2 * EX[0] + (SHEETS - 1) * EZ[0];
-        const tall = 3.2 * EX[1] + 2 * EY[1] + (SHEETS - 1) * -EZ[1];
-        unit = Math.min(width * 0.94 / wide, height * 0.8 / tall);
-        originX = (width - wide * unit) / 2 + 1.6 * EX[0] * unit;
-        originY = (height - tall * unit) / 2 + (SHEETS - 1) * -EZ[1] * unit + EY[1] * unit + 1.6 * EX[1] * unit;
+        // Cell size: the widest block (feed-forward) should fit comfortably.
+        cell = Math.max(3.5, Math.min(14, width * 0.82 / ((T + HIDDEN) * RIGHT), height / 50));
+        thick = cell * 1.6; // how tall each slab stands
+        gap = cell * 6;     // vertical space between blocks
     };
 
-    // The palette's two colours, the text colour and the page colour, as resolved by the stylesheet.
+    // The palette's two colours, the text colour and the card colour, as resolved by the stylesheet.
     const readColours = () => {
         const style = getComputedStyle(root);
         colours = [style.getPropertyValue('--accent').trim(), style.getPropertyValue('--counter').trim()];
         ink = style.getPropertyValue('--fg').trim();
-        paper = style.getPropertyValue('--bg').trim();
+        surface = style.getPropertyValue('--surface-raised').trim();
     };
 
     const clamp = (v) => Math.max(0, Math.min(1, v));
     const smooth = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
 
-    // A four-cornered tile lying in sheet k, centred on (x, y).
-    const tile = (x, y, k, halfX, halfY) => {
-        const corners = [[-halfX, -halfY], [halfX, -halfY], [halfX, halfY], [-halfX, halfY]];
+    const slabHeight = (s) => (s.tokens + s.units) * DOWN * cell + thick;
+    const slabWidth = (s) => (s.tokens + s.units) * RIGHT * cell;
+    const rowHeight = (row) => Math.max(...row.slabs.map(slabHeight));
+
+    const quad = (points) => {
         ctx.beginPath();
-        corners.forEach(([dx, dy], n) => {
-            const [px, py] = project(x + dx, y + dy, k);
-            if (n) ctx.lineTo(px, py); else ctx.moveTo(px, py);
-        });
+        points.forEach(([x, y], n) => { if (n) ctx.lineTo(x, y); else ctx.moveTo(x, y); });
         ctx.closePath();
     };
 
-    // The sheet itself: a faint pane that hides what is behind it, outlined
-    // more strongly while the signal is arriving.
-    const drawSheet = (k, active, curtain) => {
-        tile(0, 0, k, 1.6, 0.96);
-        ctx.globalAlpha = 0.55 * curtain;
-        ctx.fillStyle = paper;
-        ctx.fill();
-        ctx.globalAlpha = (0.16 + 0.7 * active) * curtain;
-        ctx.strokeStyle = active > 0 ? colours[0] : ink;
-        ctx.lineWidth = 1 + active;
-        ctx.stroke();
-    };
+    // One slab. (cx, top) is where the centre of its top edge goes on screen.
+    // lit: 0..1, how much of the block has received its values yet.
+    const drawSlab = (s, cx, top, lit, fade) => {
+        const { tokens: I, units: J } = s;
+        // Screen position of grid corner (i, j) on the top face.
+        const ox = cx - (I - J) * RIGHT * cell / 2;
+        const at = (i, j) => [ox + (i - j) * RIGHT * cell, top + (i + j) * DOWN * cell];
 
-    // Connections arriving from the previous sheet, growing as the signal travels.
-    const drawLinks = (links, k, reached, curtain) => {
-        if (reached <= 0) return;
-        const travelling = reached < 1;
-        for (const link of links) {
-            const alpha = curtain * (travelling ? 0.06 + 0.9 * link.glow : 0.28 * link.glow);
-            if (alpha < 0.03) continue;
-            const [x1, y1] = project(link.ax, link.ay, k - 1);
-            const [x2, y2] = project(link.bx, link.by, k);
-            const ex = x1 + (x2 - x1) * reached, ey = y1 + (y2 - y1) * reached;
-            ctx.globalAlpha = alpha;
-            ctx.strokeStyle = ctx.fillStyle = colours[link.tone];
-            ctx.lineWidth = link.glow > 0.6 ? 1.6 : 1;
-            ctx.beginPath();
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(ex, ey);
-            ctx.stroke();
-            if (travelling && link.glow > 0.3) { // the head of the signal
-                ctx.globalAlpha = Math.min(1, alpha * 2.5);
-                ctx.beginPath();
-                ctx.arc(ex, ey, 2, 0, Math.PI * 2);
+        // The two visible sides, darker than the top.
+        const [lx, ly] = at(0, J), [bx, by] = at(I, J), [rx, ry] = at(I, 0);
+        ctx.fillStyle = colours[0];
+        ctx.globalAlpha = fade * 0.3;
+        quad([[lx, ly], [bx, by], [bx, by + thick], [lx, ly + thick]]);
+        ctx.fill();
+        ctx.globalAlpha = fade * 0.18;
+        quad([[bx, by], [rx, ry], [rx, ry + thick], [bx, by + thick]]);
+        ctx.fill();
+
+        // The top face: a solid plate with the cells on it.
+        ctx.globalAlpha = fade * 0.9;
+        ctx.fillStyle = surface;
+        quad([at(0, 0), at(I, 0), at(I, J), at(0, J)]);
+        ctx.fill();
+
+        const inset = 0.08;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = `600 ${Math.max(7, cell * 0.95)}px ui-monospace, Consolas, monospace`;
+        for (let i = 0; i < I; i++) {
+            // Values arrive token by token, sweeping across the block.
+            const here = smooth(lit * 1.5 - (i / I) * 0.5);
+            for (let j = 0; j < J; j++) {
+                if (s.kind === 'digit') {
+                    const [x, y] = at(i + 0.5, j + 0.5);
+                    ctx.globalAlpha = fade * (0.25 + 0.75 * here);
+                    ctx.fillStyle = ink;
+                    ctx.fillText(s.grid[i][j], x, y);
+                    continue;
+                }
+                ctx.globalAlpha = fade * (0.06 + 0.94 * s.glow[i][j] * here);
+                ctx.fillStyle = colours[s.grid[i][j] >= 0 ? 0 : 1];
+                quad([at(i + inset, j + inset), at(i + 1 - inset, j + inset), at(i + 1 - inset, j + 1 - inset), at(i + inset, j + 1 - inset)]);
                 ctx.fill();
             }
         }
+
+        // Outline of the top face.
+        ctx.globalAlpha = fade * (0.35 + 0.5 * Math.sin(clamp(lit) * Math.PI));
+        ctx.strokeStyle = colours[0];
+        ctx.lineWidth = 1;
+        quad([at(0, 0), at(I, 0), at(I, J), at(0, J)]);
+        ctx.stroke();
     };
 
-    // The neurons of a sheet as lit tiles: brightness is the size of the activation.
-    const drawNodes = (p, k, arrived, curtain) => {
-        const halfX = p.count === HIDDEN ? 0.036 : 0.085, halfY = 0.04;
-        for (const n of p.nodes) {
-            if (n.text) {
-                const [x, y] = project(n.x, n.y, k);
-                ctx.globalAlpha = curtain * (0.3 + 0.7 * arrived);
-                ctx.fillStyle = ink;
-                ctx.font = `600 ${Math.max(7, 0.13 * unit)}px ui-monospace, Consolas, monospace`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(n.text, x, y);
-                continue;
-            }
-            tile(n.x, n.y, k, halfX, halfY);
-            ctx.globalAlpha = curtain * (0.07 + 0.93 * n.glow * arrived);
-            ctx.fillStyle = colours[n.value >= 0 ? 0 : 1];
+    // The pipe from one row of blocks down to the next, with light running down it.
+    const drawPipe = (x1, y1, x2, y2, flow, fade) => {
+        ctx.globalAlpha = fade * 0.3;
+        ctx.strokeStyle = ink;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        if (flow <= 0 || flow >= 1) return;
+        ctx.fillStyle = colours[0];
+        for (let n = 0; n < 4; n++) { // a short train of lights
+            const at = flow - n * 0.09;
+            if (at < 0) continue;
+            ctx.globalAlpha = fade * (1 - n * 0.22);
+            ctx.beginPath();
+            ctx.arc(x1 + (x2 - x1) * at, y1 + (y2 - y1) * at, Math.max(1.5, cell * 0.22), 0, Math.PI * 2);
             ctx.fill();
         }
-    };
-
-    const drawLabel = (label, k, active, curtain) => {
-        const size = Math.max(0, 0.085 * unit);
-        if (size < 8) return;
-        const [x, y] = project(-1.6, -1.06, k);
-        ctx.globalAlpha = curtain * (0.5 + 0.5 * active);
-        ctx.fillStyle = active > 0 ? colours[0] : ink;
-        ctx.font = `${Math.min(14, size)}px ui-monospace, Consolas, monospace`;
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'alphabetic';
-        ctx.fillText(label, x, y);
     };
 
     const draw = () => {
         const t = Date.now() / 1000; // UTC seconds: the only input
         const minute = Math.floor(t / PASS);
         const into = t - minute * PASS;
-        const planes = build(minute);
-        const curtain = smooth(into / 1.5) * smooth((PASS - into) / 2.5); // fade in and out
+        const rows = build(minute);
+        const fade = smooth(into / 1.5) * smooth((PASS - into) / 2); // fade in and out
+
+        // Where each row of blocks sits in the stack, top to bottom.
+        const tops = [];
+        let y = 0;
+        for (const row of rows) { tops.push(y); y += rowHeight(row) + gap; }
+        const middle = (r) => tops[r] + rowHeight(rows[r]) / 2;
+
+        // Which block the calculation has reached. It rests on each block, then glides to the next.
+        const stage = Math.min(BLOCKS - 1, into / STAGE);
+        const whole = Math.floor(stage);
+        const glide = whole + smooth((stage - whole - 0.55) / 0.45);
+        // After the last block the view rewinds to the top.
+        const rewind = smooth((into - BLOCKS * STAGE - 1) / 6);
+        const focus = Math.min(BLOCKS - 1, glide) * (1 - rewind);
+        const low = Math.floor(focus), high = Math.min(BLOCKS - 1, low + 1);
+        const scroll = middle(low) + (middle(high) - middle(low)) * (focus - low) - height * 0.5;
 
         ctx.clearRect(0, 0, width, height);
         ctx.lineJoin = 'round';
+        const centre = width / 2;
 
-        for (let k = planes.length - 1; k >= 0; k--) { // far to near
-            // 0..1: how far the signal has got on its way into sheet k.
-            const reached = k === 0 ? 1 : clamp((into - (k - 1) * STAGE) / (STAGE * 0.85));
-            const arrived = k === 0 ? 1 : smooth(reached * 1.3 - 0.3);
-            const active = reached > 0 && reached < 1 ? Math.sin(reached * Math.PI) : 0;
-            // The connections into the sheet in front are drawn first, so that sheet covers their ends.
-            if (k + 1 < planes.length) {
-                const next = clamp((into - k * STAGE) / (STAGE * 0.85));
-                drawLinks(planes[k + 1].links, k + 1, next, curtain);
+        rows.forEach((row, r) => {
+            const top = tops[r] - scroll;
+            const tall = rowHeight(row);
+            if (top > height + 40 || top + tall + gap < -40) return;
+
+            // 0..1: how much of this row has its values. Earlier rows stay lit.
+            const lit = r === 0 ? 1 : clamp((into / STAGE - r) / 0.4);
+
+            // Blocks in a row sit side by side.
+            const spacing = cell * 2;
+            const total = row.slabs.reduce((sum, s) => sum + slabWidth(s), 0) + spacing * (row.slabs.length - 1);
+            let left = centre - total / 2;
+            const centres = row.slabs.map((s) => { const cx = left + slabWidth(s) / 2; left += slabWidth(s) + spacing; return cx; });
+
+            // Pipes down to the next row, drawn first so the blocks sit on top of them.
+            if (r + 1 < rows.length) {
+                const flow = clamp((into / STAGE - r - 0.55) / 0.45);
+                const nextTop = tops[r + 1] - scroll;
+                const next = rows[r + 1].slabs;
+                const nextTotal = next.reduce((sum, s) => sum + slabWidth(s), 0) + spacing * (next.length - 1);
+                let nextLeft = centre - nextTotal / 2;
+                const nextCentres = next.map((s) => { const cx = nextLeft + slabWidth(s) / 2; nextLeft += slabWidth(s) + spacing; return cx; });
+                centres.forEach((cx, n) => nextCentres.forEach((nx) => {
+                    drawPipe(cx, top + slabHeight(row.slabs[n]), nx, nextTop, flow, fade);
+                }));
             }
-            drawSheet(k, active, curtain);
-            drawNodes(planes[k], k, arrived, curtain);
-            drawLabel(planes[k].label, k, active, curtain);
-        }
+
+            row.slabs.forEach((s, n) => drawSlab(s, centres[n], top, lit, fade));
+
+            if (cell >= 7) {
+                ctx.globalAlpha = fade * (0.55 + 0.45 * Math.sin(clamp(lit) * Math.PI));
+                ctx.fillStyle = ink;
+                ctx.font = `${Math.min(14, cell * 1.05)}px ui-monospace, Consolas, monospace`;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'alphabetic';
+                ctx.fillText(row.label, centre - total / 2, top - cell * 0.9);
+            }
+        });
         ctx.globalAlpha = 1;
     };
 
