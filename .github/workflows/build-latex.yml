@@ -5,10 +5,17 @@ on:
     branches:
       - cpp-software-engineer
       - machine-learning-engineer
+    # Site-only changes do not touch the CV, so they do not rebuild it.
+    paths-ignore:
+      - site/**
+      - .github/workflows/deploy-site.yml
   pull_request:
     branches:
       - cpp-software-engineer
       - machine-learning-engineer
+    paths-ignore:
+      - site/**
+      - .github/workflows/deploy-site.yml
 
 jobs:
   build-and-deploy:
