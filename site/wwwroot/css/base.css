@@ -72,9 +72,9 @@ body::before {
     pointer-events: none;
 }
 
-/* Animated background: js/backdrop.js draws a swarm of linked nodes on this
-   canvas, positioned purely from UTC time. Strongest towards the top right,
-   fainter where the text columns are. */
+/* Animated background: js/backdrop.js draws a tiny transformer on this
+   canvas, fed by the UTC clock. Kept faint, and fainter still towards the
+   bottom left, so the page text stays easy to read over it. */
 .backdrop {
     position: fixed;
     inset: 0;
