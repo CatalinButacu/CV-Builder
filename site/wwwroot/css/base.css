@@ -72,79 +72,24 @@ body::before {
     pointer-events: none;
 }
 
-/* Background patterns. Three tiles (network, contour lines, circuit traces)
-   are used as masks over the palette's two colours. They take turns: each is
-   shown for a minute, cross-fading into the next, while drifting slowly.
-
-   js/theme.js sets --utc to the current second of the UTC day, and every
-   animation starts that far in. The picture therefore depends only on the
-   clock: a refresh, or another visitor, sees the same moment of the loop. */
+/* Animated background: js/backdrop.js draws a swarm of linked nodes on this
+   canvas, positioned purely from UTC time. Strongest towards the top right,
+   fainter where the text columns are. */
 .backdrop {
     position: fixed;
     inset: 0;
     z-index: -1;
     opacity: var(--pattern-opacity);
-    /* Strongest towards the top right, faint where the text columns are. */
-    -webkit-mask-image: radial-gradient(130% 100% at 85% 0%, #000 20%, rgb(0 0 0 / 0.3) 75%);
-    mask-image: radial-gradient(130% 100% at 85% 0%, #000 20%, rgb(0 0 0 / 0.3) 75%);
+    -webkit-mask-image: radial-gradient(130% 100% at 85% 0%, #000 25%, rgb(0 0 0 / 0.5) 80%);
+    mask-image: radial-gradient(130% 100% at 85% 0%, #000 25%, rgb(0 0 0 / 0.5) 80%);
     pointer-events: none;
 }
 
-    .backdrop i {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(120deg in oklab, var(--accent), var(--counter));
-        -webkit-mask: var(--tile) repeat 0 0 / 420px 360px;
-        mask: var(--tile) repeat 0 0 / 420px 360px;
-        opacity: 0;
-        /* One step per pixel of drift keeps repainting to about once a second. */
-        animation: pattern-drift 480s steps(420) infinite, pattern-turn 180s linear infinite;
-        animation-delay: calc(var(--utc, 0) * -1s), calc((var(--utc, 0) + var(--turn)) * -1s);
+    .backdrop canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
     }
-
-        .backdrop i:nth-child(1) {
-            --tile: url('../img/network.svg');
-            --turn: 180;
-            --dx: 420px;
-            --dy: 360px;
-        }
-
-        .backdrop i:nth-child(2) {
-            --tile: url('../img/contours.svg');
-            --turn: 120;
-            --dx: -420px;
-            --dy: 360px;
-        }
-
-        .backdrop i:nth-child(3) {
-            --tile: url('../img/circuit.svg');
-            --turn: 60;
-            --dx: 420px;
-            --dy: -360px;
-        }
-
-/* Moves by exactly one tile, so the loop has no visible jump. */
-@keyframes pattern-drift {
-    to {
-        -webkit-mask-position: var(--dx) var(--dy);
-        mask-position: var(--dx) var(--dy);
-    }
-}
-
-/* Visible for a third of the cycle, with a slow fade at each end. */
-@keyframes pattern-turn {
-    0% {
-        opacity: 0;
-    }
-
-    8%, 33% {
-        opacity: 1;
-    }
-
-    41%, 100% {
-        opacity: 0;
-    }
-}
 
 ::selection {
     background: var(--accent);
@@ -389,13 +334,4 @@ h1[tabindex="-1"]:focus {
         animation-duration: 0.01ms !important;
         transition-duration: 0.01ms !important;
     }
-
-    /* No motion: show the first pattern, still. */
-    .backdrop i {
-        animation: none;
-    }
-
-        .backdrop i:nth-child(1) {
-            opacity: 1;
-        }
 }

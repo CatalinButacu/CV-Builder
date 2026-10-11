@@ -48,11 +48,6 @@ window.theme = (() => {
         if (palettes.includes(palette)) root.dataset.palette = palette;
     };
 
-    // Second of the UTC day. The background animations in css/base.css start
-    // this far in, so they continue across refreshes instead of restarting.
-    // Their durations all divide 86400, so midnight is seamless too.
-    root.style.setProperty('--utc', String(Math.floor(Date.now() / 1000) % 86400));
-
     const saved = get();
     applyMode(saved.mode);
     root.dataset.palette = palettes.includes(saved.palette) ? saved.palette : nextInRotation();
