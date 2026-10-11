@@ -1,0 +1,42 @@
+@* A project tile: generated cover, badges, summary, stack chips and year. *@
+<a class="project-card surface gradient-border" href="@Project.Repo" target="_blank" rel="noopener">
+    <div class="cover" style="--hue: @Project.Hue" aria-hidden="true">
+        <span class="cover-grid"></span>
+        <span class="watermark">@Project.Title</span>
+    </div>
+
+    <div class="body">
+        <div class="badges">
+            <Badge Variant="accent">@Project.Kind</Badge>
+            @if (Project.InProgress)
+            {
+                <Badge Variant="warning" Dot="true">In progress</Badge>
+            }
+        </div>
+
+        <h3>@Project.Title</h3>
+        <p class="summary">@Project.Summary</p>
+
+        <ul class="chips" aria-label="Tech stack">
+            @foreach (var item in Project.Stack.Take(MaxChips))
+            {
+                <li class="chip">@item</li>
+            }
+            @if (Project.Stack.Length > MaxChips)
+            {
+                <li class="chip more">+@(Project.Stack.Length - MaxChips) more</li>
+            }
+        </ul>
+
+        <div class="foot">
+            <span>@Project.Year</span>
+            <span>GitHub ↗</span>
+        </div>
+    </div>
+</a>
+
+@code {
+    private const int MaxChips = 5;
+
+    [Parameter, EditorRequired] public Project Project { get; set; } = default!;
+}
