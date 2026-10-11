@@ -1,0 +1,7 @@
+/* Cobalt blue with magenta */
+[data-palette="cobalt-magenta"] {
+    --accent-h: 262;
+    --accent-c: 0.2;
+    --counter-h: 350;
+    --counter-c: 0.22;
+}

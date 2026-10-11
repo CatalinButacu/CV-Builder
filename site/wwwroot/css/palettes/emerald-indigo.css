@@ -1,0 +1,7 @@
+/* Emerald with indigo */
+[data-palette="emerald-indigo"] {
+    --accent-h: 160;
+    --accent-c: 0.15;
+    --counter-h: 275;
+    --counter-c: 0.2;
+}

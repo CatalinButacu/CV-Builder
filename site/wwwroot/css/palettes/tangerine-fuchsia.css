@@ -1,0 +1,7 @@
+/* Tangerine with fuchsia */
+[data-palette="tangerine-fuchsia"] {
+    --accent-h: 50;
+    --accent-c: 0.18;
+    --counter-h: 340;
+    --counter-c: 0.22;
+}

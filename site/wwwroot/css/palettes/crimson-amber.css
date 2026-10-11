@@ -1,0 +1,7 @@
+/* Crimson with amber */
+[data-palette="crimson-amber"] {
+    --accent-h: 20;
+    --accent-c: 0.21;
+    --counter-h: 80;
+    --counter-c: 0.16;
+}
