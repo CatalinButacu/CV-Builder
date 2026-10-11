@@ -1,22 +1,21 @@
-// Animated background: a flight through a small language-model-style network
-// while it computes.
+// Animated background: a small language-model-style network computing, drawn
+// in 2.5D.
 //
 // The network is a real transformer (two layers, two attention heads) with
 // fixed random weights. Once a minute it is given the UTC date and time as 12
-// digits and run forward. Its layers are laid out one behind the other, and
-// the camera travels through them from the input to the prediction.
+// digits and run forward. Its ten layers are drawn as tilted sheets standing
+// side by side, all visible at once, and the calculation moves through them
+// one sheet at a time, so the path of the signal can be followed.
 //
 // Every light is a real number from that calculation:
-//   - a neuron's brightness is the size of its activation, its colour the sign;
+//   - a cell's brightness is the size of that neuron's activation, its colour the sign;
 //   - a connection's brightness is the strength of the signal it carries
 //     (attention weight, or weight x activation for the feed-forward parts).
-// Signals shoot into each layer just ahead of the camera, so the calculation
-// unfolds as you fly.
 //
-// The input, the camera position and its sway all come from UTC time alone,
-// so a refresh, or another visitor anywhere, sees the same moment of the same
-// flight. The weights are random, not trained, so the prediction is meaningless;
-// what is real is how the numbers flow.
+// The input and the step being shown both come from UTC time alone, so a
+// refresh, or another visitor anywhere, sees the same moment of the same pass.
+// The weights are random, not trained, so the prediction is meaningless; what
+// is real is how the numbers flow.
 (() => {
     const canvas = document.querySelector('.backdrop canvas');
     if (!canvas) return;
@@ -32,11 +31,8 @@
     const LAYERS = 2;
     const HIDDEN = 32; // feed-forward width
 
-    const JOURNEY = 60; // seconds: one flight per UTC minute
-    const TRAVEL = 53;  // seconds spent moving; then hold on the prediction and fade
-    const START = -1.3; // camera depth at the start, in layers
-    const VIEW = 1.5;   // how far in front of the last layer the flight ends
-    const FAR = 5;      // layers further away than this are not drawn
+    const PASS = 60;  // seconds: one forward pass per UTC minute
+    const STAGE = 5;  // seconds for the signal to cross from one sheet to the next
     const FRAME = 1000 / 30;
 
     // --- Fixed random weights: the same model for every visitor.
@@ -134,10 +130,10 @@
         if (planes) return planes;
 
         const tokens = digitsAt(minute * 60);
-        planes = [plane('input: the UTC date and time', tokens.map((t) => [t]), 'digit')];
+        planes = [plane('UTC time', tokens.map((t) => [t]), 'digit')];
 
         let x = add(tokens.map((t) => tokenEmbedding[t]), positionEmbedding);
-        let current = plane('token + position embedding', x);
+        let current = plane('embedding', x);
         // Each digit fans out into its 16 embedding values.
         current.nodes.forEach((n, k) => {
             current.links.push({ ax: columnX(Math.floor(k / C)), ay: 0, bx: n.x, by: n.y, glow: n.glow, tone: n.value >= 0 ? 0 : 1 });
@@ -167,18 +163,18 @@
                 });
             }
             x = add(x, multiply(mixed, layer.out));
-            const attended = plane(`layer ${l + 1}: attention`, x);
+            const attended = plane(`L${l + 1} attention`, x);
             attended.links = beams;
             planes.push(attended);
 
             const input = normalise(x);
             const hidden = multiply(input, layer.up).map((row) => row.map(gelu));
-            const wide = plane(`layer ${l + 1}: feed-forward`, hidden);
+            const wide = plane(`L${l + 1} feed-forward`, hidden);
             wire(wide, attended, layer.up, input);
             planes.push(wide);
 
             x = add(x, multiply(hidden, layer.down));
-            const merged = plane(`layer ${l + 1}: back to the residual stream`, x);
+            const merged = plane(`L${l + 1} residual`, x);
             wire(merged, wide, layer.down, hidden);
             planes.push(merged);
             current = merged;
@@ -186,7 +182,7 @@
 
         const final = normalise(x);
         const probability = multiply(final, unembedding).map(softmax);
-        const scores = plane('probability of each digit', probability, 'share');
+        const scores = plane('probabilities', probability, 'share');
         wire(scores, current, unembedding, final);
         planes.push(scores);
 
@@ -203,7 +199,16 @@
         return planes;
     };
 
-    let width = 0, height = 0, focal = 0, colours = ['#888', '#888'], ink = '#888', dark = true, lastDraw = 0;
+    // --- The 2.5D view. Nothing is in perspective: a point on sheet k at
+    // sheet coordinates (x, y) lands at  origin + x * EX + y * EY + k * EZ.
+    // EX tilts each sheet away from the viewer, EZ steps to the next sheet.
+    const EX = [0.34, 0.17], EY = [0, 0.5], EZ = [0.95, -0.12];
+    const SHEETS = 3 + LAYERS * 3 + 1; // input, embedding, three per layer, probabilities, prediction
+
+    let width = 0, height = 0, unit = 0, originX = 0, originY = 0;
+    let colours = ['#888', '#888'], ink = '#888', paper = '#000', lastDraw = 0;
+
+    const project = (x, y, k) => [originX + (x * EX[0] + k * EZ[0]) * unit, originY + (x * EX[1] + y * EY[1] + k * EZ[1]) * unit];
 
     const resize = () => {
         const ratio = Math.min(devicePixelRatio || 1, 2);
@@ -212,38 +217,59 @@
         canvas.width = width * ratio;
         canvas.height = height * ratio;
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-        // A layer one unit away fills most of the screen.
-        focal = Math.min(width / 3.5, height / 2.3);
+
+        // Size of the whole row of sheets in units, then scale it to fit the window.
+        const wide = 3.2 * EX[0] + (SHEETS - 1) * EZ[0];
+        const tall = 3.2 * EX[1] + 2 * EY[1] + (SHEETS - 1) * -EZ[1];
+        unit = Math.min(width * 0.94 / wide, height * 0.8 / tall);
+        originX = (width - wide * unit) / 2 + 1.6 * EX[0] * unit;
+        originY = (height - tall * unit) / 2 + (SHEETS - 1) * -EZ[1] * unit + EY[1] * unit + 1.6 * EX[1] * unit;
     };
 
-    // The palette's two colours and the text colour, as resolved by the stylesheet.
+    // The palette's two colours, the text colour and the page colour, as resolved by the stylesheet.
     const readColours = () => {
         const style = getComputedStyle(root);
         colours = [style.getPropertyValue('--accent').trim(), style.getPropertyValue('--counter').trim()];
         ink = style.getPropertyValue('--fg').trim();
-        dark = root.dataset.mode === 'dark';
+        paper = style.getPropertyValue('--bg').trim();
     };
 
     const clamp = (v) => Math.max(0, Math.min(1, v));
     const smooth = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
 
-    // The camera's sideways drift and the fade at each end of the flight, set once per frame.
-    let swayX = 0, swayY = 0, curtain = 1;
+    // A four-cornered tile lying in sheet k, centred on (x, y).
+    const tile = (x, y, k, halfX, halfY) => {
+        const corners = [[-halfX, -halfY], [halfX, -halfY], [halfX, halfY], [-halfX, halfY]];
+        ctx.beginPath();
+        corners.forEach(([dx, dy], n) => {
+            const [px, py] = project(x + dx, y + dy, k);
+            if (n) ctx.lineTo(px, py); else ctx.moveTo(px, py);
+        });
+        ctx.closePath();
+    };
 
-    const project = (x, y, depth) => [width / 2 + (x - swayX) * focal / depth, height / 2 + (y - swayY) * focal / depth];
-    // Faint in the distance, and fading out as a layer passes the camera.
-    const haze = (depth) => clamp((FAR - depth) / 2.5) * clamp((depth - 0.1) / 0.3) * curtain;
+    // The sheet itself: a faint pane that hides what is behind it, outlined
+    // more strongly while the signal is arriving.
+    const drawSheet = (k, active, curtain) => {
+        tile(0, 0, k, 1.6, 0.96);
+        ctx.globalAlpha = 0.55 * curtain;
+        ctx.fillStyle = paper;
+        ctx.fill();
+        ctx.globalAlpha = (0.16 + 0.7 * active) * curtain;
+        ctx.strokeStyle = active > 0 ? colours[0] : ink;
+        ctx.lineWidth = 1 + active;
+        ctx.stroke();
+    };
 
-    // Connections from the layer behind, growing towards this one as the signal travels.
-    const drawLinks = (links, depth, reached) => {
-        const behind = depth - 1;
-        if (behind <= 0.12 || reached <= 0) return;
-        const fade = Math.min(haze(depth), haze(behind)) * (reached < 1 ? 1 : 0.5);
+    // Connections arriving from the previous sheet, growing as the signal travels.
+    const drawLinks = (links, k, reached, curtain) => {
+        if (reached <= 0) return;
+        const travelling = reached < 1;
         for (const link of links) {
-            const alpha = fade * (0.04 + 0.9 * link.glow);
-            if (alpha < 0.02) continue;
-            const [x1, y1] = project(link.ax, link.ay, behind);
-            const [x2, y2] = project(link.bx, link.by, depth);
+            const alpha = curtain * (travelling ? 0.06 + 0.9 * link.glow : 0.28 * link.glow);
+            if (alpha < 0.03) continue;
+            const [x1, y1] = project(link.ax, link.ay, k - 1);
+            const [x2, y2] = project(link.bx, link.by, k);
             const ex = x1 + (x2 - x1) * reached, ey = y1 + (y2 - y1) * reached;
             ctx.globalAlpha = alpha;
             ctx.strokeStyle = ctx.fillStyle = colours[link.tone];
@@ -252,58 +278,43 @@
             ctx.moveTo(x1, y1);
             ctx.lineTo(ex, ey);
             ctx.stroke();
-            if (reached < 1 && link.glow > 0.3) { // the head of the signal
+            if (travelling && link.glow > 0.3) { // the head of the signal
                 ctx.globalAlpha = Math.min(1, alpha * 2.5);
                 ctx.beginPath();
-                ctx.arc(ex, ey, 1.8, 0, Math.PI * 2);
+                ctx.arc(ex, ey, 2, 0, Math.PI * 2);
                 ctx.fill();
             }
         }
     };
 
-    const drawDigit = (text, x, y, depth, alpha) => {
-        ctx.globalAlpha = alpha;
-        ctx.fillStyle = ink;
-        ctx.font = `600 ${Math.max(8, Math.min(72, 0.1 * focal / depth))}px ui-monospace, Consolas, monospace`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(text, x, y);
-    };
-
-    // Neurons: brightness is the size of the activation.
-    const drawNodes = (nodes, depth, arrived) => {
-        const fog = haze(depth);
-        const radius = Math.max(0.7, Math.min(9, 0.011 * focal / depth));
-        for (const n of nodes) {
-            const [x, y] = project(n.x, n.y, depth);
-            if (x < -20 || x > width + 20 || y < -20 || y > height + 20) continue;
+    // The neurons of a sheet as lit tiles: brightness is the size of the activation.
+    const drawNodes = (p, k, arrived, curtain) => {
+        const halfX = p.count === HIDDEN ? 0.036 : 0.085, halfY = 0.04;
+        for (const n of p.nodes) {
             if (n.text) {
-                drawDigit(n.text, x, y, depth, fog * (0.25 + 0.75 * arrived));
+                const [x, y] = project(n.x, n.y, k);
+                ctx.globalAlpha = curtain * (0.3 + 0.7 * arrived);
+                ctx.fillStyle = ink;
+                ctx.font = `600 ${Math.max(7, 0.13 * unit)}px ui-monospace, Consolas, monospace`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(n.text, x, y);
                 continue;
             }
-            const shine = n.glow * arrived;
+            tile(n.x, n.y, k, halfX, halfY);
+            ctx.globalAlpha = curtain * (0.07 + 0.93 * n.glow * arrived);
             ctx.fillStyle = colours[n.value >= 0 ? 0 : 1];
-            if (shine > 0.45) { // a halo around the strongest ones
-                ctx.globalAlpha = fog * 0.22 * shine;
-                ctx.beginPath();
-                ctx.arc(x, y, radius * 2.4, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            ctx.globalAlpha = fog * (0.07 + 0.93 * shine);
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
             ctx.fill();
         }
     };
 
-    // The layer's name, at its top-left corner, once it is close enough to read.
-    const drawLabel = (label, depth) => {
-        const size = 0.045 * focal / depth;
+    const drawLabel = (label, k, active, curtain) => {
+        const size = Math.max(0, 0.085 * unit);
         if (size < 8) return;
-        const [x, y] = project(-1.5, -1.02, depth);
-        ctx.globalAlpha = haze(depth) * 0.75;
-        ctx.fillStyle = ink;
-        ctx.font = `${Math.min(22, size)}px ui-monospace, Consolas, monospace`;
+        const [x, y] = project(-1.6, -1.06, k);
+        ctx.globalAlpha = curtain * (0.5 + 0.5 * active);
+        ctx.fillStyle = active > 0 ? colours[0] : ink;
+        ctx.font = `${Math.min(14, size)}px ui-monospace, Consolas, monospace`;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'alphabetic';
         ctx.fillText(label, x, y);
@@ -311,33 +322,29 @@
 
     const draw = () => {
         const t = Date.now() / 1000; // UTC seconds: the only input
-        const minute = Math.floor(t / JOURNEY);
-        const into = t - minute * JOURNEY;
+        const minute = Math.floor(t / PASS);
+        const into = t - minute * PASS;
         const planes = build(minute);
-        const last = planes.length - 1;
-
-        // Camera depth: steady travel that eases off whenever a layer is at viewing distance.
-        const along = START + (last - VIEW - START) * clamp(into / TRAVEL);
-        const camera = along + 0.1 * Math.sin(2 * Math.PI * (along + 0.05)) * clamp((TRAVEL - into) / 3);
-        swayX = 0.13 * Math.sin(t * 0.13);
-        swayY = 0.08 * Math.sin(t * 0.17 + 1);
-        curtain = smooth(into / 1.5) * smooth((JOURNEY - into) / 2);
+        const curtain = smooth(into / 1.5) * smooth((PASS - into) / 2.5); // fade in and out
 
         ctx.clearRect(0, 0, width, height);
-        ctx.globalCompositeOperation = dark ? 'lighter' : 'source-over'; // overlapping lights add up
-        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
 
-        for (let k = last; k >= 0; k--) { // far to near
-            const depth = k - camera;
-            if (depth <= 0.1 || depth > FAR) continue;
-            // 0..1: how far the signals have got into this layer. They fire just ahead of the camera.
-            const reached = k === 0 ? 1 : clamp(camera - (k - 2.6));
-            if (k > 0) drawLinks(planes[k].links, depth, reached);
-            drawNodes(planes[k].nodes, depth, k === 0 ? 1 : smooth(reached * 1.25 - 0.25));
-            drawLabel(planes[k].label, depth);
+        for (let k = planes.length - 1; k >= 0; k--) { // far to near
+            // 0..1: how far the signal has got on its way into sheet k.
+            const reached = k === 0 ? 1 : clamp((into - (k - 1) * STAGE) / (STAGE * 0.85));
+            const arrived = k === 0 ? 1 : smooth(reached * 1.3 - 0.3);
+            const active = reached > 0 && reached < 1 ? Math.sin(reached * Math.PI) : 0;
+            // The connections into the sheet in front are drawn first, so that sheet covers their ends.
+            if (k + 1 < planes.length) {
+                const next = clamp((into - k * STAGE) / (STAGE * 0.85));
+                drawLinks(planes[k + 1].links, k + 1, next, curtain);
+            }
+            drawSheet(k, active, curtain);
+            drawNodes(planes[k], k, arrived, curtain);
+            drawLabel(planes[k].label, k, active, curtain);
         }
         ctx.globalAlpha = 1;
-        ctx.globalCompositeOperation = 'source-over';
     };
 
     const loop = (frame) => {
@@ -348,7 +355,7 @@
         draw();
     };
 
-    // With "reduce motion" on: no smooth flight, just a fresh picture each second.
+    // With "reduce motion" on: no smooth movement, just a fresh picture each second.
     let ticker = 0;
     const begin = () => {
         clearInterval(ticker);
