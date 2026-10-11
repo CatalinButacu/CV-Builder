@@ -1,4 +1,4 @@
-@* Header control for colour mode and accent. The choice is stored by js/theme.js. *@
+@* Header control for colour mode and palette. The choice is stored by js/theme.js. *@
 @inject IJSRuntime JS
 
 <div class="theme-menu" @onkeydown="OnKeyDown">
@@ -13,56 +13,61 @@
             <div class="segmented" role="radiogroup" aria-label="Colour mode">
                 @foreach (var option in Modes)
                 {
-                    <button type="button" role="radio" aria-checked="@(option == mode ? "true" : "false")" @onclick="() => Apply(option, accent)">
+                    <button type="button" role="radio" aria-checked="@(option == mode ? "true" : "false")" @onclick="() => Apply(option, palette)">
                         @option
                     </button>
                 }
             </div>
 
-            <p class="mono-label">Accent</p>
-            <div class="swatches" role="radiogroup" aria-label="Accent colour">
-                @foreach (var option in Accents)
+            <p class="mono-label">Palette</p>
+            <div class="swatches" role="radiogroup" aria-label="Colour palette">
+                @foreach (var option in palettes)
                 {
-                    <button type="button" role="radio" class="swatch" style="--swatch-h: @option.Hue" title="@option.Name" aria-label="@option.Name"
-                            aria-checked="@(option.Name == accent ? "true" : "false")" @onclick="() => Apply(mode, option.Name)">
+                    <button type="button" role="radio" class="swatch" data-palette="@option" title="@Label(option)" aria-label="@Label(option)"
+                            aria-checked="@(option == active ? "true" : "false")" @onclick="() => Apply(mode, option)">
                     </button>
                 }
+            </div>
+            <div class="segmented">
+                <button type="button" aria-pressed="@(palette == Rotate ? "true" : "false")" @onclick="() => Apply(mode, Rotate)">
+                    Change on every refresh
+                </button>
             </div>
         </div>
     }
 </div>
 
 @code {
-    private sealed record Prefs(string Mode, string Accent);
+    private sealed record Prefs(string Mode, string Palette, string Active, string[] Palettes);
 
-    private sealed record AccentOption(string Name, int Hue);
+    private const string Rotate = "rotate";
 
     private static readonly string[] Modes = ["system", "light", "dark"];
 
-    // Hues match the [data-accent] rules in css/tokens.css.
-    private static readonly AccentOption[] Accents =
-    [
-        new("blue", 255), new("violet", 300), new("cyan", 215), new("emerald", 160), new("amber", 75), new("rose", 15),
-    ];
-
     private bool open;
     private string mode = "system";
-    private string accent = "blue";
+    private string palette = Rotate;
+    private string active = "";
+    private string[] palettes = [];
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
 
         var saved = await JS.InvokeAsync<Prefs>("theme.get");
-        (mode, accent) = (saved.Mode, saved.Accent);
+        (mode, palette, active, palettes) = (saved.Mode, saved.Palette, saved.Active, saved.Palettes);
         StateHasChanged();
     }
 
-    private async Task Apply(string newMode, string newAccent)
+    // Picking a palette pins it; Rotate keeps the current one until the next refresh.
+    private async Task Apply(string newMode, string newPalette)
     {
-        (mode, accent) = (newMode, newAccent);
-        await JS.InvokeVoidAsync("theme.set", mode, accent);
+        (mode, palette) = (newMode, newPalette);
+        if (newPalette != Rotate) active = newPalette;
+        await JS.InvokeVoidAsync("theme.set", mode, palette);
     }
+
+    private static string Label(string name) => name.Replace('-', ' ');
 
     private void OnKeyDown(KeyboardEventArgs e)
     {

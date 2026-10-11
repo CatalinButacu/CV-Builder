@@ -873,7 +873,8 @@
         cursor: pointer;
     }
 
-        .segmented button[aria-checked="true"] {
+        .segmented button[aria-checked="true"],
+        .segmented button[aria-pressed="true"] {
             background: var(--surface-raised);
             color: var(--fg);
             box-shadow: var(--shadow-elev-1);
@@ -889,7 +890,8 @@
     height: 1.75rem;
     border: 2px solid transparent;
     border-radius: 50%;
-    background: oklch(0.62 0.16 var(--swatch-h));
+    /* Each swatch carries its own data-palette, so these read that palette's duo. */
+    background: linear-gradient(135deg, oklch(0.62 var(--accent-c) var(--accent-h)) 50%, oklch(0.68 var(--counter-c) var(--counter-h)) 50%);
     background-clip: padding-box;
     cursor: pointer;
 }
