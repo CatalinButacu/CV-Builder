@@ -21,8 +21,19 @@ RUN apk add --no-cache \
     bash \
     && rm -rf /var/cache/apk/*
 
-# Install TeX Live from upstream for full package support
-RUN wget -qO- https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz | tar -xz -C /tmp && \
+# Install TeX Live from upstream for full package support.
+# mirror.ctan.org redirects to a random mirror, and now and then one returns a
+# broken file. Download to disk, check it is a valid gzip, and retry (each try
+# lands on a different mirror) instead of piping straight into tar.
+RUN for attempt in 1 2 3 4 5; do \
+        wget -q -O /tmp/install-tl.tar.gz https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz && \
+        gzip -t /tmp/install-tl.tar.gz && break; \
+        echo "TeX Live installer download failed (attempt $attempt of 5), retrying"; \
+        rm -f /tmp/install-tl.tar.gz; \
+        sleep 5; \
+    done && \
+    tar -xzf /tmp/install-tl.tar.gz -C /tmp && \
+    rm /tmp/install-tl.tar.gz && \
     cd /tmp/install-tl-* && \
     echo "selected_scheme scheme-basic" > texlive.profile && \
     echo "tlpdbopt_install_docfiles 0" >> texlive.profile && \
