@@ -1,0 +1,44 @@
+#!/bin/sh
+# Keeps commits small: rejects a commit that stages too many files or lines.
+#
+# Enable once per clone:   git config core.hooksPath .githooks
+# Tune per commit:         COMMIT_MAX_FILES=12 git commit ...
+# Generated scaffolds:     ALLOW_LARGE_COMMIT=1 git commit ...   (say why in the message)
+
+MAX_FILES=${COMMIT_MAX_FILES:-8}
+MAX_LINES=${COMMIT_MAX_LINES:-300}
+
+# Merges bring in whatever the other branch has; size is not ours to judge.
+git rev-parse -q --verify MERGE_HEAD >/dev/null && exit 0
+
+if [ "${ALLOW_LARGE_COMMIT:-0}" = "1" ]; then
+    echo "pre-commit: size check skipped (ALLOW_LARGE_COMMIT=1)."
+    exit 0
+fi
+
+files=$(git diff --cached --name-only --diff-filter=ACMRD | wc -l | tr -d ' ')
+
+# Binary files show "-" in numstat and count as files only, not lines.
+lines=$(git diff --cached --numstat --diff-filter=ACMRD |
+    awk '$1 != "-" { total += $1 + $2 } END { print total + 0 }')
+
+fail=0
+if [ "$files" -gt "$MAX_FILES" ]; then
+    echo "pre-commit: $files files staged, limit is $MAX_FILES."
+    fail=1
+fi
+if [ "$lines" -gt "$MAX_LINES" ]; then
+    echo "pre-commit: $lines lines changed, limit is $MAX_LINES."
+    fail=1
+fi
+
+if [ "$fail" -eq 1 ]; then
+    echo
+    echo "Split this into smaller commits. Staged right now:"
+    git diff --cached --stat --diff-filter=ACMRD | sed 's/^/  /'
+    echo
+    echo "Unstage with: git restore --staged <path>"
+    exit 1
+fi
+
+exit 0
