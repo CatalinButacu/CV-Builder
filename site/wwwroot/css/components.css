@@ -52,9 +52,8 @@
 
     .project-card .watermark {
         position: absolute;
-        right: -0.5rem;
+        left: 1rem;
         bottom: 0.25rem;
-        max-width: 140%;
         color: #fff;
         font-family: var(--font-mono);
         font-size: clamp(2rem, 6vw, 3rem);

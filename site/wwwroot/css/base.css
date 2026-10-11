@@ -39,6 +39,12 @@ a {
     border-radius: 4px;
 }
 
+/* Blazor moves focus to the page heading after navigation; that is for screen
+   readers and should not draw a ring around the heading. */
+h1[tabindex="-1"]:focus {
+    outline: none;
+}
+
 .container-x {
     width: 100%;
     max-width: var(--container-max);
