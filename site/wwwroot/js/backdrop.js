@@ -1,17 +1,21 @@
-// Animated background: generative art in the pattern of an artificial neural
-// network.
+// Animated background: a first-person view from inside a neural network.
 //
-// An organic web of neurons, loosely arranged in layers from left to right,
-// each wired to a few neurons of the next layer. Every few seconds a wave of
-// activity enters on the left and passes through: a share of each layer lights
-// up in turn, and sparks run along the connections between the neurons that
-// fired. Several waves overlap, in the palette's two colours.
+// You are standing between the layers, looking along the direction the data
+// flows. Each layer is an ordered grid of neurons on a plane facing you; the
+// planes recede into the distance, each wired to the next. The view drifts
+// slowly forward, so layers pass by you and new ones come out of the haze,
+// without end.
 //
-// Nothing here is truly random. Which neurons fire in which wave is decided by
-// a formula of the wave's number, and UTC time only says which wave we are in
-// and how far along it is. Time is the playhead of a fixed, endless score, not
-// an input to it. So a refresh, or another visitor on the same screen size,
-// picks the pattern up exactly where it was.
+// Every few seconds a signal starts on the layer just ahead of you and travels
+// away into the network. It is a real cascade: a neuron that fires hands the
+// signal to one or two of the neurons it is wired to, a spark runs along that
+// wire, and the neuron at the far end fires in turn. No spark starts or ends
+// in mid-air, so a signal can be followed from layer to layer.
+//
+// Nothing here is truly random. The wiring of layer k and the path of signal
+// number w are fixed by formulas, and UTC time only says where the viewer is
+// and how far each signal has got. A refresh, or another visitor, picks the
+// scene up exactly where it was.
 (() => {
     const canvas = document.querySelector('.backdrop canvas');
     if (!canvas) return;
@@ -20,18 +24,14 @@
     const root = document.documentElement;
     const still = matchMedia('(prefers-reduced-motion: reduce)');
 
-    const EVERY = 2.6;   // seconds between one wave entering and the next
-    const HOP = 0.6;     // seconds for a wave to cross from one layer to the next
-    const FIRING = 0.34; // share of a layer that fires in a typical wave
-    const FAN = 3;       // connections from each neuron to the next layer
+    const COLS = 9, ROWS = 6;      // neurons in one layer
+    const SIZE = COLS * ROWS;
+    const SPEED = 0.11;            // layers the viewer drifts past per second
+    const FAR = 7;                 // layers further ahead than this are lost in the haze
+    const EVERY = 2.4;             // seconds between one signal starting and the next
+    const HOP = 0.75;              // seconds for a signal to cross from one layer to the next
+    const REACH = 8;               // layers a signal travels before it is out of sight
     const FRAME = 1000 / 30;
-
-    const seeded = (seed) => () => {
-        seed = (seed + 0x6d2b79f5) | 0;
-        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
 
     // A repeatable value between 0 and 1 for a pair of whole numbers.
     const hash = (a, b) => {
@@ -41,42 +41,73 @@
         return ((h ^ (h >>> 15)) >>> 0) / 4294967296;
     };
 
-    let width = 0, height = 0, layers = 0, neurons = [], synapses = [];
-    let colours = ['#888', '#888'], dark = true, lastDraw = 0;
-
-    // Lays the web out for the current window: layers of neurons with a hand-placed
-    // look, each wired to nearby neurons of the next layer. Same window, same web.
-    const layout = () => {
-        const random = seeded(0x51a7e);
-        layers = Math.max(3, Math.min(11, Math.round(width / 165)));
-        const perLayer = Math.max(8, Math.min(26, Math.round(height / 46)));
-
-        neurons = [];
-        for (let layer = 0; layer < layers; layer++) {
-            for (let i = 0; i < perLayer; i++) {
-                neurons.push({
-                    id: neurons.length, layer,
-                    homeX: (layer + 0.5 + (random() - 0.5) * 0.62) / layers * width,
-                    homeY: (i + 0.5 + (random() - 0.5) * 0.9) / perLayer * height,
-                    depth: 0.5 + random() * 0.5, // nearer ones are larger and brighter
-                    size: 1.1 + random() * 2.1,
-                    swayX: random() * 6.28, swayY: random() * 6.28,
-                    paceX: 0.05 + random() * 0.1, paceY: 0.05 + random() * 0.1,
-                    x: 0, y: 0, glow: 0, tone: 0,
-                });
-            }
-        }
-
-        synapses = [];
-        for (const from of neurons) {
-            if (from.layer === layers - 1) continue;
-            const ahead = neurons.filter((n) => n.layer === from.layer + 1)
-                .sort((p, q) => Math.hypot(p.homeX - from.homeX, p.homeY - from.homeY) - Math.hypot(q.homeX - from.homeX, q.homeY - from.homeY));
-            // Mostly the closest ones, sometimes one a little further off.
-            const picks = [ahead[0], ahead[1], ahead[2 + Math.floor(random() * 4)]].slice(0, FAN);
-            for (const to of picks) if (to) synapses.push({ from, to, bend: (random() - 0.5) * 0.36 });
-        }
+    // --- The network. A neuron is (layer k, index i); i runs across the grid row by row.
+    // Position on its plane, in plane units: an even grid with a slight hand-set wobble.
+    const spot = (k, i) => {
+        const col = i % COLS, row = Math.floor(i / COLS);
+        return [
+            -1.6 + 3.2 * (col + 0.5) / COLS + (hash(k * 131 + i, 1) - 0.5) * 0.05,
+            -1 + 2 * (row + 0.5) / ROWS + (hash(k * 131 + i, 2) - 0.5) * 0.05,
+        ];
     };
+
+    // The three neurons of the next layer that neuron (k, i) is wired to: the
+    // one straight ahead and two of its neighbours.
+    const wiring = new Map();
+    const wires = (k, i) => {
+        const key = k * SIZE + i;
+        let out = wiring.get(key);
+        if (out) return out;
+        const col = i % COLS, row = Math.floor(i / COLS);
+        out = [i];
+        for (let n = 0; out.length < 3 && n < 12; n++) {
+            const c = col + Math.round((hash(key, 10 + n) - 0.5) * 3), r = row + Math.round((hash(key, 40 + n) - 0.5) * 3);
+            const j = r * COLS + c;
+            if (c >= 0 && c < COLS && r >= 0 && r < ROWS && !out.includes(j)) out.push(j);
+        }
+        if (wiring.size > 4000) wiring.clear();
+        wiring.set(key, out);
+        return out;
+    };
+
+    // --- The signals. Signal w starts at a fixed time on the layer then just ahead of the viewer.
+    const startsAt = (w) => w * EVERY + hash(w, 7) * 0.8;
+    // Between half a step and a step and a half ahead, so the first flash is close but in view.
+    const startLayer = (w) => Math.floor(startsAt(w) * SPEED + 0.5) + 1;
+
+    // The whole path of signal w: for each layer it crosses, which neurons fire
+    // and which wires carry it onward.
+    const paths = new Map();
+    const pathOf = (w) => {
+        let steps = paths.get(w);
+        if (steps) return steps;
+
+        const first = startLayer(w);
+        // It begins on three or four neurons of the first layer.
+        let firing = Array.from({ length: SIZE }, (_, i) => i)
+            .sort((p, q) => hash(w * 977 + p, 3) - hash(w * 977 + q, 3)).slice(0, 3 + Math.floor(hash(w, 4) * 2));
+        steps = [];
+        for (let hop = 0; hop < REACH; hop++) {
+            const k = first + hop;
+            const sparks = [];
+            for (const i of firing) {
+                // Each firing neuron passes the signal down its favourite wire, and sometimes a second.
+                const ranked = wires(k, i).map((j) => ({ j, pick: hash(w * 31 + k, i * 64 + j) })).sort((p, q) => p.pick - q.pick);
+                sparks.push({ from: i, to: ranked[0].j });
+                if (ranked[1] && ranked[1].pick < 0.42) sparks.push({ from: i, to: ranked[1].j });
+            }
+            steps.push({ k, firing, sparks });
+            // The neurons reached fire next; the cascade is kept from flooding the layer.
+            firing = [...new Set(sparks.map((s) => s.to))].slice(0, 9);
+        }
+        if (paths.size > 12) paths.clear();
+        paths.set(w, steps);
+        return steps;
+    };
+
+    let width = 0, height = 0, focal = 0, colours = ['#888', '#888'], dark = true, lastDraw = 0;
+    // Set once per frame: where the viewer is, and the head's slight sideways drift.
+    let viewer = 0, swayX = 0, swayY = 0;
 
     const resize = () => {
         const ratio = Math.min(devicePixelRatio || 1, 2);
@@ -85,7 +116,8 @@
         canvas.width = width * ratio;
         canvas.height = height * ratio;
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-        layout();
+        // A layer one step ahead just about fills the window, so you are inside it.
+        focal = Math.max(width / 3.3, height / 2.05);
     };
 
     // The palette's two colours, as currently resolved by the stylesheet.
@@ -95,130 +127,140 @@
         dark = root.dataset.mode === 'dark';
     };
 
-    const smooth = (x) => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
+    const clamp = (v) => Math.max(0, Math.min(1, v));
+    const smooth = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
 
-    // --- The score. Wave number w enters at a fixed moment and fires a fixed set of neurons.
-    const enters = (w) => w * EVERY + hash(w, 7) * 0.9;
+    // Perspective: a point on layer k, seen from where the viewer is now.
+    const project = (x, y, depth) => [width / 2 + (x - swayX) * focal / depth, height / 2 + (y - swayY) * focal / depth];
+    const see = (k, i) => { const [x, y] = spot(k, i); return project(x, y, k - viewer); };
+    // Faint in the distance, and fading out as a layer passes the viewer.
+    const haze = (depth) => clamp((FAR - depth) / 3.5) * clamp((depth - 0.12) / 0.45);
 
-    // Does this neuron fire in wave w? Firing is denser along a soft band that
-    // slants across the layers, a different band for every wave, so each wave
-    // traces its own path through the web.
-    const fires = (n, w) => {
-        const band = 0.5 + 0.5 * Math.sin(n.homeY / height * 5 + hash(w, 3) * 6.28 + n.layer * (hash(w, 5) - 0.5) * 3.6);
-        return hash(n.id * 31 + 17, w) < FIRING * (0.4 + 1.2 * band);
-    };
+    // One layer at rest: its grid lines, the wires leaving it, and its neurons.
+    const drawLayer = (k) => {
+        const depth = k - viewer;
+        const fog = haze(depth);
+        if (fog <= 0) return;
+        const points = Array.from({ length: SIZE }, (_, i) => see(k, i));
 
-    // Brightness of a neuron `since` hops after the wave reached its layer: a quick flash, then a slow fade.
-    const flash = (since) => {
-        if (since < 0) return 0;
-        return since < 0.15 ? since / 0.15 : Math.exp(-(since - 0.15) * 1.7);
-    };
-
-    // A point along a synapse, which is drawn as a gentle curve.
-    const along = (s, u) => {
-        const mx = (s.from.x + s.to.x) / 2 - (s.to.y - s.from.y) * s.bend;
-        const my = (s.from.y + s.to.y) / 2 + (s.to.x - s.from.x) * s.bend;
-        const v = 1 - u;
-        return [v * v * s.from.x + 2 * v * u * mx + u * u * s.to.x, v * v * s.from.y + 2 * v * u * my + u * u * s.to.y, mx, my];
-    };
-
-    const trace = (s) => {
-        const [, , mx, my] = along(s, 0.5);
-        ctx.moveTo(s.from.x, s.from.y);
-        ctx.quadraticCurveTo(mx, my, s.to.x, s.to.y);
-    };
-
-    // Waves that are still somewhere in the web at time t.
-    const wavesAt = (t) => {
-        const waves = [];
-        const lifetime = layers * HOP + 3;
-        for (let w = Math.floor(t / EVERY); enters(w) > t - lifetime; w--) {
-            if (enters(w) <= t) waves.push({ w, at: (t - enters(w)) / HOP, tone: ((w % 2) + 2) % 2 });
-        }
-        return waves;
-    };
-
-    // Neurons breathe around their home position, and take their light from the brightest wave.
-    const settle = (t, waves) => {
-        for (const n of neurons) {
-            n.x = n.homeX + Math.sin(t * n.paceX + n.swayX) * 11 * n.depth;
-            n.y = n.homeY + Math.cos(t * n.paceY + n.swayY) * 11 * n.depth;
-            n.glow = 0;
-            for (const wave of waves) {
-                const light = fires(n, wave.w) ? flash(wave.at - n.layer) : 0;
-                if (light > n.glow) { n.glow = light; n.tone = wave.tone; }
-            }
-        }
-    };
-
-    // The resting web, in one stroke.
-    const drawWeb = () => {
-        ctx.globalAlpha = 0.085;
+        // The lattice that makes the plane read as a layer.
         ctx.strokeStyle = colours[0];
         ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.13 * fog;
         ctx.beginPath();
-        for (const s of synapses) trace(s);
+        for (let i = 0; i < SIZE; i++) {
+            if (i % COLS < COLS - 1) { ctx.moveTo(points[i][0], points[i][1]); ctx.lineTo(points[i + 1][0], points[i + 1][1]); }
+            if (i + COLS < SIZE) { ctx.moveTo(points[i][0], points[i][1]); ctx.lineTo(points[i + COLS][0], points[i + COLS][1]); }
+        }
         ctx.stroke();
-    };
 
-    // One spark with its short tail, a fraction u of the way along a connection.
-    const drawSpark = (s, u) => {
-        for (let tail = 0; tail < 4; tail++) {
-            const at = smooth(u) - tail * 0.045;
-            if (at <= 0) return;
-            const [x, y] = along(s, at);
-            ctx.globalAlpha = (1 - tail * 0.24) * s.to.depth;
+        // The wires on to the next layer, running away from you.
+        const next = depth + 1;
+        if (haze(next) > 0) {
+            ctx.globalAlpha = 0.07 * Math.min(fog, haze(next));
             ctx.beginPath();
-            ctx.arc(x, y, 2.3 - tail * 0.4, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    };
-
-    // A connection carries a spark when both of its ends fire in the same wave.
-    // It lights up as the spark passes, then cools.
-    const drawSparks = (wave) => {
-        ctx.strokeStyle = ctx.fillStyle = colours[wave.tone];
-        ctx.lineWidth = 1.2;
-        for (const s of synapses) {
-            const u = wave.at - s.from.layer; // 0..1 while the spark is on its way
-            if (u <= 0 || u >= 1.7 || !fires(s.from, wave.w) || !fires(s.to, wave.w)) continue;
-            const heat = u < 1 ? 0.12 + 0.5 * Math.sin(u * Math.PI) : 0.3 * (1 - (u - 1) / 0.7);
-            ctx.globalAlpha = heat * s.to.depth;
-            ctx.beginPath();
-            trace(s);
-            ctx.stroke();
-            if (u < 1) drawSpark(s, u);
-        }
-    };
-
-    // The neurons: a faint dot at rest, a bright core and a halo when firing.
-    const drawNeurons = () => {
-        for (const n of neurons) {
-            ctx.fillStyle = colours[n.glow > 0.02 ? n.tone : n.id % 2];
-            if (n.glow > 0.05) {
-                ctx.globalAlpha = 0.16 * n.glow * n.depth;
-                ctx.beginPath();
-                ctx.arc(n.x, n.y, n.size * (3.5 + 5 * n.glow), 0, Math.PI * 2);
-                ctx.fill();
+            for (let i = 0; i < SIZE; i++) {
+                for (const j of wires(k, i)) {
+                    const [x, y] = see(k + 1, j);
+                    ctx.moveTo(points[i][0], points[i][1]);
+                    ctx.lineTo(x, y);
+                }
             }
-            ctx.globalAlpha = (0.2 + 0.8 * n.glow) * n.depth;
+            ctx.stroke();
+        }
+
+        // The neurons at rest.
+        const radius = Math.max(0.8, Math.min(11, 0.014 * focal / depth));
+        ctx.fillStyle = colours[0];
+        ctx.globalAlpha = 0.3 * fog;
+        ctx.beginPath();
+        for (const [x, y] of points) { ctx.moveTo(x + radius, y); ctx.arc(x, y, radius, 0, Math.PI * 2); }
+        ctx.fill();
+    };
+
+    // A neuron firing: a bright core with a halo. `light` is 0..1.
+    const drawFlash = (k, i, light, colour) => {
+        const depth = k - viewer;
+        const fog = haze(depth);
+        if (fog <= 0 || light <= 0.02) return;
+        const [x, y] = see(k, i);
+        const radius = Math.max(0.8, Math.min(11, 0.014 * focal / depth));
+        ctx.fillStyle = colour;
+        ctx.globalAlpha = 0.2 * light * fog;
+        ctx.beginPath();
+        ctx.arc(x, y, radius * (2.6 + 3 * light), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = (0.35 + 0.65 * light) * fog;
+        ctx.beginPath();
+        ctx.arc(x, y, radius * (1 + 0.7 * light), 0, Math.PI * 2);
+        ctx.fill();
+    };
+
+    // The wire from (k, from) to (k + 1, to), lit, with a spark `u` of the way along it.
+    const drawSpark = (k, spark, u, colour) => {
+        const near = k - viewer, far = near + 1;
+        const fog = Math.min(haze(near), haze(far));
+        if (fog <= 0) return;
+        const [x1, y1] = see(k, spark.from), [x2, y2] = see(k + 1, spark.to);
+        ctx.strokeStyle = ctx.fillStyle = colour;
+        // The wire glows while the spark is on it, and cools afterwards.
+        ctx.globalAlpha = fog * (u < 1 ? 0.25 + 0.5 * Math.sin(u * Math.PI) : 0.35 * (1 - (u - 1) / 0.8));
+        ctx.lineWidth = Math.max(1, Math.min(2.4, 0.003 * focal / far));
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        if (u >= 1) return;
+        const head = smooth(u);
+        // The spark shrinks as it moves away from you, like everything else.
+        const size = Math.max(1.2, 0.007 * focal / (near + head));
+        for (let tail = 0; tail < 4; tail++) {
+            const at = head - tail * 0.05;
+            if (at <= 0) return;
+            ctx.globalAlpha = fog * (1 - tail * 0.23);
             ctx.beginPath();
-            ctx.arc(n.x, n.y, n.size * (1 + 0.9 * n.glow), 0, Math.PI * 2);
+            ctx.arc(x1 + (x2 - x1) * at, y1 + (y2 - y1) * at, size * (1 - tail * 0.16), 0, Math.PI * 2);
             ctx.fill();
+        }
+    };
+
+    // Brightness of a neuron `since` hops after the signal reached it: a quick flash, then a slow fade.
+    const flash = (since) => {
+        if (since < 0) return 0;
+        return since < 0.12 ? since / 0.12 : Math.exp(-(since - 0.12) * 1.5);
+    };
+
+    // One signal, as far as it has got.
+    const drawSignal = (w, t) => {
+        const phase = (t - startsAt(w)) / HOP; // layers crossed so far
+        if (phase < 0) return;
+        const colour = colours[((w % 2) + 2) % 2];
+        for (const [hop, step] of pathOf(w).entries()) {
+            const since = phase - hop;
+            if (since < 0) break;
+            if (since < 1.8) for (const spark of step.sparks) drawSpark(step.k, spark, since, colour);
+            const light = flash(since);
+            for (const i of step.firing) drawFlash(step.k, i, light, colour);
         }
     };
 
     const draw = () => {
         const t = Date.now() / 1000; // UTC seconds: the playhead
-        const waves = wavesAt(t);
-        settle(t, waves);
+        viewer = t * SPEED;
+        swayX = 0.11 * Math.sin(t * 0.11);
+        swayY = 0.07 * Math.sin(t * 0.15 + 1);
 
         ctx.clearRect(0, 0, width, height);
         ctx.globalCompositeOperation = dark ? 'lighter' : 'source-over'; // overlapping lights add up
         ctx.lineCap = 'round';
-        drawWeb();
-        for (const wave of waves) drawSparks(wave);
-        drawNeurons();
+
+        // The layers ahead, from the furthest to the nearest.
+        for (let k = Math.floor(viewer + FAR); k > viewer; k--) drawLayer(k);
+
+        // Every signal still within sight.
+        const latest = Math.floor(t / EVERY);
+        for (let w = latest; startsAt(w) > t - (REACH + 2) * HOP; w--) drawSignal(w, t);
+
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = 'source-over';
     };
