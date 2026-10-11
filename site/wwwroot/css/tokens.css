@@ -12,20 +12,20 @@
     --counter-h: 35;
     --counter-c: 0.13;
 
-    --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     --font-mono: ui-monospace, 'Cascadia Code', Consolas, Menlo, monospace;
 
-    /* Neutrals tinted with the palette's accent hue, so every palette colours
-       the whole page and not just its highlights. */
-    --bg: oklch(0.975 0.02 var(--accent-h));
-    --bg-deep: oklch(0.95 0.028 var(--accent-h));
+    /* Near-neutral greys with a trace of the palette's hue. The page stays
+       calm so text has full contrast; the colour lives in the accents. */
+    --bg: oklch(0.985 0.006 var(--accent-h));
+    --bg-deep: oklch(0.96 0.01 var(--accent-h));
     --surface: oklch(1 0 0);
-    --surface-raised: oklch(0.965 0.022 var(--accent-h));
-    --fg: oklch(0.2 0.03 var(--accent-h));
-    --fg-muted: oklch(0.42 0.03 var(--accent-h));
-    --fg-subtle: oklch(0.47 0.03 var(--accent-h));
-    --line: oklch(0.86 0.03 var(--accent-h));
-    --line-strong: oklch(0.76 0.035 var(--accent-h));
+    --surface-raised: oklch(0.972 0.008 var(--accent-h));
+    --fg: oklch(0.2 0.015 var(--accent-h));
+    --fg-muted: oklch(0.42 0.02 var(--accent-h));
+    --fg-subtle: oklch(0.48 0.02 var(--accent-h));
+    --line: oklch(0.88 0.012 var(--accent-h));
+    --line-strong: oklch(0.78 0.015 var(--accent-h));
 
     --accent: oklch(0.5 var(--accent-c) var(--accent-h));
     --accent-strong: oklch(0.44 var(--accent-c) var(--accent-h));
@@ -35,18 +35,12 @@
     --counter: oklch(0.6 var(--counter-c) var(--counter-h));
     --counter-soft: oklch(0.6 var(--counter-c) var(--counter-h) / 0.12);
 
-    /* The two page-background colours (see body::before): the palette's duo
-       at a lightness that keeps text readable on top. */
-    --mesh-a: oklch(0.9 calc(var(--accent-c) * 0.62) var(--accent-h));
-    --mesh-b: oklch(0.9 calc(var(--counter-c) * 0.62) var(--counter-h));
-
-    /* Drifting colour blobs on top of that (see body::after): the duo again,
-       brighter, plus a neighbouring hue of each for a richer mix. */
-    --blob-a: oklch(0.8 var(--accent-c) var(--accent-h) / 0.75);
-    --blob-b: oklch(0.82 var(--counter-c) var(--counter-h) / 0.75);
-    --blob-c: oklch(0.84 var(--accent-c) calc(var(--accent-h) + 45) / 0.7);
-    --blob-d: oklch(0.84 var(--counter-c) calc(var(--counter-h) - 45) / 0.7);
-    --dots: oklch(0.2 0.03 var(--accent-h) / 0.1);
+    /* Soft colour glows at the top of the page (see body::before): the duo
+       plus a neighbouring hue of each. Kept faint so text stays readable. */
+    --blob-a: oklch(0.85 var(--accent-c) var(--accent-h) / 0.5);
+    --blob-b: oklch(0.86 var(--counter-c) var(--counter-h) / 0.5);
+    --blob-c: oklch(0.87 var(--accent-c) calc(var(--accent-h) + 45) / 0.4);
+    --blob-d: oklch(0.87 var(--counter-c) calc(var(--counter-h) - 45) / 0.4);
 
     --success: oklch(0.47 0.14 155);
     --warning: oklch(0.72 0.16 75);
@@ -70,15 +64,15 @@
 :root[data-mode="dark"] {
     color-scheme: dark;
 
-    --bg: oklch(0.16 0.04 var(--accent-h));
-    --bg-deep: oklch(0.13 0.04 var(--accent-h));
-    --surface: oklch(0.2 0.04 var(--accent-h));
-    --surface-raised: oklch(0.24 0.045 var(--accent-h));
-    --fg: oklch(0.96 0.012 var(--accent-h));
-    --fg-muted: oklch(0.78 0.03 var(--accent-h));
-    --fg-subtle: oklch(0.7 0.03 var(--accent-h));
-    --line: oklch(0.36 0.045 var(--accent-h));
-    --line-strong: oklch(0.46 0.05 var(--accent-h));
+    --bg: oklch(0.155 0.02 var(--accent-h));
+    --bg-deep: oklch(0.13 0.02 var(--accent-h));
+    --surface: oklch(0.185 0.022 var(--accent-h));
+    --surface-raised: oklch(0.215 0.024 var(--accent-h));
+    --fg: oklch(0.95 0.01 var(--accent-h));
+    --fg-muted: oklch(0.76 0.02 var(--accent-h));
+    --fg-subtle: oklch(0.67 0.02 var(--accent-h));
+    --line: oklch(0.32 0.025 var(--accent-h));
+    --line-strong: oklch(0.42 0.028 var(--accent-h));
 
     --accent: oklch(0.74 var(--accent-c) var(--accent-h));
     --accent-strong: oklch(0.8 var(--accent-c) var(--accent-h));
@@ -88,14 +82,11 @@
     --counter: oklch(0.75 var(--counter-c) var(--counter-h));
     --counter-soft: oklch(0.75 var(--counter-c) var(--counter-h) / 0.14);
 
-    --mesh-a: oklch(0.3 calc(var(--accent-c) * 0.85) var(--accent-h));
-    --mesh-b: oklch(0.3 calc(var(--counter-c) * 0.85) var(--counter-h));
 
-    --blob-a: oklch(0.6 var(--accent-c) var(--accent-h) / 0.7);
-    --blob-b: oklch(0.6 var(--counter-c) var(--counter-h) / 0.7);
-    --blob-c: oklch(0.55 var(--accent-c) calc(var(--accent-h) + 45) / 0.65);
-    --blob-d: oklch(0.55 var(--counter-c) calc(var(--counter-h) - 45) / 0.65);
-    --dots: oklch(1 0 0 / 0.1);
+    --blob-a: oklch(0.55 var(--accent-c) var(--accent-h) / 0.34);
+    --blob-b: oklch(0.55 var(--counter-c) var(--counter-h) / 0.34);
+    --blob-c: oklch(0.5 var(--accent-c) calc(var(--accent-h) + 45) / 0.28);
+    --blob-d: oklch(0.5 var(--counter-c) calc(var(--counter-h) - 45) / 0.28);
 
     --success: oklch(0.75 0.15 155);
     --warning: oklch(0.8 0.15 75);
