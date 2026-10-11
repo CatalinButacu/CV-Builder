@@ -1,0 +1,20 @@
+@page "/projects"
+@using Portfolio.Data
+
+<PageTitle>Projects · Cătălin Butacu</PageTitle>
+
+<p class="eyebrow">Work</p>
+<h1>Projects</h1>
+<p class="lede">@ProjectCatalog.All.Length projects, each with public source code.</p>
+
+<ul class="projects">
+    @foreach (var project in ProjectCatalog.All)
+    {
+        <li class="card">
+            <span class="year">@project.Year</span>
+            <h2>@project.Title</h2>
+            <p>@project.Summary</p>
+            <a href="@project.Repo" target="_blank" rel="noopener">GitHub ↗</a>
+        </li>
+    }
+</ul>
