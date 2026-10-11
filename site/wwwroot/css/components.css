@@ -443,3 +443,35 @@
         .timeline .entry.plain::before {
             display: none;
         }
+
+/* Contact */
+.contact-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+    gap: 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+    .contact-links a {
+        display: grid;
+        gap: 0.5rem;
+        padding: 1.5rem;
+        border-radius: var(--radius-card);
+        color: var(--fg);
+        text-decoration: none;
+        box-shadow: var(--shadow-elev-1);
+        transition: box-shadow 0.3s var(--ease-out-expo), border-color 0.3s var(--ease-out-expo);
+    }
+
+        .contact-links a:hover {
+            border-color: var(--accent);
+            box-shadow: var(--shadow-elev-2);
+        }
+
+    .contact-links .value {
+        font-size: 1.125rem;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }

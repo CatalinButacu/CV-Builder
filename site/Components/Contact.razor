@@ -1,0 +1,25 @@
+<Section Id="contact" Eyebrow="Contact" Title="Let's talk"
+         Subtitle="The fastest way to reach me is email. I'm also on LinkedIn and GitHub.">
+    <ul class="contact-links">
+        @foreach (var link in Links)
+        {
+            <li>
+                <a class="surface" href="@link.Href" target="@(link.External ? "_blank" : null)" rel="@(link.External ? "noopener me" : "me")">
+                    <span class="mono-label">@link.Kind</span>
+                    <span class="value">@link.Label</span>
+                </a>
+            </li>
+        }
+    </ul>
+</Section>
+
+@code {
+    private sealed record Link(string Kind, string Label, string Href, bool External = true);
+
+    private static readonly Link[] Links =
+    [
+        new("Email", "butacu.catalin@yahoo.com", "mailto:butacu.catalin@yahoo.com", External: false),
+        new("LinkedIn", "linkedin.com/in/catalin-butacu", "https://ro.linkedin.com/in/catalin-butacu"),
+        new("GitHub", "github.com/CatalinButacu", "https://github.com/CatalinButacu/"),
+    ];
+}
