@@ -49,6 +49,21 @@
     </div>
 </section>
 
+<Section Id="projects" Eyebrow="Selected work" Title="Projects"
+         Subtitle="@($"{ProjectCatalog.All.Length} projects across generative AI, computer vision, security and optimisation.")">
+    <Action>
+        <a class="btn secondary" href="projects">View all projects</a>
+    </Action>
+    <ChildContent>
+        <ul class="project-grid">
+            @foreach (var project in ProjectCatalog.All.Take(3))
+            {
+                <li><ProjectCard Project="project" /></li>
+            }
+        </ul>
+    </ChildContent>
+</Section>
+
 @code {
     private static readonly string[] Tech =
     [
