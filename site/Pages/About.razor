@@ -1,0 +1,69 @@
+@page "/about"
+
+<PageTitle>About · Cătălin Butacu</PageTitle>
+
+<Section Eyebrow="About" Title="@Profile.Person.Name" PageHeading="true" Subtitle="@Profile.Person.Summary" />
+
+<Section Id="experience" Eyebrow="01 / Experience" Title="Professional experience">
+    <div class="stack">
+        @foreach (var job in Profile.Experience)
+        {
+            <OrganisationCard Organisation="job" />
+        }
+    </div>
+</Section>
+
+<Section Id="skills" Eyebrow="02 / Skills" Title="Tech stack">
+    <div class="panel surface skills">
+        @foreach (var skill in Profile.Skills)
+        {
+            <div class="skill-row">
+                <span class="mono-label">@skill.Group</span>
+                <ul class="chips">
+                    @foreach (var item in skill.Items)
+                    {
+                        <li class="chip">@item</li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+</Section>
+
+<Section Id="education" Eyebrow="03 / Education" Title="Education">
+    <div class="stack">
+        @foreach (var degree in Profile.Education)
+        {
+            <div class="panel surface">
+                <div class="row"><h3>@degree.Title</h3><span class="when">@degree.Period</span></div>
+                <p class="where">@degree.School</p>
+                @foreach (var note in degree.Notes)
+                {
+                    <p class="note"><strong>@note.Label:</strong> @note.Text</p>
+                }
+            </div>
+        }
+    </div>
+</Section>
+
+<Section Id="certifications" Eyebrow="04 / Certifications" Title="Certifications">
+    <ul class="panel surface certs">
+        @foreach (var cert in Profile.Certifications)
+        {
+            <li>
+                @if (cert.Link is not null)
+                {
+                    <a href="@cert.Link" target="_blank" rel="noopener">@cert.Name ↗</a>
+                }
+                else
+                {
+                    @cert.Name
+                }
+            </li>
+        }
+    </ul>
+</Section>
+
+<Section Id="volunteering" Eyebrow="05 / Volunteering" Title="Volunteer experience">
+    <OrganisationCard Organisation="Profile.Volunteering" />
+</Section>
