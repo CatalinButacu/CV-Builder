@@ -160,6 +160,17 @@
     margin-bottom: 2rem;
 }
 
+/* The CV photo, as a round portrait at the start of the hero. */
+.portrait {
+    width: 5.5rem;
+    height: 5.5rem;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--surface);
+    outline: 1px solid var(--line-strong);
+    box-shadow: var(--shadow-elev-2);
+}
+
 .hero h1 {
     margin: 0 0 1.5rem;
     font-size: clamp(2.5rem, 5.2vw, 4.5rem);

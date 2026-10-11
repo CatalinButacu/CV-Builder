@@ -45,6 +45,11 @@ jobs:
           grep -n '<base' publish/wwwroot/index.html
           cp publish/wwwroot/index.html publish/wwwroot/404.html
 
+      # The portrait is the one the CV uses, taken from the repository root so
+      # there is a single copy of it.
+      - name: Add the CV photo
+        run: cp profile-preview.png publish/wwwroot/profile.png
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
