@@ -19,6 +19,8 @@
 *.pdfsync
 *.dvi
 *.ps
+*.ps1
+*.pdf
 
 # LaTeX temporary files
 *.nav
@@ -49,10 +51,21 @@ Thumbs.db
 *~
 .vscode/
 .idea/
-
-# Keep the final PDF (optional - remove this line if you don't want to track the PDF)
-# !resume.pdf
 .docs/
-
-# Local project clones for skill leveling — never commit
 .projects/
+
+# Applications
+apply/
+roles/
+.claude/
+archive/
+graphify-out/
+
+# Local build helpers
+build.ps1
+build_all.ps1
+Makefile
+
+# .NET build output
+bin/
+obj/
