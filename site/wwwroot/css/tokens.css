@@ -41,6 +41,7 @@
     --blob-b: oklch(0.86 var(--counter-c) var(--counter-h) / 0.5);
     --blob-c: oklch(0.87 var(--accent-c) calc(var(--accent-h) + 45) / 0.4);
     --blob-d: oklch(0.87 var(--counter-c) calc(var(--counter-h) - 45) / 0.4);
+    --pattern-opacity: 0.38;
 
     --success: oklch(0.47 0.14 155);
     --warning: oklch(0.72 0.16 75);
@@ -87,6 +88,7 @@
     --blob-b: oklch(0.55 var(--counter-c) var(--counter-h) / 0.34);
     --blob-c: oklch(0.5 var(--accent-c) calc(var(--accent-h) + 45) / 0.28);
     --blob-d: oklch(0.5 var(--counter-c) calc(var(--counter-h) - 45) / 0.28);
+    --pattern-opacity: 0.5;
 
     --success: oklch(0.75 0.15 155);
     --warning: oklch(0.8 0.15 75);

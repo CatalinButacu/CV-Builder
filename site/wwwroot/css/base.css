@@ -72,6 +72,27 @@ body::before {
     pointer-events: none;
 }
 
+/* Background pattern: a network of nodes and links (img/network.svg) used as
+   a mask over the palette's two colours, so it is redrawn in every palette.
+   Strongest towards the top right, faint where the text columns are. */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(120deg in oklab, var(--accent), var(--counter));
+    -webkit-mask-image: url('../img/network.svg'), radial-gradient(130% 100% at 85% 0%, #000 20%, rgb(0 0 0 / 0.3) 75%);
+    mask-image: url('../img/network.svg'), radial-gradient(130% 100% at 85% 0%, #000 20%, rgb(0 0 0 / 0.3) 75%);
+    -webkit-mask-size: 420px 360px, 100% 100%;
+    mask-size: 420px 360px, 100% 100%;
+    -webkit-mask-repeat: repeat, no-repeat;
+    mask-repeat: repeat, no-repeat;
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+    opacity: var(--pattern-opacity);
+    pointer-events: none;
+}
+
 ::selection {
     background: var(--accent);
     color: var(--accent-fg);
