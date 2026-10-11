@@ -19,6 +19,15 @@ body {
     text-rendering: optimizeLegibility;
 }
 
+a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+    a:hover {
+        text-decoration: underline;
+    }
+
 ::selection {
     background: var(--accent);
     color: var(--accent-fg);
