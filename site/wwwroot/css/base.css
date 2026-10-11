@@ -42,8 +42,42 @@ body::before {
     position: fixed;
     inset: 0;
     z-index: -1;
-    background: linear-gradient(125deg in oklab, var(--mesh-a) 12%, var(--mesh-b) 88%);
+    background:
+        radial-gradient(var(--dots) 1px, transparent 1.6px) 0 0 / 22px 22px,
+        linear-gradient(125deg in oklab, var(--mesh-a) 12%, var(--mesh-b) 88%);
     pointer-events: none;
+}
+
+/* Four blurred colour blobs that drift slowly over the base blend. Oversized
+   so the edges never show while it moves. */
+body::after {
+    content: "";
+    position: fixed;
+    inset: -25%;
+    z-index: -1;
+    background:
+        radial-gradient(circle at 22% 28%, var(--blob-a), transparent 30%),
+        radial-gradient(circle at 78% 24%, var(--blob-b), transparent 28%),
+        radial-gradient(circle at 70% 76%, var(--blob-c), transparent 30%),
+        radial-gradient(circle at 24% 78%, var(--blob-d), transparent 28%);
+    filter: blur(48px);
+    animation: drift 32s ease-in-out infinite alternate;
+    will-change: transform;
+    pointer-events: none;
+}
+
+@keyframes drift {
+    0% {
+        transform: translate3d(-4%, -3%, 0) rotate(0deg) scale(1);
+    }
+
+    50% {
+        transform: translate3d(4%, 5%, 0) rotate(10deg) scale(1.12);
+    }
+
+    100% {
+        transform: translate3d(6%, -5%, 0) rotate(-8deg) scale(1.05);
+    }
 }
 
 ::selection {

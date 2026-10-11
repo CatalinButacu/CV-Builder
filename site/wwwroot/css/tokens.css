@@ -40,6 +40,14 @@
     --mesh-a: oklch(0.9 calc(var(--accent-c) * 0.62) var(--accent-h));
     --mesh-b: oklch(0.9 calc(var(--counter-c) * 0.62) var(--counter-h));
 
+    /* Drifting colour blobs on top of that (see body::after): the duo again,
+       brighter, plus a neighbouring hue of each for a richer mix. */
+    --blob-a: oklch(0.8 var(--accent-c) var(--accent-h) / 0.75);
+    --blob-b: oklch(0.82 var(--counter-c) var(--counter-h) / 0.75);
+    --blob-c: oklch(0.84 var(--accent-c) calc(var(--accent-h) + 45) / 0.7);
+    --blob-d: oklch(0.84 var(--counter-c) calc(var(--counter-h) - 45) / 0.7);
+    --dots: oklch(0.2 0.03 var(--accent-h) / 0.1);
+
     --success: oklch(0.47 0.14 155);
     --warning: oklch(0.72 0.16 75);
     --warning-fg: oklch(0.42 0.12 70);
@@ -80,8 +88,14 @@
     --counter: oklch(0.75 var(--counter-c) var(--counter-h));
     --counter-soft: oklch(0.75 var(--counter-c) var(--counter-h) / 0.14);
 
-    --mesh-a: oklch(0.36 calc(var(--accent-c) * 0.85) var(--accent-h));
-    --mesh-b: oklch(0.36 calc(var(--counter-c) * 0.85) var(--counter-h));
+    --mesh-a: oklch(0.3 calc(var(--accent-c) * 0.85) var(--accent-h));
+    --mesh-b: oklch(0.3 calc(var(--counter-c) * 0.85) var(--counter-h));
+
+    --blob-a: oklch(0.6 var(--accent-c) var(--accent-h) / 0.7);
+    --blob-b: oklch(0.6 var(--counter-c) var(--counter-h) / 0.7);
+    --blob-c: oklch(0.55 var(--accent-c) calc(var(--accent-h) + 45) / 0.65);
+    --blob-d: oklch(0.55 var(--counter-c) calc(var(--counter-h) - 45) / 0.65);
+    --dots: oklch(1 0 0 / 0.1);
 
     --success: oklch(0.75 0.15 155);
     --warning: oklch(0.8 0.15 75);
