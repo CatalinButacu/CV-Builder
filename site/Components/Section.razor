@@ -1,0 +1,45 @@
+@* A page section with an optional eyebrow, title, subtitle and action. *@
+<section id="@Id" class="section">
+    <div class="container-x">
+        @if (Eyebrow is not null || Title is not null || Subtitle is not null || Action is not null)
+        {
+            <div class="section-head">
+                <div>
+                    @if (Eyebrow is not null)
+                    {
+                        <p class="section-eyebrow">@Eyebrow</p>
+                    }
+                    @if (Title is not null && PageHeading)
+                    {
+                        <h1 class="section-title">@Title</h1>
+                    }
+                    else if (Title is not null)
+                    {
+                        <h2 class="section-title">@Title</h2>
+                    }
+                    @if (Subtitle is not null)
+                    {
+                        <p class="section-subtitle">@Subtitle</p>
+                    }
+                </div>
+                @if (Action is not null)
+                {
+                    <div>@Action</div>
+                }
+            </div>
+        }
+        @ChildContent
+    </div>
+</section>
+
+@code {
+    [Parameter] public string? Id { get; set; }
+    [Parameter] public string? Eyebrow { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Subtitle { get; set; }
+
+    // Render the title as the page's <h1> instead of an <h2>.
+    [Parameter] public bool PageHeading { get; set; }
+    [Parameter] public RenderFragment? Action { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

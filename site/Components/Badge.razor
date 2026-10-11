@@ -1,0 +1,14 @@
+@* A pill label. Variant is one of: neutral, accent, success, warning, outline. *@
+<span class="badge @Variant">
+    @if (Dot)
+    {
+        <span class="dot" aria-hidden="true"></span>
+    }
+    @ChildContent
+</span>
+
+@code {
+    [Parameter] public string Variant { get; set; } = "neutral";
+    [Parameter] public bool Dot { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}
