@@ -36,11 +36,11 @@
 
 /* Project cover */
 .cover {
-        position: relative;
-        aspect-ratio: 16 / 10;
-        overflow: hidden;
-        background: linear-gradient(135deg in oklch, oklch(0.55 0.15 var(--hue)), oklch(0.3 0.09 calc(var(--hue) + 50)));
-    }
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: linear-gradient(135deg in oklch, oklch(0.55 0.15 var(--hue)), oklch(0.3 0.09 calc(var(--hue) + 50)));
+}
 
     .cover .cover-grid {
         position: absolute;
@@ -591,4 +591,129 @@
 
     .footer .credit {
         flex-basis: 100%;
+    }
+
+/* Project detail page */
+.detail {
+    display: grid;
+    gap: 2.5rem;
+    padding-block: 3rem 4rem;
+}
+
+    .detail .back {
+        width: fit-content;
+        color: var(--fg-muted);
+        font-size: 0.875rem;
+    }
+
+.detail-head {
+    display: grid;
+    gap: 2rem;
+}
+
+    .detail-head .cover {
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-elev-2);
+    }
+
+        .detail-head .cover .watermark {
+            font-size: clamp(3rem, 10vw, 6rem);
+        }
+
+@media (min-width: 64rem) {
+    .detail-head {
+        grid-template-columns: 3fr 2fr;
+        align-items: end;
+    }
+
+        .detail-head .cover {
+            order: 2;
+        }
+}
+
+.detail-copy {
+    display: grid;
+    gap: 1.25rem;
+}
+
+    .detail-copy .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .detail-copy h1 {
+        margin: 0;
+        font-size: clamp(2.25rem, 5vw, 4rem);
+        font-weight: 800;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        text-wrap: balance;
+    }
+
+    .detail-copy .lede {
+        margin: 0;
+        font-size: clamp(1.125rem, 1.6vw, 1.25rem);
+        color: var(--fg-muted);
+    }
+
+    .detail-copy .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 1.25rem;
+        margin: 0;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        color: var(--fg-subtle);
+    }
+
+.detail-body {
+    display: grid;
+    gap: 2.5rem;
+    align-items: start;
+}
+
+@media (min-width: 64rem) {
+    .detail-body {
+        grid-template-columns: minmax(0, 1fr) 22rem;
+    }
+}
+
+.detail-body aside {
+    display: grid;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-elev-1);
+}
+
+    .detail-body aside h2 {
+        margin: 0;
+    }
+
+.prose {
+    max-width: 68ch;
+    font-size: 1.0625rem;
+}
+
+    .prose p {
+        margin: 0 0 1em;
+    }
+
+    .prose h2 {
+        margin: 2em 0 0.6em;
+        font-size: 1.375rem;
+        letter-spacing: -0.02em;
+    }
+
+    .prose ul {
+        display: grid;
+        gap: 0.4rem;
+        margin: 0;
+        padding-left: 1.2em;
+        color: var(--fg-muted);
+    }
+
+    .prose li::marker {
+        color: var(--accent);
     }
