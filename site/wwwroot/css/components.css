@@ -120,6 +120,113 @@
         color: var(--fg-subtle);
     }
 
+/* Hero */
+.hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: clamp(4rem, 9vw, 7rem) 3.5rem;
+}
+
+.hero-glow {
+    position: absolute;
+    top: 18%;
+    left: 8%;
+    z-index: -1;
+    width: min(560px, 90vw);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    filter: blur(120px);
+    pointer-events: none;
+}
+
+.hero-grid {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.03;
+    background-image: linear-gradient(var(--fg) 1px, transparent 1px), linear-gradient(90deg, var(--fg) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+    pointer-events: none;
+}
+
+.hero-cols {
+    display: grid;
+    align-items: center;
+    gap: 3rem;
+}
+
+@media (min-width: 64rem) {
+    .hero-cols {
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+        gap: 4rem;
+    }
+}
+
+.hero-kicker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.hero h1 {
+    margin: 0 0 1.5rem;
+    font-size: clamp(2.6rem, 6.4vw, 5.6rem);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.05em;
+    text-wrap: balance;
+}
+
+    .hero h1 span {
+        display: block;
+        padding-bottom: 0.25rem;
+    }
+
+.hero-sub {
+    max-width: 36rem;
+    margin: 0;
+    font-size: clamp(1rem, 1.4vw, 1.125rem);
+    color: var(--fg-muted);
+    text-wrap: pretty;
+}
+
+.hero-proof {
+    max-width: 36rem;
+    margin: 1rem 0 0;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--fg-subtle);
+}
+
+.hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 2.25rem;
+}
+
+.tech {
+    display: grid;
+    gap: 1rem;
+    margin-top: clamp(4rem, 6vw, 5rem);
+    padding-top: 2rem;
+    border-top: 1px solid var(--line);
+}
+
+    .tech p {
+        margin: 0;
+    }
+
+    .tech .chip {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.75rem;
+    }
+
 /* Hero panel */
 .stack-layers {
     margin: 0;

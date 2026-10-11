@@ -2,15 +2,57 @@
 
 <PageTitle>Cătălin Butacu · ML & Software Engineer</PageTitle>
 
-<p class="eyebrow">Iași, Romania</p>
-<h1>I build desktop software in C++ and machine learning systems in Python.</h1>
+<section class="hero">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="hero-grid" aria-hidden="true"></div>
 
-<p class="lede">
-    Software Engineer with 4 years of experience building desktop and enterprise software in C++ and Qt,
-    with machine learning engineering experience gained through MSc study, certifications, and applied ML projects.
-</p>
+    <div class="container-x">
+        <div class="hero-cols">
+            <div class="hero-copy">
+                <div class="hero-kicker">
+                    <Badge Variant="accent">ML & Software Engineer</Badge>
+                    <span class="mono-label">Iași, Romania</span>
+                </div>
 
-<p class="actions">
-    <a class="button primary" href="projects">View my projects</a>
-    <a class="button" href="mailto:butacu.catalin@yahoo.com">Get in touch</a>
-</p>
+                <h1>
+                    <span>I build desktop software</span>
+                    <span class="gradient-text">and machine learning systems.</span>
+                </h1>
+
+                <p class="hero-sub">
+                    Software Engineer with 4 years of experience building desktop and enterprise software in C++ and Qt,
+                    with machine learning engineering experience gained through MSc study, certifications, and applied ML projects.
+                </p>
+                <p class="hero-proof">
+                    4 years of C++/Qt in production · @ProjectCatalog.All.Length projects with public code ·
+                    6 verifiable certifications · 8th nationally at the WiDS Datathon 2025
+                </p>
+
+                <div class="hero-cta">
+                    <a class="btn primary lg" href="projects">View my work →</a>
+                    <a class="btn secondary lg" href="mailto:butacu.catalin@yahoo.com">Get in touch</a>
+                </div>
+            </div>
+
+            <StackLayers />
+        </div>
+
+        <div class="tech">
+            <p class="mono-label">Technologies</p>
+            <ul class="chips">
+                @foreach (var item in Tech)
+                {
+                    <li class="chip">@item</li>
+                }
+            </ul>
+        </div>
+    </div>
+</section>
+
+@code {
+    private static readonly string[] Tech =
+    [
+        "Python", "C/C++", "Qt", "PyTorch", "Scikit-learn", "HuggingFace", "LangChain", "LangGraph",
+        "FastAPI", "Docker", "Linux", "MLflow", "SQL", "TypeScript", "Git", "CMake",
+    ];
+}
