@@ -7,6 +7,11 @@ on:
     paths:
       - site/**
       - .github/workflows/deploy-site.yml
+  # Redeploy after every CV build, so the site always serves the latest PDF.
+  workflow_run:
+    workflows: ["Build LaTeX CV with Docker"]
+    types: [completed]
+    branches: [machine-learning-engineer]
   workflow_dispatch:
 
 permissions:
@@ -49,6 +54,9 @@ jobs:
       # there is a single copy of it.
       - name: Add the CV photo
         run: cp profile-preview.png publish/wwwroot/profile.png
+
+      - name: Add the CV itself
+        run: cp CV_Butacu.Ionel-Catalin.pdf publish/wwwroot/cv.pdf
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
