@@ -1,0 +1,20 @@
+@* An employer or organisation with the roles held there and their bullets. *@
+<div class="panel surface">
+    <div class="row"><h3>@Organisation.Name</h3><span class="when">@Organisation.Location</span></div>
+    @foreach (var role in Organisation.Roles)
+    {
+        <div class="role">
+            <div class="row"><strong>@role.Title</strong><span class="when">@role.Period</span></div>
+            <ul class="bullets">
+                @foreach (var bullet in role.Bullets)
+                {
+                    <li>@bullet</li>
+                }
+            </ul>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Organisation Organisation { get; set; } = default!;
+}
