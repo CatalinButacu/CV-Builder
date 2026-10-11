@@ -22,57 +22,79 @@ RUN apk add --no-cache \
     && rm -rf /var/cache/apk/*
 
 # Install TeX Live from upstream for full package support.
-# mirror.ctan.org redirects to a random mirror, and now and then one returns a
-# broken file. Download to disk, check it is a valid gzip, and retry (each try
-# lands on a different mirror) instead of piping straight into tar.
-RUN for attempt in 1 2 3 4 5; do \
-        wget -q -O /tmp/install-tl.tar.gz https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz && \
-        gzip -t /tmp/install-tl.tar.gz && break; \
-        echo "TeX Live installer download failed (attempt $attempt of 5), retrying"; \
-        rm -f /tmp/install-tl.tar.gz; \
+# The installer and the packages must come from the SAME mirror: mirrors are
+# not always in sync, and mirror.ctan.org hands out a different one on every
+# request. So try a list of mirrors in turn, and for each one download the
+# installer, check it is a valid gzip, and install from that mirror only.
+RUN installed=no; \
+    for mirror in \
+        https://mirror.ctan.org/systems/texlive/tlnet \
+        https://ftp.fau.de/ctan/systems/texlive/tlnet \
+        https://mirrors.rit.edu/CTAN/systems/texlive/tlnet \
+        https://ctan.math.illinois.edu/systems/texlive/tlnet \
+        https://mirrors.mit.edu/CTAN/systems/texlive/tlnet; do \
+        echo "Installing TeX Live from $mirror"; \
+        cd /tmp && rm -rf /tmp/install-tl* /usr/local/texlive; \
+        if wget -q -O /tmp/install-tl.tar.gz "$mirror/install-tl-unx.tar.gz" && \
+           gzip -t /tmp/install-tl.tar.gz && \
+           tar -xzf /tmp/install-tl.tar.gz -C /tmp && \
+           cd /tmp/install-tl-* && \
+           printf '%s\n' \
+               "selected_scheme scheme-basic" \
+               "tlpdbopt_install_docfiles 0" \
+               "tlpdbopt_install_srcfiles 0" \
+               "TEXDIR /usr/local/texlive" \
+               "TEXMFLOCAL /usr/local/texlive/texmf-local" \
+               "TEXMFSYSCONFIG /usr/local/texlive/texmf-config" \
+               "TEXMFSYSVAR /usr/local/texlive/texmf-var" \
+               "TEXMFHOME ~/texmf" \
+               "option_doc 0" \
+               "option_src 0" > texlive.profile && \
+           ./install-tl -profile texlive.profile -repository "$mirror"; then \
+            installed=yes; \
+            break; \
+        fi; \
+        echo "That mirror failed, trying the next one"; \
         sleep 5; \
-    done && \
-    tar -xzf /tmp/install-tl.tar.gz -C /tmp && \
-    rm /tmp/install-tl.tar.gz && \
-    cd /tmp/install-tl-* && \
-    echo "selected_scheme scheme-basic" > texlive.profile && \
-    echo "tlpdbopt_install_docfiles 0" >> texlive.profile && \
-    echo "tlpdbopt_install_srcfiles 0" >> texlive.profile && \
-    echo "TEXDIR /usr/local/texlive" >> texlive.profile && \
-    echo "TEXMFLOCAL /usr/local/texlive/texmf-local" >> texlive.profile && \
-    echo "TEXMFSYSCONFIG /usr/local/texlive/texmf-config" >> texlive.profile && \
-    echo "TEXMFSYSVAR /usr/local/texlive/texmf-var" >> texlive.profile && \
-    echo "TEXMFHOME ~/texmf" >> texlive.profile && \
-    echo "option_doc 0" >> texlive.profile && \
-    echo "option_src 0" >> texlive.profile && \
-    ./install-tl -profile texlive.profile && \
-    rm -rf /tmp/install-tl-*
+    done; \
+    cd / && rm -rf /tmp/install-tl*; \
+    [ "$installed" = yes ]
 
 # Add TeX Live to PATH and install packages
 ENV PATH="/usr/local/texlive/bin/x86_64-linuxmusl:${PATH}"
-RUN tlmgr install \
-    fontawesome \
-    fontawesome5 \
-    academicons \
-    xcolor \
-    graphics \
-    hyperref \
-    fancyhdr \
-    marvosym \
-    ragged2e \
-    geometry \
-    preprint \
-    enumitem \
-    titlesec \
-    parskip \
-    setspace \
-    microtype \
-    babel \
-    babel-english \
-    cm-super \
-    lm \
-    pgf \
-    xstring
+# The download can fail part-way on a slow mirror, so try up to three times.
+RUN ok=no; \
+    for attempt in 1 2 3; do \
+        if tlmgr install \
+        fontawesome \
+        fontawesome5 \
+        academicons \
+        xcolor \
+        graphics \
+        hyperref \
+        fancyhdr \
+        marvosym \
+        ragged2e \
+        geometry \
+        preprint \
+        enumitem \
+        titlesec \
+        parskip \
+        setspace \
+        microtype \
+        babel \
+        babel-english \
+        cm-super \
+        lm \
+        pgf \
+        xstring; then \
+            ok=yes; \
+            break; \
+        fi; \
+        echo "tlmgr install failed (attempt $attempt of 3), retrying"; \
+        sleep 10; \
+    done; \
+    [ "$ok" = yes ]
 
 # Set working directory
 WORKDIR /latex
