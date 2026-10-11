@@ -1,3 +1,18 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
-@Body
+<header class="site-header">
+    <a class="brand" href="">Cătălin Butacu</a>
+    <nav>
+        <NavLink href="" Match="NavLinkMatch.All">Home</NavLink>
+        <NavLink href="projects">Projects</NavLink>
+    </nav>
+</header>
+
+<main>
+    @Body
+</main>
+
+<footer class="site-footer">
+    <a href="https://github.com/CatalinButacu/" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://ro.linkedin.com/in/catalin-butacu" target="_blank" rel="noopener">LinkedIn</a>
+</footer>
