@@ -141,6 +141,14 @@
     pointer-events: none;
 }
 
+/* Second glow in the palette's counter colour. */
+.hero-glow.counter {
+    top: 42%;
+    right: 4%;
+    left: auto;
+    background: var(--counter-soft);
+}
+
 .hero-grid {
     position: absolute;
     inset: 0;
@@ -511,7 +519,7 @@
         width: 2rem;
         height: 2rem;
         border-radius: 0.6rem;
-        background: var(--accent);
+        background: linear-gradient(135deg in oklch, var(--accent), var(--counter));
         color: var(--accent-fg);
         font-family: var(--font-mono);
         font-size: 0.75rem;
