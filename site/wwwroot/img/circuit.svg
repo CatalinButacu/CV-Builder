@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="360" viewBox="0 0 420 360">
+  <g fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="round" opacity="0.6">
+    <polyline points="300,300 330,300 330,270 330,240"/>
+    <polyline points="120,30 150,30 180,30 210,30"/>
+    <polyline points="60,180 30,180 30,210 30,240"/>
+    <polyline points="120,300 90,300 60,300 30,300"/>
+    <polyline points="30,120 30,90 30,60 30,30"/>
+    <polyline points="60,270 30,270"/>
+    <polyline points="210,300 210,270 240,270 240,240 270,240 270,270 270,300"/>
+    <polyline points="210,210 210,240"/>
+    <polyline points="240,90 270,90 270,120 300,120 330,120 330,150 300,150"/>
+    <polyline points="360,240 360,210 390,210"/>
+    <polyline points="120,150 90,150 60,150 30,150"/>
+    <polyline points="180,90 210,90 210,60"/>
+    <polyline points="330,210 330,180"/>
+    <polyline points="270,60 270,30"/>
+    <polyline points="90,210 90,180"/>
+  </g>
+  <g fill="#000">
+    <circle cx="300" cy="300" r="3.2"/>
+    <circle cx="330" cy="240" r="5" fill="none" stroke="#000" stroke-width="1.4"/>
+    <circle cx="330" cy="240" r="1.8"/>
+    <circle cx="120" cy="30" r="3.2"/>
+    <circle cx="210" cy="30" r="5" fill="none" stroke="#000" stroke-width="1.4"/>
+    <circle cx="210" cy="30" r="1.8"/>
+    <circle cx="60" cy="180" r="3.2"/>
+    <circle cx="30" cy="240" r="5" fill="none" stroke="#000" stroke-width="1.4"/>
+    <circle cx="30" cy="240" r="1.8"/>
+    <circle cx="120" cy="300" r="3.2"/>
+    <circle cx="30" cy="300" r="5" fill="none" stroke="#000" stroke-width="1.4"/>
+    <circle cx="30" cy="300" r="1.8"/>
+    <circle cx="30" cy="120" r="3.2"/>
+    <circle cx="30" cy="30" r="5" fill="none" stroke="#000" stroke-width="1.4"/>
+    <circle cx="30" cy="30" r="1.8"/>
+    <circle cx="60" cy="270" r="3.2"/>
+    <circle cx="30" cy="270" r="5" fill="none" stroke="#000" stroke-width="1.4"/>
+    <circle cx="30" cy="270" r="1.8"/>
+    <circle cx="210" cy="300" r="3.2"/>
+    <circle cx="270" cy="300" r="5" fill="none" stroke="#000" stroke-width="1.4"/>
+    <circle cx="270" cy="300" r="1.8"/>
+    <circle cx="210" cy="210" r="3.2"/>
+    <circle cx="210" cy="240" r="5" fill="none" stroke="#000" stroke-width="1.4"/>
+    <circle cx="210" cy="240" r="1.8"/>
+    <circle cx="240" cy="90" r="3.2"/>
+    <circle cx="300" cy="150" r="5" fill="none" stroke="#000" stroke-width="1.4"/>
+    <circle cx="300" cy="150" r="1.8"/>
+    <circle cx="360" cy="240" r="3.2"/>
+    <circle cx="390" cy="210" r="5" fill="none" stroke="#000" stroke-width="1.4"/>
+    <circle cx="390" cy="210" r="1.8"/>
+    <circle cx="120" cy="150" r="3.2"/>
+    <circle cx="30" cy="150" r="5" fill="none" stroke="#000" stroke-width="1.4"/>
+    <circle cx="30" cy="150" r="1.8"/>
+    <circle cx="180" cy="90" r="3.2"/>
+    <circle cx="210" cy="60" r="5" fill="none" stroke="#000" stroke-width="1.4"/>
+    <circle cx="210" cy="60" r="1.8"/>
+    <circle cx="330" cy="210" r="3.2"/>
+    <circle cx="330" cy="180" r="5" fill="none" stroke="#000" stroke-width="1.4"/>
+    <circle cx="330" cy="180" r="1.8"/>
+    <circle cx="270" cy="60" r="3.2"/>
+    <circle cx="270" cy="30" r="5" fill="none" stroke="#000" stroke-width="1.4"/>
+    <circle cx="270" cy="30" r="1.8"/>
+    <circle cx="90" cy="210" r="3.2"/>
+    <circle cx="90" cy="180" r="5" fill="none" stroke="#000" stroke-width="1.4"/>
+    <circle cx="90" cy="180" r="1.8"/>
+  </g>
+</svg>
