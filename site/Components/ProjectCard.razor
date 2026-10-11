@@ -1,9 +1,6 @@
 @* A project tile: generated cover, badges, summary, stack chips and year. *@
 <a class="project-card surface gradient-border" href="@Project.Repo" target="_blank" rel="noopener">
-    <div class="cover" style="--hue: @Project.Hue" aria-hidden="true">
-        <span class="cover-grid"></span>
-        <span class="watermark">@Project.Title</span>
-    </div>
+    <ProjectCover Project="Project" />
 
     <div class="body">
         <div class="badges">

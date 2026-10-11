@@ -34,14 +34,15 @@
         transform: translateY(-4px);
     }
 
-    .project-card .cover {
+/* Project cover */
+.cover {
         position: relative;
         aspect-ratio: 16 / 10;
         overflow: hidden;
         background: linear-gradient(135deg in oklch, oklch(0.55 0.15 var(--hue)), oklch(0.3 0.09 calc(var(--hue) + 50)));
     }
 
-    .project-card .cover-grid {
+    .cover .cover-grid {
         position: absolute;
         inset: 0;
         opacity: 0.14;
@@ -50,7 +51,7 @@
         mask-image: linear-gradient(160deg, black 10%, transparent 75%);
     }
 
-    .project-card .watermark {
+    .cover .watermark {
         position: absolute;
         left: 1rem;
         bottom: 0.25rem;

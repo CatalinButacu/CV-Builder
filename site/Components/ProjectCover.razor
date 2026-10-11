@@ -1,0 +1,9 @@
+@* Generated cover: a gradient in the project's hue with its title as a watermark. *@
+<div class="cover" style="--hue: @Project.Hue" aria-hidden="true">
+    <span class="cover-grid"></span>
+    <span class="watermark">@Project.Title</span>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Project Project { get; set; } = default!;
+}
