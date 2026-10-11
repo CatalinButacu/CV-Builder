@@ -1,21 +1,17 @@
-// Animated background: a small language-model-style network drawn as a stack
-// of solid 3D blocks, computing from top to bottom.
+// Animated background: generative art in the pattern of an artificial neural
+// network.
 //
-// The network is a real transformer (two layers, two attention heads) with
-// fixed random weights. Once a minute it is given the UTC date and time as 12
-// digits and run forward. Each stage of the calculation is a slab seen from
-// above at an angle; its top face is a grid with one cell per number, lit by
-// the size of that number. The view scrolls down the stack as the data moves
-// from block to block, then rewinds.
+// An organic web of neurons, loosely arranged in layers from left to right,
+// each wired to a few neurons of the next layer. Every few seconds a wave of
+// activity enters on the left and passes through: a share of each layer lights
+// up in turn, and sparks run along the connections between the neurons that
+// fired. Several waves overlap, in the palette's two colours.
 //
-// Reading a block: rows across are the 12 tokens (the digits of the time),
-// the other direction is the values each token carries at that stage. In an
-// attention block a cell shows how much one token looks at another.
-//
-// The input and the moment being shown both come from UTC time alone, so a
-// refresh, or another visitor anywhere, sees the same thing. The weights are
-// random, not trained, so the prediction is meaningless; what is real is how
-// the numbers flow.
+// Nothing here is truly random. Which neurons fire in which wave is decided by
+// a formula of the wave's number, and UTC time only says which wave we are in
+// and how far along it is. Time is the playhead of a fixed, endless score, not
+// an input to it. So a refresh, or another visitor on the same screen size,
+// picks the pattern up exactly where it was.
 (() => {
     const canvas = document.querySelector('.backdrop canvas');
     if (!canvas) return;
@@ -24,134 +20,63 @@
     const root = document.documentElement;
     const still = matchMedia('(prefers-reduced-motion: reduce)');
 
-    const T = 12;      // tokens: the digits of the UTC date and time, to the minute
-    const V = 10;      // vocabulary: the digits 0-9
-    const C = 16;      // width of the residual stream
-    const HEADS = 2;
-    const LAYERS = 2;
-    const HIDDEN = 32; // feed-forward width
-
-    const PASS = 60;    // seconds: one forward pass per UTC minute
-    const STAGE = 5;    // seconds per block
+    const EVERY = 2.6;   // seconds between one wave entering and the next
+    const HOP = 0.6;     // seconds for a wave to cross from one layer to the next
+    const FIRING = 0.34; // share of a layer that fires in a typical wave
+    const FAN = 3;       // connections from each neuron to the next layer
     const FRAME = 1000 / 30;
 
-    // --- Fixed random weights: the same model for every visitor.
-    const random = (() => {
-        let seed = 0x7a3f51;
-        return () => {
-            seed = (seed + 0x6d2b79f5) | 0;
-            let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-        };
-    })();
-    const normal = () => random() + random() + random() + random() - 2; // roughly bell-shaped
-    const matrix = (rows, cols, scale) =>
-        Array.from({ length: rows }, () => Array.from({ length: cols }, () => normal() * scale));
-
-    const tokenEmbedding = matrix(V, C, 0.9);
-    const positionEmbedding = matrix(T, C, 0.6);
-    const layers = Array.from({ length: LAYERS }, () => ({
-        query: matrix(C, C, 0.5), key: matrix(C, C, 0.5), value: matrix(C, C, 0.45), out: matrix(C, C, 0.45),
-        up: matrix(C, HIDDEN, 0.45), down: matrix(HIDDEN, C, 0.3),
-    }));
-    const unembedding = matrix(C, V, 0.6);
-
-    // --- Small matrix helpers. A matrix is an array of rows.
-    const multiply = (a, b) => a.map((row) => b[0].map((_, j) => row.reduce((sum, v, k) => sum + v * b[k][j], 0)));
-    const add = (a, b) => a.map((row, i) => row.map((v, j) => v + b[i][j]));
-    const normalise = (a) => a.map((row) => {
-        const mean = row.reduce((s, v) => s + v, 0) / row.length;
-        const spread = Math.sqrt(row.reduce((s, v) => s + (v - mean) ** 2, 0) / row.length) || 1;
-        return row.map((v) => (v - mean) / spread);
-    });
-    const softmax = (row) => {
-        const top = Math.max(...row);
-        const e = row.map((v) => Math.exp(v - top));
-        const sum = e.reduce((s, v) => s + v, 0);
-        return e.map((v) => v / sum);
-    };
-    const gelu = (v) => 0.5 * v * (1 + Math.tanh(0.7978845608 * (v + 0.044715 * v ** 3)));
-
-    const digitsAt = (second) => {
-        const d = new Date(second * 1000);
-        const two = (n) => String(n).padStart(2, '0');
-        return (d.getUTCFullYear() + two(d.getUTCMonth() + 1) + two(d.getUTCDate())
-            + two(d.getUTCHours()) + two(d.getUTCMinutes())).split('').map(Number);
+    const seeded = (seed) => () => {
+        seed = (seed + 0x6d2b79f5) | 0;
+        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
 
-    // One slab: a grid of numbers plus how to turn each into a brightness.
-    // kind: 'signed' values, 'share' values between 0 and 1, or 'digit' text.
-    const slab = (grid, kind) => {
-        let biggest = 1e-9;
-        for (const row of grid) for (const v of row) biggest = Math.max(biggest, Math.abs(v));
-        const brightness = (v) => {
-            if (kind === 'digit') return 1;
-            return kind === 'share' ? Math.sqrt(v) : Math.abs(v) / biggest;
-        };
-        const glow = grid.map((row) => row.map(brightness));
-        return { grid, glow, kind, tokens: grid.length, units: grid[0].length };
+    // A repeatable value between 0 and 1 for a pair of whole numbers.
+    const hash = (a, b) => {
+        let h = Math.imul(a ^ 0x9e3779b9, 0x85ebca6b) ^ Math.imul(b ^ 0xc2b2ae35, 0x27d4eb2f);
+        h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d);
+        h = Math.imul(h ^ (h >>> 12), 0x297a2d39);
+        return ((h ^ (h >>> 15)) >>> 0) / 4294967296;
     };
 
-    // The forward pass for one minute, as the rows of blocks to draw.
-    const memo = new Map();
-    const build = (minute) => {
-        let rows = memo.get(minute);
-        if (rows) return rows;
+    let width = 0, height = 0, layers = 0, neurons = [], synapses = [];
+    let colours = ['#888', '#888'], dark = true, lastDraw = 0;
 
-        const tokens = digitsAt(minute * 60);
-        rows = [{ label: 'input: UTC date and time', slabs: [slab(tokens.map((t) => [t]), 'digit')] }];
+    // Lays the web out for the current window: layers of neurons with a hand-placed
+    // look, each wired to nearby neurons of the next layer. Same window, same web.
+    const layout = () => {
+        const random = seeded(0x51a7e);
+        layers = Math.max(3, Math.min(11, Math.round(width / 165)));
+        const perLayer = Math.max(8, Math.min(26, Math.round(height / 46)));
 
-        let x = add(tokens.map((t) => tokenEmbedding[t]), positionEmbedding);
-        rows.push({ label: 'embedding', slabs: [slab(x, 'signed')] });
-
-        layers.forEach((layer, l) => {
-            const a = normalise(x);
-            const q = multiply(a, layer.query), k = multiply(a, layer.key), v = multiply(a, layer.value);
-            const width = C / HEADS;
-            const mixed = Array.from({ length: T }, () => new Array(C).fill(0));
-            const heads = [];
-            for (let h = 0; h < HEADS; h++) {
-                const from = h * width;
-                // attention[i][j]: how much token i looks at token j.
-                const attention = q.map((qi) => softmax(k.map((kj) => {
-                    let dot = 0;
-                    for (let c = from; c < from + width; c++) dot += qi[c] * kj[c];
-                    return dot / Math.sqrt(width);
-                })));
-                attention.forEach((weights, i) => weights.forEach((w, j) => {
-                    for (let c = from; c < from + width; c++) mixed[i][c] += w * v[j][c];
-                }));
-                heads.push(slab(attention, 'share'));
+        neurons = [];
+        for (let layer = 0; layer < layers; layer++) {
+            for (let i = 0; i < perLayer; i++) {
+                neurons.push({
+                    id: neurons.length, layer,
+                    homeX: (layer + 0.5 + (random() - 0.5) * 0.62) / layers * width,
+                    homeY: (i + 0.5 + (random() - 0.5) * 0.9) / perLayer * height,
+                    depth: 0.5 + random() * 0.5, // nearer ones are larger and brighter
+                    size: 1.1 + random() * 2.1,
+                    swayX: random() * 6.28, swayY: random() * 6.28,
+                    paceX: 0.05 + random() * 0.1, paceY: 0.05 + random() * 0.1,
+                    x: 0, y: 0, glow: 0, tone: 0,
+                });
             }
-            rows.push({ label: `layer ${l + 1}: attention, two heads`, slabs: heads });
-            x = add(x, multiply(mixed, layer.out));
+        }
 
-            const hidden = multiply(normalise(x), layer.up).map((row) => row.map(gelu));
-            rows.push({ label: `layer ${l + 1}: feed-forward`, slabs: [slab(hidden, 'signed')] });
-
-            x = add(x, multiply(hidden, layer.down));
-            rows.push({ label: `layer ${l + 1}: output`, slabs: [slab(x, 'signed')] });
-        });
-
-        const probability = multiply(normalise(x), unembedding).map(softmax);
-        rows.push(
-            { label: 'probability of each digit', slabs: [slab(probability, 'share')] },
-            { label: 'prediction', slabs: [slab(probability.map((row) => [row.indexOf(Math.max(...row))]), 'digit')] },
-        );
-
-        if (memo.size > 3) memo.clear();
-        memo.set(minute, rows);
-        return rows;
+        synapses = [];
+        for (const from of neurons) {
+            if (from.layer === layers - 1) continue;
+            const ahead = neurons.filter((n) => n.layer === from.layer + 1)
+                .sort((p, q) => Math.hypot(p.homeX - from.homeX, p.homeY - from.homeY) - Math.hypot(q.homeX - from.homeX, q.homeY - from.homeY));
+            // Mostly the closest ones, sometimes one a little further off.
+            const picks = [ahead[0], ahead[1], ahead[2 + Math.floor(random() * 4)]].slice(0, FAN);
+            for (const to of picks) if (to) synapses.push({ from, to, bend: (random() - 0.5) * 0.36 });
+        }
     };
-
-    // --- Layout. Blocks are drawn in isometric view: one step along the token
-    // axis goes right and down, one step along the unit axis goes left and down.
-    const RIGHT = 0.866, DOWN = 0.5;
-    const BLOCKS = 4 + LAYERS * 3;
-
-    let width = 0, height = 0, cell = 0, thick = 0, gap = 0;
-    let colours = ['#888', '#888'], ink = '#888', surface = '#222', lastDraw = 0;
 
     const resize = () => {
         const ratio = Math.min(devicePixelRatio || 1, 2);
@@ -160,175 +85,142 @@
         canvas.width = width * ratio;
         canvas.height = height * ratio;
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-
-        // Cell size: the widest block (feed-forward) should fit comfortably.
-        cell = Math.max(3.5, Math.min(14, width * 0.82 / ((T + HIDDEN) * RIGHT), height / 50));
-        thick = cell * 1.6; // how tall each slab stands
-        gap = cell * 6;     // vertical space between blocks
+        layout();
     };
 
-    // The palette's two colours, the text colour and the card colour, as resolved by the stylesheet.
+    // The palette's two colours, as currently resolved by the stylesheet.
     const readColours = () => {
         const style = getComputedStyle(root);
         colours = [style.getPropertyValue('--accent').trim(), style.getPropertyValue('--counter').trim()];
-        ink = style.getPropertyValue('--fg').trim();
-        surface = style.getPropertyValue('--surface-raised').trim();
+        dark = root.dataset.mode === 'dark';
     };
 
-    const clamp = (v) => Math.max(0, Math.min(1, v));
-    const smooth = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
+    const smooth = (x) => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
 
-    const slabHeight = (s) => (s.tokens + s.units) * DOWN * cell + thick;
-    const slabWidth = (s) => (s.tokens + s.units) * RIGHT * cell;
-    const rowHeight = (row) => Math.max(...row.slabs.map(slabHeight));
+    // --- The score. Wave number w enters at a fixed moment and fires a fixed set of neurons.
+    const enters = (w) => w * EVERY + hash(w, 7) * 0.9;
 
-    const quad = (points) => {
-        ctx.beginPath();
-        points.forEach(([x, y], n) => { if (n) ctx.lineTo(x, y); else ctx.moveTo(x, y); });
-        ctx.closePath();
+    // Does this neuron fire in wave w? Firing is denser along a soft band that
+    // slants across the layers, a different band for every wave, so each wave
+    // traces its own path through the web.
+    const fires = (n, w) => {
+        const band = 0.5 + 0.5 * Math.sin(n.homeY / height * 5 + hash(w, 3) * 6.28 + n.layer * (hash(w, 5) - 0.5) * 3.6);
+        return hash(n.id * 31 + 17, w) < FIRING * (0.4 + 1.2 * band);
     };
 
-    // One slab. (cx, top) is where the centre of its top edge goes on screen.
-    // lit: 0..1, how much of the block has received its values yet.
-    const drawSlab = (s, cx, top, lit, fade) => {
-        const { tokens: I, units: J } = s;
-        // Screen position of grid corner (i, j) on the top face.
-        const ox = cx - (I - J) * RIGHT * cell / 2;
-        const at = (i, j) => [ox + (i - j) * RIGHT * cell, top + (i + j) * DOWN * cell];
+    // Brightness of a neuron `since` hops after the wave reached its layer: a quick flash, then a slow fade.
+    const flash = (since) => {
+        if (since < 0) return 0;
+        return since < 0.15 ? since / 0.15 : Math.exp(-(since - 0.15) * 1.7);
+    };
 
-        // The two visible sides, darker than the top.
-        const [lx, ly] = at(0, J), [bx, by] = at(I, J), [rx, ry] = at(I, 0);
-        ctx.fillStyle = colours[0];
-        ctx.globalAlpha = fade * 0.3;
-        quad([[lx, ly], [bx, by], [bx, by + thick], [lx, ly + thick]]);
-        ctx.fill();
-        ctx.globalAlpha = fade * 0.18;
-        quad([[bx, by], [rx, ry], [rx, ry + thick], [bx, by + thick]]);
-        ctx.fill();
+    // A point along a synapse, which is drawn as a gentle curve.
+    const along = (s, u) => {
+        const mx = (s.from.x + s.to.x) / 2 - (s.to.y - s.from.y) * s.bend;
+        const my = (s.from.y + s.to.y) / 2 + (s.to.x - s.from.x) * s.bend;
+        const v = 1 - u;
+        return [v * v * s.from.x + 2 * v * u * mx + u * u * s.to.x, v * v * s.from.y + 2 * v * u * my + u * u * s.to.y, mx, my];
+    };
 
-        // The top face: a solid plate with the cells on it.
-        ctx.globalAlpha = fade * 0.9;
-        ctx.fillStyle = surface;
-        quad([at(0, 0), at(I, 0), at(I, J), at(0, J)]);
-        ctx.fill();
+    const trace = (s) => {
+        const [, , mx, my] = along(s, 0.5);
+        ctx.moveTo(s.from.x, s.from.y);
+        ctx.quadraticCurveTo(mx, my, s.to.x, s.to.y);
+    };
 
-        const inset = 0.08;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.font = `600 ${Math.max(7, cell * 0.95)}px ui-monospace, Consolas, monospace`;
-        for (let i = 0; i < I; i++) {
-            // Values arrive token by token, sweeping across the block.
-            const here = smooth(lit * 1.5 - (i / I) * 0.5);
-            for (let j = 0; j < J; j++) {
-                if (s.kind === 'digit') {
-                    const [x, y] = at(i + 0.5, j + 0.5);
-                    ctx.globalAlpha = fade * (0.25 + 0.75 * here);
-                    ctx.fillStyle = ink;
-                    ctx.fillText(s.grid[i][j], x, y);
-                    continue;
-                }
-                ctx.globalAlpha = fade * (0.06 + 0.94 * s.glow[i][j] * here);
-                ctx.fillStyle = colours[s.grid[i][j] >= 0 ? 0 : 1];
-                quad([at(i + inset, j + inset), at(i + 1 - inset, j + inset), at(i + 1 - inset, j + 1 - inset), at(i + inset, j + 1 - inset)]);
-                ctx.fill();
+    // Waves that are still somewhere in the web at time t.
+    const wavesAt = (t) => {
+        const waves = [];
+        const lifetime = layers * HOP + 3;
+        for (let w = Math.floor(t / EVERY); enters(w) > t - lifetime; w--) {
+            if (enters(w) <= t) waves.push({ w, at: (t - enters(w)) / HOP, tone: ((w % 2) + 2) % 2 });
+        }
+        return waves;
+    };
+
+    // Neurons breathe around their home position, and take their light from the brightest wave.
+    const settle = (t, waves) => {
+        for (const n of neurons) {
+            n.x = n.homeX + Math.sin(t * n.paceX + n.swayX) * 11 * n.depth;
+            n.y = n.homeY + Math.cos(t * n.paceY + n.swayY) * 11 * n.depth;
+            n.glow = 0;
+            for (const wave of waves) {
+                const light = fires(n, wave.w) ? flash(wave.at - n.layer) : 0;
+                if (light > n.glow) { n.glow = light; n.tone = wave.tone; }
             }
         }
+    };
 
-        // Outline of the top face.
-        ctx.globalAlpha = fade * (0.35 + 0.5 * Math.sin(clamp(lit) * Math.PI));
+    // The resting web, in one stroke.
+    const drawWeb = () => {
+        ctx.globalAlpha = 0.085;
         ctx.strokeStyle = colours[0];
         ctx.lineWidth = 1;
-        quad([at(0, 0), at(I, 0), at(I, J), at(0, J)]);
+        ctx.beginPath();
+        for (const s of synapses) trace(s);
         ctx.stroke();
     };
 
-    // The pipe from one row of blocks down to the next, with light running down it.
-    const drawPipe = (x1, y1, x2, y2, flow, fade) => {
-        ctx.globalAlpha = fade * 0.3;
-        ctx.strokeStyle = ink;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-        if (flow <= 0 || flow >= 1) return;
-        ctx.fillStyle = colours[0];
-        for (let n = 0; n < 4; n++) { // a short train of lights
-            const at = flow - n * 0.09;
-            if (at < 0) continue;
-            ctx.globalAlpha = fade * (1 - n * 0.22);
+    // One spark with its short tail, a fraction u of the way along a connection.
+    const drawSpark = (s, u) => {
+        for (let tail = 0; tail < 4; tail++) {
+            const at = smooth(u) - tail * 0.045;
+            if (at <= 0) return;
+            const [x, y] = along(s, at);
+            ctx.globalAlpha = (1 - tail * 0.24) * s.to.depth;
             ctx.beginPath();
-            ctx.arc(x1 + (x2 - x1) * at, y1 + (y2 - y1) * at, Math.max(1.5, cell * 0.22), 0, Math.PI * 2);
+            ctx.arc(x, y, 2.3 - tail * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    };
+
+    // A connection carries a spark when both of its ends fire in the same wave.
+    // It lights up as the spark passes, then cools.
+    const drawSparks = (wave) => {
+        ctx.strokeStyle = ctx.fillStyle = colours[wave.tone];
+        ctx.lineWidth = 1.2;
+        for (const s of synapses) {
+            const u = wave.at - s.from.layer; // 0..1 while the spark is on its way
+            if (u <= 0 || u >= 1.7 || !fires(s.from, wave.w) || !fires(s.to, wave.w)) continue;
+            const heat = u < 1 ? 0.12 + 0.5 * Math.sin(u * Math.PI) : 0.3 * (1 - (u - 1) / 0.7);
+            ctx.globalAlpha = heat * s.to.depth;
+            ctx.beginPath();
+            trace(s);
+            ctx.stroke();
+            if (u < 1) drawSpark(s, u);
+        }
+    };
+
+    // The neurons: a faint dot at rest, a bright core and a halo when firing.
+    const drawNeurons = () => {
+        for (const n of neurons) {
+            ctx.fillStyle = colours[n.glow > 0.02 ? n.tone : n.id % 2];
+            if (n.glow > 0.05) {
+                ctx.globalAlpha = 0.16 * n.glow * n.depth;
+                ctx.beginPath();
+                ctx.arc(n.x, n.y, n.size * (3.5 + 5 * n.glow), 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = (0.2 + 0.8 * n.glow) * n.depth;
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, n.size * (1 + 0.9 * n.glow), 0, Math.PI * 2);
             ctx.fill();
         }
     };
 
     const draw = () => {
-        const t = Date.now() / 1000; // UTC seconds: the only input
-        const minute = Math.floor(t / PASS);
-        const into = t - minute * PASS;
-        const rows = build(minute);
-        const fade = smooth(into / 1.5) * smooth((PASS - into) / 2); // fade in and out
-
-        // Where each row of blocks sits in the stack, top to bottom.
-        const tops = [];
-        let y = 0;
-        for (const row of rows) { tops.push(y); y += rowHeight(row) + gap; }
-        const middle = (r) => tops[r] + rowHeight(rows[r]) / 2;
-
-        // Which block the calculation has reached. It rests on each block, then glides to the next.
-        const stage = Math.min(BLOCKS - 1, into / STAGE);
-        const whole = Math.floor(stage);
-        const glide = whole + smooth((stage - whole - 0.55) / 0.45);
-        // After the last block the view rewinds to the top.
-        const rewind = smooth((into - BLOCKS * STAGE - 1) / 6);
-        const focus = Math.min(BLOCKS - 1, glide) * (1 - rewind);
-        const low = Math.floor(focus), high = Math.min(BLOCKS - 1, low + 1);
-        const scroll = middle(low) + (middle(high) - middle(low)) * (focus - low) - height * 0.5;
+        const t = Date.now() / 1000; // UTC seconds: the playhead
+        const waves = wavesAt(t);
+        settle(t, waves);
 
         ctx.clearRect(0, 0, width, height);
-        ctx.lineJoin = 'round';
-        const centre = width / 2;
-
-        rows.forEach((row, r) => {
-            const top = tops[r] - scroll;
-            const tall = rowHeight(row);
-            if (top > height + 40 || top + tall + gap < -40) return;
-
-            // 0..1: how much of this row has its values. Earlier rows stay lit.
-            const lit = r === 0 ? 1 : clamp((into / STAGE - r) / 0.4);
-
-            // Blocks in a row sit side by side.
-            const spacing = cell * 2;
-            const total = row.slabs.reduce((sum, s) => sum + slabWidth(s), 0) + spacing * (row.slabs.length - 1);
-            let left = centre - total / 2;
-            const centres = row.slabs.map((s) => { const cx = left + slabWidth(s) / 2; left += slabWidth(s) + spacing; return cx; });
-
-            // Pipes down to the next row, drawn first so the blocks sit on top of them.
-            if (r + 1 < rows.length) {
-                const flow = clamp((into / STAGE - r - 0.55) / 0.45);
-                const nextTop = tops[r + 1] - scroll;
-                const next = rows[r + 1].slabs;
-                const nextTotal = next.reduce((sum, s) => sum + slabWidth(s), 0) + spacing * (next.length - 1);
-                let nextLeft = centre - nextTotal / 2;
-                const nextCentres = next.map((s) => { const cx = nextLeft + slabWidth(s) / 2; nextLeft += slabWidth(s) + spacing; return cx; });
-                centres.forEach((cx, n) => nextCentres.forEach((nx) => {
-                    drawPipe(cx, top + slabHeight(row.slabs[n]), nx, nextTop, flow, fade);
-                }));
-            }
-
-            row.slabs.forEach((s, n) => drawSlab(s, centres[n], top, lit, fade));
-
-            if (cell >= 7) {
-                ctx.globalAlpha = fade * (0.55 + 0.45 * Math.sin(clamp(lit) * Math.PI));
-                ctx.fillStyle = ink;
-                ctx.font = `${Math.min(14, cell * 1.05)}px ui-monospace, Consolas, monospace`;
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'alphabetic';
-                ctx.fillText(row.label, centre - total / 2, top - cell * 0.9);
-            }
-        });
+        ctx.globalCompositeOperation = dark ? 'lighter' : 'source-over'; // overlapping lights add up
+        ctx.lineCap = 'round';
+        drawWeb();
+        for (const wave of waves) drawSparks(wave);
+        drawNeurons();
         ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
     };
 
     const loop = (frame) => {
