@@ -48,33 +48,39 @@
     --container-max: 88rem;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        color-scheme: dark;
+/* Dark mode. js/theme.js sets data-mode from the saved choice or the system. */
+:root[data-mode="dark"] {
+    color-scheme: dark;
 
-        --bg: oklch(0.155 0.016 265);
-        --bg-deep: oklch(0.13 0.016 265);
-        --surface: oklch(0.182 0.016 265);
-        --surface-raised: oklch(0.212 0.016 265);
-        --fg: oklch(0.95 0.01 265);
-        --fg-muted: oklch(0.72 0.016 265);
-        --fg-subtle: oklch(0.64 0.016 265);
-        --line: oklch(0.32 0.016 265);
-        --line-strong: oklch(0.42 0.016 265);
+    --bg: oklch(0.155 0.016 265);
+    --bg-deep: oklch(0.13 0.016 265);
+    --surface: oklch(0.182 0.016 265);
+    --surface-raised: oklch(0.212 0.016 265);
+    --fg: oklch(0.95 0.01 265);
+    --fg-muted: oklch(0.72 0.016 265);
+    --fg-subtle: oklch(0.64 0.016 265);
+    --line: oklch(0.32 0.016 265);
+    --line-strong: oklch(0.42 0.016 265);
 
-        --accent: oklch(0.74 var(--accent-c) var(--accent-h));
-        --accent-strong: oklch(0.8 var(--accent-c) var(--accent-h));
-        --accent-soft: oklch(0.74 var(--accent-c) var(--accent-h) / 0.14);
-        --accent-fg: oklch(0.14 0.03 var(--accent-h));
-        --accent-ring: oklch(0.74 var(--accent-c) var(--accent-h) / 0.22);
-        --counter: oklch(0.75 0.12 calc(var(--accent-h) + 140));
+    --accent: oklch(0.74 var(--accent-c) var(--accent-h));
+    --accent-strong: oklch(0.8 var(--accent-c) var(--accent-h));
+    --accent-soft: oklch(0.74 var(--accent-c) var(--accent-h) / 0.14);
+    --accent-fg: oklch(0.14 0.03 var(--accent-h));
+    --accent-ring: oklch(0.74 var(--accent-c) var(--accent-h) / 0.22);
+    --counter: oklch(0.75 0.12 calc(var(--accent-h) + 140));
 
-        --success: oklch(0.75 0.15 155);
-        --warning: oklch(0.8 0.15 75);
-        --warning-fg: oklch(0.85 0.14 80);
+    --success: oklch(0.75 0.15 155);
+    --warning: oklch(0.8 0.15 75);
+    --warning-fg: oklch(0.85 0.14 80);
 
-        --elev-key: oklch(0 0 0 / 0.45);
-        --elev-ambient: oklch(0 0 0 / 0.6);
-        --elev-inset: inset 0 1px 0 0 oklch(1 0 0 / 0.07);
-    }
+    --elev-key: oklch(0 0 0 / 0.45);
+    --elev-ambient: oklch(0 0 0 / 0.6);
+    --elev-inset: inset 0 1px 0 0 oklch(1 0 0 / 0.07);
 }
+
+/* Accent choices; blue (hue 255) is the default set on :root above. */
+[data-accent="violet"] { --accent-h: 300; --accent-c: 0.19; }
+[data-accent="cyan"] { --accent-h: 215; --accent-c: 0.14; }
+[data-accent="emerald"] { --accent-h: 160; --accent-c: 0.15; }
+[data-accent="amber"] { --accent-h: 75; --accent-c: 0.16; }
+[data-accent="rose"] { --accent-h: 15; --accent-c: 0.19; }
