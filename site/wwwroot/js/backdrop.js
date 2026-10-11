@@ -1,16 +1,16 @@
-// Animated background: a tiny transformer drawn as grids of cells.
+// Animated background: a small neural network being trained, live.
 //
-// The input is the UTC date and time as 14 digits (YYYYMMDDHHMMSS), one token
-// per digit. Once a second the digits change, the whole forward pass is run
-// again, and the new values sweep through the diagram block by block.
-// Everything on screen is a function of UTC time alone, so a refresh, or
-// another visitor anywhere, sees the same picture at the same moment.
+// This is real computing, not an animation of it. A classifier with two
+// hidden layers of 16 units learns to separate two classes of points in the
+// plane: every step runs a forward pass, backpropagation and an Adam update in
+// the browser, and what is drawn are the actual numbers. Brightness is
+// magnitude: the brighter a cell, the larger the value.
 //
-// The maths is a genuine transformer forward pass: token and position
-// embeddings, two layers of two-head self-attention and a feed-forward block
-// on a residual stream, a final normalisation and a softmax over the ten
-// digits. The weights are random and fixed, not trained, so the "prediction"
-// column means nothing; what is real is how the numbers flow.
+// The run is tied to UTC time. Every two minutes of the UTC clock a new run
+// starts from fresh random weights on the next dataset, and the step being
+// shown is decided by the clock alone. On load the script trains silently up
+// to the current step, so a refresh, or another visitor anywhere, lands on the
+// same step of the same run.
 (() => {
     const canvas = document.querySelector('.backdrop canvas');
     if (!canvas) return;
@@ -19,141 +19,209 @@
     const root = document.documentElement;
     const still = matchMedia('(prefers-reduced-motion: reduce)');
 
-    const T = 14;      // tokens: the digits of the UTC date and time
-    const V = 10;      // vocabulary: the digits 0-9
-    const C = 16;      // width of the residual stream
-    const HEADS = 2;
-    const LAYERS = 2;
-    const HIDDEN = 32; // feed-forward width
-
-    const STEP = 0.065;   // seconds between one block starting to change and the next
-    const CHANGE = 0.22;  // seconds a block takes to change
+    // --- Timing, in seconds of UTC time.
+    const PERIOD = 120;  // one training run, start to start
+    const TICK = 0.25;   // one training step
+    const STEPS = 400;   // steps per run; the rest of the period shows the result
     const FRAME = 1000 / 30;
 
-    // --- Fixed random weights: the same model for every visitor.
-    const random = (() => {
-        let seed = 0x7a3f51;
-        return () => {
-            seed = (seed + 0x6d2b79f5) | 0;
-            let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-        };
-    })();
-    const normal = () => random() + random() + random() + random() - 2; // roughly bell-shaped
-    const matrix = (rows, cols, scale) =>
-        Array.from({ length: rows }, () => Array.from({ length: cols }, () => normal() * scale));
+    // ------------------------------------------------------------------
+    // The model and its training loop.
+    // ------------------------------------------------------------------
+    const SIZES = [2, 16, 16, 1];
+    const POINTS = 160;
+    const BATCH = 32;
+    const RATE = 0.03;
+    const DATASETS = ['two moons', 'rings', 'checkers', 'spiral'];
 
-    const tokenEmbedding = matrix(V, C, 0.9);
-    const positionEmbedding = matrix(T, C, 0.6);
-    const layers = Array.from({ length: LAYERS }, () => ({
-        query: matrix(C, C, 0.5), key: matrix(C, C, 0.5), value: matrix(C, C, 0.45), out: matrix(C, C, 0.45),
-        up: matrix(C, HIDDEN, 0.45), down: matrix(HIDDEN, C, 0.3),
-    }));
-    const unembedding = matrix(C, V, 0.6);
-
-    // --- Small matrix helpers. A matrix is an array of rows.
-    const multiply = (a, b) => a.map((row) => b[0].map((_, j) => row.reduce((sum, v, k) => sum + v * b[k][j], 0)));
-    const add = (a, b) => a.map((row, i) => row.map((v, j) => v + b[i][j]));
-    const normalise = (a) => a.map((row) => {
-        const mean = row.reduce((s, v) => s + v, 0) / row.length;
-        const spread = Math.sqrt(row.reduce((s, v) => s + (v - mean) ** 2, 0) / row.length) || 1;
-        return row.map((v) => (v - mean) / spread);
-    });
-    const softmax = (row) => {
-        const top = Math.max(...row);
-        const e = row.map((v) => Math.exp(v - top));
-        const sum = e.reduce((s, v) => s + v, 0);
-        return e.map((v) => v / sum);
-    };
-    const gelu = (v) => 0.5 * v * (1 + Math.tanh(0.7978845608 * (v + 0.044715 * v ** 3)));
-
-    const digitsAt = (second) => {
-        const d = new Date(second * 1000);
-        const two = (n) => String(n).padStart(2, '0');
-        return (d.getUTCFullYear() + two(d.getUTCMonth() + 1) + two(d.getUTCDate())
-            + two(d.getUTCHours()) + two(d.getUTCMinutes()) + two(d.getUTCSeconds())).split('').map(Number);
+    const seeded = (seed) => () => {
+        seed = (seed + 0x6d2b79f5) | 0;
+        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
 
-    // The forward pass for one second. Returns every intermediate grid, keyed
-    // by the block that displays it.
-    const memo = new Map();
-    const forward = (second) => {
-        let out = memo.get(second);
-        if (out) return out;
-
-        const tokens = digitsAt(second);
-        out = { tokens, 'token': tokens.map((t) => tokenEmbedding[t]), 'position': positionEmbedding };
-        let x = add(out.token, positionEmbedding);
-        out.x0 = x;
-
-        layers.forEach((layer, l) => {
-            const a = normalise(x);
-            const q = multiply(a, layer.query), k = multiply(a, layer.key), v = multiply(a, layer.value);
-            const width = C / HEADS;
-            const mixed = Array.from({ length: T }, () => new Array(C).fill(0));
-            for (let h = 0; h < HEADS; h++) {
-                const from = h * width;
-                // How much each token (row) attends to each other token (column).
-                const attention = q.map((qi) => softmax(k.map((kj) => {
-                    let dot = 0;
-                    for (let c = from; c < from + width; c++) dot += qi[c] * kj[c];
-                    return dot / Math.sqrt(width);
-                })));
-                out[`attention${l}${h}`] = attention;
-                attention.forEach((weights, i) => weights.forEach((w, j) => {
-                    for (let c = from; c < from + width; c++) mixed[i][c] += w * v[j][c];
-                }));
+    // 160 labelled points in the square -1..1, in one of four classic shapes.
+    const makeData = (cycle) => {
+        const random = seeded(0x1234 + cycle * 7919);
+        const noise = (amount) => (random() + random() + random() - 1.5) * amount;
+        const kind = ((cycle % DATASETS.length) + DATASETS.length) % DATASETS.length;
+        const points = [];
+        for (let i = 0; i < POINTS; i++) {
+            const label = i % 2;
+            const u = random();
+            let x, y;
+            if (kind === 0) {        // two interlocking half circles
+                const a = u * Math.PI;
+                x = ((label ? 1 - Math.cos(a) : Math.cos(a)) - 0.5) / 1.6 + noise(0.07);
+                y = ((label ? 0.5 - Math.sin(a) : Math.sin(a)) - 0.25) / 0.9 + noise(0.07);
+            } else if (kind === 1) { // a ring around a blob
+                const a = u * Math.PI * 2;
+                const r = label ? 0.78 + noise(0.1) : 0.3 * Math.sqrt(random());
+                x = r * Math.cos(a); y = r * Math.sin(a);
+            } else if (kind === 2) { // opposite corners share a class
+                const sx = random() < 0.5 ? -1 : 1;
+                const sy = label ? sx : -sx;
+                x = sx * (0.5 + noise(0.3)); y = sy * (0.5 + noise(0.3));
+            } else {                 // two arms of a spiral
+                const r = 0.14 + 0.8 * u;
+                const a = u * Math.PI * 1.6 + (label ? Math.PI : 0);
+                x = r * Math.cos(a) + noise(0.035); y = r * Math.sin(a) + noise(0.035);
             }
-            x = add(x, multiply(mixed, layer.out));
-            out[`mid${l}`] = x;
+            points.push({ x: Math.max(-1, Math.min(1, x)), y: Math.max(-1, Math.min(1, y)), label });
+        }
+        return { name: DATASETS[kind], points };
+    };
 
-            const hidden = multiply(normalise(x), layer.up).map((row) => row.map(gelu));
-            out[`hidden${l}`] = hidden;
-            x = add(x, multiply(hidden, layer.down));
-            out[`out${l}`] = x;
+    // Weights are stored per layer as one flat array, row by row, with the bias
+    // as the last entry of each row: layer.w[j * (inputs + 1) + i].
+    const makeModel = (cycle) => {
+        const random = seeded(0xbeef + cycle * 104729);
+        return SIZES.slice(1).map((outputs, l) => {
+            const inputs = SIZES[l];
+            const limit = Math.sqrt(6 / (inputs + outputs));
+            const w = new Float64Array(outputs * (inputs + 1));
+            for (let j = 0; j < outputs; j++)
+                for (let i = 0; i < inputs; i++) w[j * (inputs + 1) + i] = (random() * 2 - 1) * limit;
+            return { inputs, outputs, w, m: new Float64Array(w.length), v: new Float64Array(w.length) };
         });
+    };
 
-        out.final = normalise(x);
-        out.probability = multiply(out.final, unembedding).map(softmax);
-        out.prediction = out.probability.map((row) => row.indexOf(Math.max(...row)));
+    // Forward pass for one point. Returns the activations of every layer.
+    const forward = (model, x, y) => {
+        const acts = [[x, y]];
+        model.forEach((layer, l) => {
+            const input = acts[l], out = new Array(layer.outputs), stride = layer.inputs + 1;
+            for (let j = 0; j < layer.outputs; j++) {
+                let sum = layer.w[j * stride + layer.inputs];
+                for (let i = 0; i < layer.inputs; i++) sum += layer.w[j * stride + i] * input[i];
+                out[j] = l === model.length - 1 ? 1 / (1 + Math.exp(-sum)) : Math.tanh(sum);
+            }
+            acts.push(out);
+        });
+        return acts;
+    };
 
-        if (memo.size > 8) memo.clear();
-        memo.set(second, out);
+    // One step of training on a mini-batch: backpropagation, then an Adam update.
+    // Returns the batch loss and the gradient of every weight.
+    const trainStep = (model, data, step) => {
+        const grads = model.map((layer) => new Float64Array(layer.w.length));
+        const pick = seeded(0x51ed + step * 2654435761);
+        let loss = 0;
+        for (let b = 0; b < BATCH; b++) {
+            const p = data.points[Math.floor(pick() * POINTS)];
+            const acts = forward(model, p.x, p.y);
+            const out = acts[acts.length - 1][0];
+            loss -= p.label ? Math.log(out + 1e-9) : Math.log(1 - out + 1e-9);
+
+            // With a sigmoid output and cross-entropy loss the error at the output is simply out - label.
+            let delta = [out - p.label];
+            for (let l = model.length - 1; l >= 0; l--) {
+                const layer = model[l], input = acts[l], stride = layer.inputs + 1;
+                const back = new Array(layer.inputs).fill(0);
+                for (let j = 0; j < layer.outputs; j++) {
+                    for (let i = 0; i < layer.inputs; i++) {
+                        grads[l][j * stride + i] += delta[j] * input[i] / BATCH;
+                        back[i] += delta[j] * layer.w[j * stride + i];
+                    }
+                    grads[l][j * stride + layer.inputs] += delta[j] / BATCH;
+                }
+                if (l > 0) delta = back.map((d, i) => d * (1 - input[i] * input[i])); // tanh'
+            }
+        }
+        const t = step + 1;
+        model.forEach((layer, l) => {
+            for (let k = 0; k < layer.w.length; k++) {
+                const g = grads[l][k];
+                layer.m[k] = 0.9 * layer.m[k] + 0.1 * g;
+                layer.v[k] = 0.999 * layer.v[k] + 0.001 * g * g;
+                layer.w[k] -= RATE * (layer.m[k] / (1 - 0.9 ** t)) / (Math.sqrt(layer.v[k] / (1 - 0.999 ** t)) + 1e-8);
+            }
+        });
+        return { loss: loss / BATCH, grads };
+    };
+
+    const accuracy = (model, data) =>
+        data.points.reduce((right, p) => right + ((forward(model, p.x, p.y)[SIZES.length - 1][0] > 0.5) === (p.label === 1) ? 1 : 0), 0) / POINTS;
+
+    // ------------------------------------------------------------------
+    // The run in progress.
+    // ------------------------------------------------------------------
+    const GRID = 30; // the decision surface is sampled on a GRID x GRID lattice
+
+    // The network's answer over the whole input square: what it has learned so far.
+    const surfaceOf = (model) => {
+        const out = new Float64Array(GRID * GRID);
+        for (let j = 0; j < GRID; j++)
+            for (let i = 0; i < GRID; i++)
+                out[j * GRID + i] = forward(model, -1 + 2 * (i + 0.5) / GRID, 1 - 2 * (j + 0.5) / GRID)[SIZES.length - 1][0];
         return out;
     };
 
-    // --- The diagram: four bands of blocks, read left to right, top to bottom.
-    // kind: signed values, weights between 0 and 1, or digits shown as text.
-    const block = (key, label, cols, kind, stage) => ({ key, label, cols, kind, stage, x: 0, y: 0 });
-    const bands = [[
-        block('tokens', 'UTC', 1, 'digit', 0),
-        block('token', 'token embedding', C, 'signed', 0),
-        block('position', 'position embedding', C, 'signed', 0),
-        block('x0', 'sum', C, 'signed', 1),
-    ]];
-    for (let l = 0; l < LAYERS; l++) {
-        const s = 2 + l * 4;
-        bands.push([
-            block(`attention${l}0`, `layer ${l + 1}: attention head 1`, T, 'weight', s),
-            block(`attention${l}1`, 'head 2', T, 'weight', s),
-            block(`mid${l}`, 'residual + attention', C, 'signed', s + 1),
-            block(`hidden${l}`, 'feed-forward', HIDDEN, 'signed', s + 2),
-            block(`out${l}`, 'residual + feed-forward', C, 'signed', s + 3),
-        ]);
-    }
-    const last = 2 + LAYERS * 4;
-    bands.push([
-        block('final', 'final norm', C, 'signed', last),
-        block('probability', 'softmax over digits', V, 'weight', last + 1),
-        block('prediction', 'out', 1, 'digit', last + 2),
-    ]);
-    const GAP = 2;      // cells between blocks
-    const BAND_GAP = 3; // cells between bands
-    const widest = Math.max(...bands.map((band) => band.reduce((sum, b) => sum + b.cols, 0) + GAP * (band.length - 1)));
-    const tall = bands.length * T + BAND_GAP * (bands.length - 1);
+    const weightsOf = (model) => model.map((layer) => Float64Array.from(layer.w));
 
-    let width = 0, height = 0, cell = 0, colours = ['#888', '#888'], ink = '#888', lastDraw = 0;
+    // Brings the run to the given step of the given cycle and records what the
+    // drawing needs: weights and surface before and after the step, the
+    // gradients it used, and the activations for one sample point.
+    let run = null;
+    const seek = (cycle, step) => {
+        if (run && run.cycle === cycle && run.shown === step) return run;
+
+        if (!run || run.cycle !== cycle || run.done > step) {
+            run = { cycle, done: 0, shown: -1, data: makeData(cycle), model: makeModel(cycle), losses: [] };
+            run.surfaceAfter = null;
+        }
+        // Catch up silently to the state just before this step.
+        const caughtUp = run.done === step && run.surfaceAfter;
+        while (run.done < step) run.losses.push(trainStep(run.model, run.data, run.done++).loss);
+
+        run.before = weightsOf(run.model);
+        run.surfaceBefore = caughtUp ? run.surfaceAfter : surfaceOf(run.model);
+        run.sample = run.data.points[step % POINTS];
+        run.acts = forward(run.model, run.sample.x, run.sample.y);
+
+        if (step < STEPS) {
+            const result = trainStep(run.model, run.data, run.done++);
+            run.losses.push(result.loss);
+            run.grads = result.grads;
+            run.after = weightsOf(run.model);
+            run.surfaceAfter = surfaceOf(run.model);
+        } else { // training is over: nothing changes any more
+            run.grads = null;
+            run.after = run.before;
+            run.surfaceAfter = run.surfaceBefore;
+        }
+        run.accuracy = accuracy(run.model, run.data);
+        run.shown = step;
+        return run;
+    };
+
+    // ------------------------------------------------------------------
+    // Drawing.
+    // ------------------------------------------------------------------
+    // Layout in cells, left to right. Weight grids have one row per unit.
+    const H = SIZES[1];
+    const parts = [
+        { key: 'surface', label: 'data and what the network has learned', cols: GRID, rows: GRID },
+        { gap: 3 },
+        { key: 'w0', label: 'weights 1', cols: 3, rows: H },
+        { gap: 1 },
+        { key: 'a1', label: '', cols: 1, rows: H },
+        { gap: 2 },
+        { key: 'w1', label: 'weights 2', cols: H, rows: H },
+        { gap: 1 },
+        { key: 'a2', label: '', cols: 1, rows: H },
+        { gap: 2 },
+        { key: 'w2', label: 'w3', cols: 1, rows: H },
+        { gap: 1 },
+        { key: 'a3', label: 'out', cols: 1, rows: 1 },
+        { gap: 3 },
+        { key: 'loss', label: 'loss', cols: GRID, rows: GRID },
+    ];
+    const wide = parts.reduce((sum, p) => sum + (p.gap || p.cols), 0);
+    const box = {};
+
+    let width = 0, height = 0, cell = 0, top = 0, colours = ['#888', '#888'], ink = '#888', lastDraw = 0;
 
     const resize = () => {
         const ratio = Math.min(devicePixelRatio || 1, 2);
@@ -163,85 +231,159 @@
         canvas.height = height * ratio;
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
-        cell = Math.max(2, Math.min(width * 0.9 / widest, height * 0.84 / tall));
-        const top = (height - tall * cell) / 2;
-        bands.forEach((band, row) => {
-            const span = band.reduce((sum, b) => sum + b.cols, 0) + GAP * (band.length - 1);
-            let x = (width - span * cell) / 2;
-            for (const b of band) {
-                b.x = x;
-                b.y = top + row * (T + BAND_GAP) * cell;
-                x += (b.cols + GAP) * cell;
-            }
-        });
+        cell = Math.max(2, Math.min(width * 0.92 / wide, height * 0.62 / GRID));
+        top = (height - GRID * cell) / 2;
+        let x = (width - wide * cell) / 2;
+        for (const p of parts) {
+            if (p.gap) { x += p.gap * cell; continue; }
+            box[p.key] = { x, y: top + (GRID - p.rows) / 2 * cell, cols: p.cols, rows: p.rows, label: p.label };
+            x += p.cols * cell;
+        }
     };
 
     // The palette's two colours and the text colour, as resolved by the stylesheet.
     const readColours = () => {
         const style = getComputedStyle(root);
         colours = [style.getPropertyValue('--accent').trim(), style.getPropertyValue('--counter').trim()];
-        ink = style.getPropertyValue('--fg-muted').trim();
+        ink = style.getPropertyValue('--fg').trim();
     };
 
-    const smooth = (x) => x * x * (3 - 2 * x);
+    const smooth = (x) => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
+    const pulse = (f, from, to) => f <= from || f >= to ? 0 : Math.sin((f - from) / (to - from) * Math.PI);
+
+    // One cell: colour says the sign, brightness says the size.
+    const light = (b, col, row, value, strength) => {
+        ctx.globalAlpha = 0.05 + 0.95 * Math.min(1, strength);
+        ctx.fillStyle = colours[value >= 0 ? 0 : 1];
+        ctx.fillRect(b.x + col * cell, b.y + row * cell, Math.max(1, cell - 1), Math.max(1, cell - 1));
+    };
+
+    const outline = (b, strength) => {
+        if (strength <= 0) return;
+        ctx.globalAlpha = strength;
+        ctx.strokeStyle = ink;
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(b.x - 3, b.y - 3, b.cols * cell + 5, b.rows * cell + 5);
+    };
 
     const draw = () => {
         const t = Date.now() / 1000; // UTC seconds: the only input
-        const second = Math.floor(t);
-        const into = still.matches ? 1 : t - second; // 0..1 through the current second
-        const now = forward(second), before = forward(second - 1);
+        const cycle = Math.floor(t / PERIOD);
+        const elapsed = t - cycle * PERIOD;
+        const step = Math.min(STEPS, Math.floor(elapsed / TICK));
+        const training = step < STEPS;
+        // 0..1 through the current step: forward pass, then backward pass, then the update.
+        const f = !training ? 0 : still.matches ? 0.999 : elapsed / TICK - step;
+        const r = seek(cycle, step);
 
         ctx.clearRect(0, 0, width, height);
-        const size = Math.max(1, cell - 1);
-        const text = cell >= 8;
-        ctx.font = `${Math.round(cell * 0.82)}px ui-monospace, Consolas, monospace`;
-        ctx.textBaseline = 'middle';
 
-        for (const band of bands) {
-            for (const b of band) {
-                // How far this block has changed from last second's values to this second's.
-                const mix = smooth(Math.max(0, Math.min(1, (into - b.stage * STEP) / CHANGE)));
-                const changing = mix > 0 && mix < 1;
+        // --- What the network has learned: its answer over the whole plane.
+        const s = box.surface;
+        const settle = smooth((f - 0.85) / 0.15);
+        for (let j = 0; j < GRID; j++) {
+            for (let i = 0; i < GRID; i++) {
+                const k = j * GRID + i;
+                const p = r.surfaceBefore[k] + (r.surfaceAfter[k] - r.surfaceBefore[k]) * settle;
+                light(s, i, j, p - 0.5, Math.abs(p - 0.5) * 2);
+            }
+        }
+        // The training points: filled for one class, hollow for the other.
+        ctx.fillStyle = ctx.strokeStyle = ink;
+        ctx.lineWidth = 1;
+        const dot = Math.max(1, cell * 0.2);
+        for (const p of r.data.points) {
+            const px = s.x + (p.x + 1) / 2 * GRID * cell, py = s.y + (1 - p.y) / 2 * GRID * cell;
+            ctx.globalAlpha = 0.85;
+            ctx.beginPath();
+            ctx.arc(px, py, dot, 0, Math.PI * 2);
+            if (p.label) ctx.fill(); else ctx.stroke();
+        }
+        // The point going through the network on this step.
+        const seen = pulse(f, 0, 0.45);
+        if (seen > 0) {
+            ctx.globalAlpha = seen;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(s.x + (r.sample.x + 1) / 2 * GRID * cell, s.y + (1 - r.sample.y) / 2 * GRID * cell, dot + 3 + 6 * f, 0, Math.PI * 2);
+            ctx.stroke();
+        }
 
-                if (b.kind === 'digit') {
-                    const values = (mix < 0.5 ? before : now)[b.key];
-                    ctx.fillStyle = ink;
-                    ctx.globalAlpha = 0.9;
-                    ctx.textAlign = 'center';
-                    if (text) values.forEach((digit, i) => ctx.fillText(digit, b.x + cell / 2, b.y + (i + 0.5) * cell));
-                } else {
-                    const from = before[b.key], to = now[b.key];
-                    let scale = 1;
-                    if (b.kind === 'signed') {
-                        scale = 0;
-                        for (const row of to) for (const v of row) scale = Math.max(scale, Math.abs(v));
+        // --- Weights. Each layer changes at the moment backpropagation reaches it.
+        const reach = [[0.7, 0.95], [0.55, 0.8], [0.45, 0.65]]; // when the gradient passes each layer
+        r.before.forEach((before, l) => {
+            const b = box[`w${l}`], after = r.after[l];
+            const inputs = SIZES[l], stride = inputs + 1;
+            const shownCols = l === 0 ? stride : inputs; // the first grid also shows the bias column
+            const mix = smooth((f - reach[l][1] + 0.1) / 0.1);
+            const flash = r.grads ? pulse(f, reach[l][0], reach[l][1]) : 0;
+
+            let biggest = 1e-9, steepest = 1e-9;
+            for (let k = 0; k < after.length; k++) biggest = Math.max(biggest, Math.abs(after[k]));
+            if (flash > 0) for (let k = 0; k < after.length; k++) steepest = Math.max(steepest, Math.abs(r.grads[l][k]));
+
+            for (let j = 0; j < SIZES[l + 1]; j++) {
+                for (let i = 0; i < shownCols; i++) {
+                    const k = j * stride + i;
+                    const w = before[k] + (after[k] - before[k]) * mix;
+                    // The last layer has a single unit, so its weights are drawn as a column.
+                    const col = l === 2 ? 0 : i, row = l === 2 ? i : j;
+                    light(b, col, row, w, Math.abs(w) / biggest);
+                    if (flash > 0) { // the gradient arriving, as a white flare
+                        ctx.globalAlpha = flash * Math.min(1, Math.abs(r.grads[l][k]) / steepest);
+                        ctx.fillStyle = ink;
+                        ctx.fillRect(b.x + col * cell, b.y + row * cell, Math.max(1, cell - 1), Math.max(1, cell - 1));
                     }
-                    for (let i = 0; i < T; i++) {
-                        for (let j = 0; j < b.cols; j++) {
-                            const v = from[i][j] + (to[i][j] - from[i][j]) * mix;
-                            const strength = b.kind === 'weight' ? Math.sqrt(v) : Math.min(1, Math.abs(v) / scale);
-                            ctx.globalAlpha = 0.08 + 0.92 * strength;
-                            ctx.fillStyle = colours[b.kind === 'weight' || v >= 0 ? 0 : 1];
-                            ctx.fillRect(b.x + j * cell, b.y + i * cell, size, size);
-                        }
-                    }
-                }
-
-                // Outline the block that is being recomputed right now.
-                if (changing) {
-                    ctx.globalAlpha = Math.sin(mix * Math.PI);
-                    ctx.strokeStyle = colours[1];
-                    ctx.lineWidth = 1.5;
-                    ctx.strokeRect(b.x - 3, b.y - 3, b.cols * cell + 5, T * cell + 5);
-                }
-
-                if (text) {
-                    ctx.globalAlpha = 0.75;
-                    ctx.fillStyle = ink;
-                    ctx.textAlign = 'left';
-                    ctx.fillText(b.label, b.x, b.y - cell * 0.9);
                 }
             }
+            outline(b, flash * 0.8);
+        });
+
+        // --- Activations for the sample point, lighting up layer by layer.
+        const fade = 1 - smooth((f - 0.92) / 0.08);
+        [1, 2, 3].forEach((l) => {
+            const b = box[`a${l}`];
+            const on = training ? smooth((f - 0.05 - 0.1 * (l - 1)) / 0.12) * fade : 1;
+            r.acts[l].forEach((a, j) => {
+                const v = l === 3 ? a - 0.5 : a;
+                light(b, 0, j, v, (l === 3 ? Math.abs(v) * 2 : Math.abs(v)) * on);
+            });
+            outline(b, pulse(f, 0.05 + 0.1 * (l - 1), 0.3 + 0.1 * (l - 1)) * 0.6);
+        });
+
+        // --- Loss so far in this run.
+        const c = box.loss;
+        const w = c.cols * cell, h = c.rows * cell;
+        const ceiling = Math.max(0.8, r.losses[0] || 0.8);
+        ctx.globalAlpha = 0.35;
+        ctx.strokeStyle = ink;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(c.x, c.y, w, h);
+        if (r.losses.length > 1) {
+            ctx.globalAlpha = 1;
+            ctx.strokeStyle = colours[0];
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            r.losses.forEach((loss, k) => {
+                const x = c.x + k / STEPS * w, y = c.y + h - Math.min(1, loss / ceiling) * h;
+                if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        }
+
+        // --- Labels and the status line.
+        if (cell >= 8) {
+            ctx.font = `${Math.round(Math.min(13, cell * 0.85))}px ui-monospace, Consolas, monospace`;
+            ctx.textBaseline = 'alphabetic';
+            ctx.textAlign = 'left';
+            ctx.fillStyle = ink;
+            ctx.globalAlpha = 0.8;
+            for (const key in box) if (box[key].label) ctx.fillText(box[key].label, box[key].x, box[key].y - cell * 0.7);
+
+            const loss = r.losses.length ? r.losses[r.losses.length - 1].toFixed(3) : '-';
+            const state = training ? `step ${step + 1} of ${STEPS}` : 'trained';
+            ctx.fillText(`${r.data.name} · ${state} · loss ${loss} · accuracy ${Math.round(r.accuracy * 100)}%`,
+                s.x, s.y + GRID * cell + cell * 1.6);
         }
         ctx.globalAlpha = 1;
     };
@@ -254,7 +396,7 @@
         draw();
     };
 
-    // With "reduce motion" on: no sweep, just a fresh picture each second.
+    // With "reduce motion" on: no flashes, just a fresh picture each second.
     let ticker = 0;
     const begin = () => {
         clearInterval(ticker);
