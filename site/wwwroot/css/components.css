@@ -128,27 +128,6 @@
     padding-block: clamp(4rem, 9vw, 7rem) 3.5rem;
 }
 
-.hero-glow {
-    position: absolute;
-    top: 18%;
-    left: 8%;
-    z-index: -1;
-    width: min(560px, 90vw);
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: var(--accent-soft);
-    filter: blur(120px);
-    pointer-events: none;
-}
-
-/* Second glow in the palette's counter colour. */
-.hero-glow.counter {
-    top: 42%;
-    right: 4%;
-    left: auto;
-    background: var(--counter-soft);
-}
-
 .hero-grid {
     position: absolute;
     inset: 0;
