@@ -486,7 +486,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    width: min(72rem, calc(100% - 1.5rem));
+    width: min(var(--container-max), calc(100% - 1.5rem));
     min-height: 4rem;
     padding: 0.25rem 1.25rem;
     border-radius: 2rem;
