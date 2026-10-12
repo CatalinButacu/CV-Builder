@@ -104,6 +104,9 @@ public static class Profile
         new("Red Hat System Administration II (RH134) — Course Attendance"),
     ];
 
+    // Certifications that carry a link anyone can check.
+    public static int VerifiableCertifications => Certifications.Count(c => c.Link is not null);
+
     public static readonly SkillGroup[] Skills =
     [
         new("Languages", ["Python", "C/C++", "SQL", "Bash", "TypeScript"]),

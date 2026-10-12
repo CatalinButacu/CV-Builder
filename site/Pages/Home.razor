@@ -1,74 +1,7 @@
 @page "/"
 
-<section class="hero">
-    <div class="container-x">
-        <p class="hero-kicker">
-            <img class="portrait" src="img/portrait.jpg" alt="Portrait of Cătălin Butacu" width="88" height="88" fetchpriority="high" />
-            <span>
-                <strong>@Profile.Person.ShortName</strong>
-                <span>ML &amp; Software Engineer · @Profile.Person.Location</span>
-            </span>
-        </p>
-
-        <h1>
-            <span>From trained model</span>
-            <span class="gradient-text">to shipped product.</span>
-        </h1>
-
-        <p class="hero-sub">
-            I build machine learning systems with the discipline of production software: four years shipping
-            C++/Qt desktop products, and an MSc in Artificial Intelligence spent on RAG, computer vision and
-            edge inference.
-        </p>
-
-        <div class="hero-cta">
-            <a class="btn primary lg" href="#contact">Get in touch →</a>
-            <a class="text-link" href="projects/">See the work</a>
-            <a class="text-link" href="cv.pdf" target="_blank" rel="noopener">Download CV</a>
-        </div>
-
-        @* The evidence, as numbers. Each term comes first for screen readers and is shown under its figure. *@
-        <dl class="proof">
-            @foreach (var fact in Proof)
-            {
-                <div>
-                    <dt>@fact.Label</dt>
-                    <dd>@fact.Figure<small>@fact.Unit</small></dd>
-                </div>
-            }
-        </dl>
-    </div>
-</section>
-
+<Hero />
 <Experience />
-
 <Capabilities />
-
-<Section Id="projects" Eyebrow="Selected work" Title="Projects"
-         Subtitle="@($"{ProjectCatalog.All.Length} projects across generative AI, computer vision, security and optimisation.")">
-    <Action>
-        <a class="btn secondary" href="projects/">View all projects</a>
-    </Action>
-    <ChildContent>
-        <ul class="project-grid">
-            @foreach (var project in ProjectCatalog.All.Take(3))
-            {
-                <li><ProjectCard Project="project" /></li>
-            }
-        </ul>
-    </ChildContent>
-</Section>
-
+<FeaturedProjects />
 <Contact />
-
-@code {
-    private sealed record Fact(string Figure, string Unit, string Label);
-
-    private static readonly Fact[] Proof =
-    [
-        new("4", "yrs", "of C++/Qt in production"),
-        new(ProjectCatalog.All.Length.ToString(), "", "ML projects with public code"),
-        new(Profile.Certifications.Count(c => c.Link is not null).ToString(), "", "verifiable certifications"),
-        new("8", "th", "nationally, WiDS Datathon 2025"),
-    ];
-}
