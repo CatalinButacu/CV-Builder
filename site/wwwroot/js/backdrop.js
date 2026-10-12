@@ -158,8 +158,7 @@ const backdropScene = (canvas) => {
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
         // A plane one step ahead just about fills the window, so you are inside it.
         focal = Math.max(width / 3.3, height / 2.05);
-        // On a wide screen the vanishing point sits to the right, clear of the headline.
-        centre = width * (width >= 900 ? 0.7 : 0.5);
+        centre = width / 2;
     };
 
     const clamp = (v) => Math.max(0, Math.min(1, v));
