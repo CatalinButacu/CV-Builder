@@ -1,0 +1,15 @@
+@* The tech stack: one row of chips per skill group. *@
+<div class="panel surface skills">
+    @foreach (var skill in Profile.Skills)
+    {
+        <div class="skill-row">
+            <span class="mono-label">@skill.Group</span>
+            <ul class="chips">
+                @foreach (var item in skill.Items)
+                {
+                    <li class="chip">@item</li>
+                }
+            </ul>
+        </div>
+    }
+</div>

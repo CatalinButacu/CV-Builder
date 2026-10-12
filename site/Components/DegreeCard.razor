@@ -1,0 +1,13 @@
+@* A degree with its school, dates and coursework notes. *@
+<div class="panel surface">
+    <div class="row"><h3>@Degree.Title</h3><span class="when">@Degree.Period</span></div>
+    <p class="where">@Degree.School</p>
+    @foreach (var note in Degree.Notes)
+    {
+        <p class="note"><strong>@note.Label:</strong> @note.Text</p>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Degree Degree { get; set; } = default!;
+}

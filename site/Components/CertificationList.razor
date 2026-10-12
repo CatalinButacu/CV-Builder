@@ -1,0 +1,16 @@
+@* Every certification, linked to its public record where there is one. *@
+<ul class="panel surface certs">
+    @foreach (var cert in Profile.Certifications)
+    {
+        <li>
+            @if (cert.Link is not null)
+            {
+                <a href="@cert.Link" target="_blank" rel="noopener">@cert.Name ↗</a>
+            }
+            else
+            {
+                @cert.Name
+            }
+        </li>
+    }
+</ul>
