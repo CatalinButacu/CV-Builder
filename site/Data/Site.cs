@@ -57,7 +57,6 @@ public static partial class Bundle
         "components/theme-menu.css",
         "components/hero.css",
         "components/stack-layers.css",
-        "components/text-link.css",
         "components/timeline.css",
         "components/contact.css",
     ];
