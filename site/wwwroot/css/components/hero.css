@@ -1,9 +1,38 @@
-/* Hero */
+/* Hero: the first screen. Its spacing and type are measured against the height
+   of the window (vh) as well as its width (vw), so the whole opening, from the
+   portrait down to the technology row, fits what a visitor sees on arrival. */
 .hero {
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    padding-block: clamp(4rem, 9vw, 7rem) 3.5rem;
+    padding-block: clamp(1.5rem, 5vh, 5rem) clamp(1.25rem, 3vh, 3.5rem);
+}
+
+/* On a wide screen the two columns fill the window, less the floating header
+   and the hero's own padding, with their content in the middle. */
+@media (min-width: 64rem) {
+    .hero-cols {
+        min-height: calc(100svh - 5rem - clamp(1.5rem, 5vh, 5rem) - clamp(1.25rem, 3vh, 3.5rem));
+    }
+}
+
+/* Where the window is also tall enough, the technology row joins them: the
+   hero is exactly one window tall, with that row at its foot. */
+@media (min-width: 64rem) and (min-height: 50rem) {
+    .hero {
+        display: grid;
+        min-height: calc(100svh - 5rem);
+    }
+
+    .hero > .container-x {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .hero-cols {
+        flex: 1;
+        min-height: 0;
+    }
 }
 
 .hero-grid {
@@ -35,13 +64,13 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 0.75rem;
-    margin-bottom: 2rem;
+    margin-bottom: clamp(1rem, 3vh, 2rem);
 }
 
 /* The CV photo, as a round portrait at the start of the hero. */
 .portrait {
-    width: 5.5rem;
-    height: 5.5rem;
+    width: clamp(3.5rem, 9vh, 5.5rem);
+    height: clamp(3.5rem, 9vh, 5.5rem);
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid var(--surface);
@@ -50,8 +79,8 @@
 }
 
 .hero h1 {
-    margin: 0 0 1.5rem;
-    font-size: clamp(2.5rem, 5.2vw, 4.5rem);
+    margin: 0 0 clamp(0.75rem, 2.5vh, 1.5rem);
+    font-size: clamp(2.25rem, min(5.2vw, 7vh), 4.5rem);
     font-weight: 800;
     line-height: 0.95;
     letter-spacing: -0.05em;
@@ -66,14 +95,14 @@
 .hero-sub {
     max-width: 36rem;
     margin: 0;
-    font-size: clamp(1rem, 1.4vw, 1.125rem);
+    font-size: clamp(0.9375rem, min(1.4vw, 2.1vh), 1.125rem);
     color: var(--fg-muted);
     text-wrap: pretty;
 }
 
 .hero-proof {
     max-width: 36rem;
-    margin: 1rem 0 0;
+    margin: clamp(0.5rem, 1.6vh, 1rem) 0 0;
     font-family: var(--font-mono);
     font-size: 0.8125rem;
     color: var(--fg-subtle);
@@ -83,19 +112,28 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-    margin-top: 2.25rem;
+    margin-top: clamp(1rem, 3.5vh, 2.25rem);
 }
 
 .tech {
     display: grid;
-    gap: 1rem;
-    margin-top: clamp(4rem, 6vw, 5rem);
-    padding-top: 2rem;
+    gap: clamp(0.5rem, 1.5vh, 1rem);
+    margin-top: clamp(1.25rem, 3vh, 5rem);
+    padding-top: clamp(0.75rem, 2.5vh, 2rem);
     border-top: 1px solid var(--line);
 }
 
 .tech p {
     margin: 0;
+}
+
+/* With room to spare sideways, the label sits beside the chips, not above them. */
+@media (min-width: 64rem) {
+    .tech {
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: baseline;
+        column-gap: 1.5rem;
+    }
 }
 
 .tech .chip {
