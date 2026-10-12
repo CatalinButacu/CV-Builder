@@ -1,4 +1,4 @@
-@* A project tile: generated cover, badges, summary, stack chips and year. *@
+@* A project tile: its result first, then badges, summary, a few stack chips and the year. *@
 <a class="project-card surface gradient-border" href="projects/@(Project.Slug)/">
     <ProjectCover Project="Project" />
 
@@ -33,7 +33,7 @@
 </a>
 
 @code {
-    private const int MaxChips = 5;
+    private const int MaxChips = 3;
 
     [Parameter, EditorRequired] public Project Project { get; set; } = default!;
 }
