@@ -1,53 +1,41 @@
-// Animated background: a real transformer forward pass, seen from the side,
-// with its formulas.
+// Animated background: a nano-GPT, end to end, while it learns.
 //
-// You stand beside the network and travel along it. The layers are planes of
-// neurons standing in a row; the data flows from left to right. Neurons that
-// come too close to the screen dissolve.
+// The model is a small GPT (js/nanogpt.js) whose job is to sort six letters
+// from {A, B, C}: given "C B A B B C" it should write "A B B B C C". It was
+// trained once, offline, by tools/train-nanogpt.js, and its weights were saved
+// at 32 points of that run (data/nanogpt.bin).
 //
-// The network is a genuine small transformer and the scene is its calculation:
-//   - 8 tokens, each a column of 6 neurons (the residual stream is 6 wide);
-//   - 4 blocks, each drawn as three planes:
-//       x + Attention(x)   two heads; arcs cross from one token to another
-//       GELU(x W1)         the feed-forward hidden layer, 12 wide (two columns)
-//       x + h W2           back to the stream
-//   - an input plane before the first block; the last plane is the output.
+// Two things play at once, both driven by UTC time alone, so a refresh or
+// another visitor sees the same moment:
 //
-// What you see is what was computed. A neuron's brightness is the size of its
-// activation and its colour the sign. A wire's brightness is the signal it
-// carries: the attention weight for an arc, weight x activation for a
-// feed-forward wire. Above every plane floats the formula it computes, and the
-// plane being computed also shows that formula with its real numbers.
+//   1. The training run is replayed. Over two minutes the weights move from
+//      random to trained, then hold. The weight blocks change in front of you,
+//      and the answer the model writes goes from wrong to right.
 //
-// The weights are fixed and random, not trained, so the final prediction means
-// nothing; the arithmetic is real. Each pass feeds in eight tokens chosen by a
-// formula of the pass number. UTC time is only the playhead: which pass, and
-// how far along. A refresh, or another visitor, picks it up exactly there.
+//   2. An automatic walkthrough of one forward pass. The model is drawn as a
+//      stack of solid blocks seen from above at an angle, as on
+//      bbycroft.net/llm: every weight matrix and every intermediate result is
+//      a slab whose top face has one cell per number. The view moves down the
+//      stack block by block: embeddings, then for each layer the attention
+//      weights, the attention pattern, the feed-forward weights and its hidden
+//      layer, and finally the output probabilities and the letters predicted.
+//
+// A cell's brightness is the size of its number and its colour the sign.
+// Result blocks have sides in the first palette colour, weight blocks in the
+// second. Nothing is made up: the forward pass is recomputed every frame from
+// the weights of that moment of the training run.
 (() => {
     const canvas = document.querySelector('.backdrop canvas');
-    if (!canvas) return;
+    if (!canvas || !window.NanoGPT) return;
 
     const ctx = canvas.getContext('2d');
     const root = document.documentElement;
     const still = matchMedia('(prefers-reduced-motion: reduce)');
 
-    const TOKENS = 8;      // columns in a plane
-    const WIDTH = 6;       // neurons per token: the width of the residual stream
-    const HEADS = 2;
-    const HIDDEN = WIDTH * 2;
-    const VOCAB = 10;
-    const BLOCKS = 4;
-    const PLANES = BLOCKS * 3 + 1; // input plane, then three planes per block; the last is the output
-    const GAP = 1.5;       // distance between planes
-
-    const HOP = 1.6;       // seconds for the calculation to move from one plane to the next
-    const PERIOD = 24;     // seconds from the start of one pass to the start of the next
+    const TRAINING = 120; // seconds for the replay to go from random weights to trained
+    const CYCLE = 150;    // then it holds the trained model until the cycle restarts
+    const PASS = 50;      // seconds for one walkthrough of the forward pass
     const FRAME = 1000 / 30;
-
-    // The viewpoint: beside the network, turned a little towards where the data is going.
-    const SIDE = 3.1;
-    const TURN = 24 * Math.PI / 180;
-    const NEAR = 1.15, FAR = 7.5; // things closer or further than this are not drawn
 
     // A repeatable value between 0 and 1 for a pair of whole numbers.
     const hash = (a, b) => {
@@ -58,171 +46,108 @@
     };
 
     // ------------------------------------------------------------------
-    // The model: fixed random weights, the same for every visitor.
+    // The recorded training run.
     // ------------------------------------------------------------------
-    const random = (() => {
-        let seed = 0x7a3f51;
-        return () => {
-            seed = (seed + 0x6d2b79f5) | 0;
-            let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-        };
-    })();
-    const normal = () => random() + random() + random() + random() - 2; // roughly bell-shaped
-    const matrix = (rows, cols, scale) =>
-        Array.from({ length: rows }, () => Array.from({ length: cols }, () => normal() * scale));
+    let run = null;   // the description: model shape and, per snapshot, step, loss and accuracy
+    let bytes = null; // every snapshot's weights, one signed byte each
 
-    const tokenEmbedding = matrix(VOCAB, WIDTH, 1);
-    const positionEmbedding = matrix(TOKENS, WIDTH, 0.6);
-    const blocks = Array.from({ length: BLOCKS }, () => ({
-        query: matrix(WIDTH, WIDTH, 0.9), key: matrix(WIDTH, WIDTH, 0.9), value: matrix(WIDTH, WIDTH, 0.7), out: matrix(WIDTH, WIDTH, 0.6),
-        up: matrix(WIDTH, HIDDEN, 0.7), down: matrix(HIDDEN, WIDTH, 0.4),
-    }));
-    const unembedding = matrix(WIDTH, VOCAB, 0.8);
-
-    // A matrix is an array of rows.
-    const multiply = (a, b) => a.map((row) => b[0].map((_, j) => row.reduce((sum, v, k) => sum + v * b[k][j], 0)));
-    const add = (a, b) => a.map((row, i) => row.map((v, j) => v + b[i][j]));
-    const normalise = (a) => a.map((row) => {
-        const mean = row.reduce((s, v) => s + v, 0) / row.length;
-        const spread = Math.sqrt(row.reduce((s, v) => s + (v - mean) ** 2, 0) / row.length) || 1;
-        return row.map((v) => (v - mean) / spread);
-    });
-    const softmax = (row) => {
-        const top = Math.max(...row);
-        const e = row.map((v) => Math.exp(v - top));
-        const sum = e.reduce((s, v) => s + v, 0);
-        return e.map((v) => v / sum);
-    };
-    const gelu = (v) => 0.5 * v * (1 + Math.tanh(0.7978845608 * (v + 0.044715 * v ** 3)));
-    const fixed = (v) => (v < 0 ? '−' : '') + Math.abs(v).toFixed(2);
-
-    // One drawn plane: its values (one row per token), the wires arriving from
-    // the plane before, the formula it computes, and that formula with numbers in.
-    const plane = (grid, formula, detail) => {
-        let biggest = 1e-9;
-        for (const row of grid) for (const v of row) biggest = Math.max(biggest, Math.abs(v));
-        return { values: grid.flat(), glow: grid.flat().map((v) => Math.abs(v) / biggest), links: [], formula, detail };
-    };
-
-    // Wires between two dense planes of the same token: for each target unit its
-    // two strongest incoming signals, where a signal is weight x activation.
-    const wire = (target, source, weights) => {
-        const signals = [];
-        let biggest = 1e-9;
-        source.forEach((row, token) => {
-            for (let u = 0; u < weights[0].length; u++) {
-                const ranked = row.map((a, c) => ({ c, s: a * weights[c][u] })).sort((p, q) => Math.abs(q.s) - Math.abs(p.s)).slice(0, 2);
-                for (const r of ranked) {
-                    biggest = Math.max(biggest, Math.abs(r.s));
-                    signals.push({ from: token * row.length + r.c, to: token * weights[0].length + u, s: r.s });
+    // The weights at a point of the run. `at` counts snapshots and may fall
+    // between two, in which case the weights are blended.
+    const weightsAt = (at) => {
+        const low = Math.min(run.snapshots.length - 1, Math.floor(at));
+        const high = Math.min(run.snapshots.length - 1, low + 1), mix = at - low;
+        const perSnapshot = bytes.length / run.snapshots.length;
+        let offset = 0;
+        const named = {};
+        run.tensors.forEach((tensor, n) => {
+            const a = run.snapshots[low].scales[n] / 127, b = run.snapshots[high].scales[n] / 127;
+            const rows = [];
+            for (let r = 0; r < tensor.rows; r++) {
+                const row = new Array(tensor.cols);
+                for (let c = 0; c < tensor.cols; c++) {
+                    const i = offset + r * tensor.cols + c;
+                    const from = bytes[low * perSnapshot + i] * a, to = bytes[high * perSnapshot + i] * b;
+                    row[c] = from + (to - from) * mix;
                 }
+                rows.push(row);
             }
+            named[tensor.name] = rows;
+            offset += tensor.rows * tensor.cols;
         });
-        for (const g of signals) target.links.push({ from: g.from, to: g.to, arc: false, glow: Math.abs(g.s) / biggest, tone: g.s >= 0 ? 0 : 1 });
+        return {
+            wte: named.wte, wpe: named.wpe, head: named.head,
+            layers: Array.from({ length: run.layers }, (_, l) => ({
+                qkv: named[`layer${l}.qkv`], out: named[`layer${l}.out`], fc: named[`layer${l}.fc`], proj: named[`layer${l}.proj`],
+            })),
+        };
     };
 
-    // The largest entry of a grid, with where it is.
-    const peak = (grid) => {
-        let best = { token: 0, unit: 0, value: 0 };
-        grid.forEach((row, token) => row.forEach((v, unit) => { if (Math.abs(v) > Math.abs(best.value)) best = { token, unit, value: v }; }));
-        return best;
+    const blend = (key, at) => {
+        const low = Math.min(run.snapshots.length - 1, Math.floor(at)), high = Math.min(run.snapshots.length - 1, low + 1);
+        return run.snapshots[low][key] + (run.snapshots[high][key] - run.snapshots[low][key]) * (at - low);
     };
 
-    // The forward pass for one pass number, as the planes to draw.
-    const memo = new Map();
-    const build = (pass) => {
-        let planes = memo.get(pass);
-        if (planes) return planes;
-
-        const tokens = Array.from({ length: TOKENS }, (_, i) => Math.floor(hash(pass, 100 + i) * VOCAB));
-        let x = add(tokens.map((t) => tokenEmbedding[t]), positionEmbedding);
-        planes = [plane(x, 'x = E[token] + P[position]', `tokens = [${tokens.join(' ')}]`)];
-
-        for (const block of blocks) {
-            // --- Attention.
-            const a = normalise(x);
-            const q = multiply(a, block.query), k = multiply(a, block.key), v = multiply(a, block.value);
-            const span = WIDTH / HEADS;
-            const mixed = Array.from({ length: TOKENS }, () => new Array(WIDTH).fill(0));
-            const arcs = [];
-            let strongest = { w: 0, i: 0, j: 0 };
-            for (let h = 0; h < HEADS; h++) {
-                const from = h * span;
-                q.forEach((qi, i) => {
-                    // How much token i attends to each token j.
-                    const share = softmax(k.map((kj) => {
-                        let dot = 0;
-                        for (let c = from; c < from + span; c++) dot += qi[c] * kj[c];
-                        return dot / Math.sqrt(span);
-                    }));
-                    share.forEach((w, j) => {
-                        for (let c = from; c < from + span; c++) mixed[i][c] += w * v[j][c];
-                        if (i === j) return;
-                        if (w > strongest.w) strongest = { w, i, j };
-                        // Each head owns its share of the neurons, so its arcs run along those rows.
-                        if (w > 0.14) for (let c = from; c < from + span; c++) arcs.push({ from: j * WIDTH + c, to: i * WIDTH + c, arc: true, glow: Math.sqrt(w), tone: h });
-                    });
-                });
-            }
-            const before = x;
-            x = add(x, multiply(mixed, block.out));
-            const attended = plane(x, 'x ← x + softmax(Q·Kᵀ / √d) · V',
-                `token ${strongest.i} attends to token ${strongest.j}:  a = ${strongest.w.toFixed(2)}`);
-            // The residual: every neuron also carries its own value straight on.
-            before.flat().forEach((value, i) => attended.links.push({ from: i, to: i, arc: false, glow: 0.5 * planes[planes.length - 1].glow[i], tone: value >= 0 ? 0 : 1 }));
-            attended.links.push(...arcs);
-            planes.push(attended);
-
-            // --- Feed-forward, widening.
-            const input = normalise(x);
-            const sums = multiply(input, block.up);
-            const hidden = sums.map((row) => row.map(gelu));
-            const top = peak(hidden);
-            const wide = plane(hidden, 'h = GELU(x · W₁)', `GELU(${fixed(sums[top.token][top.unit])}) = ${fixed(top.value)}`);
-            wire(wide, input, block.up);
-            planes.push(wide);
-
-            // --- Feed-forward, narrowing, added back to the stream.
-            const delta = multiply(hidden, block.down);
-            const after = add(x, delta);
-            const most = peak(delta);
-            const merged = plane(after, 'x ← x + h · W₂',
-                `${fixed(x[most.token][most.unit])} ${most.value < 0 ? '−' : '+'} ${Math.abs(most.value).toFixed(2)} = ${fixed(after[most.token][most.unit])}`);
-            wire(merged, hidden, block.down);
-            planes.push(merged);
-            x = after;
+    // The model writing its answer one letter at a time, as it would be used.
+    // Returns the full sequence it ended up with and the last forward pass.
+    const write = (weights, letters) => {
+        const tokens = [...letters];
+        let result = null;
+        for (let n = 0; n < run.letters; n++) {
+            const padded = [...tokens];
+            while (padded.length < run.context) padded.push(0);
+            result = NanoGPT.forward(weights, padded, run.heads);
+            tokens.push(result.prediction[tokens.length - 1]);
         }
-
-        // The last plane is also the output: what the model would say comes next for each token.
-        const probability = multiply(normalise(x), unembedding).map(softmax);
-        const answer = probability.map((row) => row.indexOf(Math.max(...row)));
-        const final = planes[planes.length - 1];
-        final.formula = 'p = softmax(x · Wᵤ)';
-        final.detail = `argmax p = [${answer.join(' ')}]`;
-
-        if (memo.size > 3) memo.clear();
-        memo.set(pass, planes);
-        return planes;
+        return { tokens, result };
     };
 
     // ------------------------------------------------------------------
-    // Where things are.
+    // The stack of blocks for one moment.
     // ------------------------------------------------------------------
-    const isWide = (k) => k % 3 === 2; // the feed-forward hidden planes
-    const columnX = (token) => -1.6 + 3.2 * (token + 0.5) / TOKENS;
-    const rowY = (row) => -0.9 + 1.8 * (row + 0.5) / WIDTH;
-    // Position in space: x across the tokens (towards the viewer), y down the column, z along the flow.
-    const spot = (k, i) => {
-        if (!isWide(k)) return [columnX(Math.floor(i / WIDTH)), rowY(i % WIDTH), k * GAP];
-        const half = Math.floor(i / WIDTH) % 2;
-        return [columnX(Math.floor(i / HIDDEN)) + (half - 0.5) * 0.17, rowY(i % WIDTH), k * GAP];
+    // kind: 'value' and 'weight' are signed numbers, 'share' is between 0 and 1, 'text' is letters.
+    const slab = (label, grid, kind) => {
+        let biggest = 1e-9;
+        if (kind !== 'text') for (const row of grid) for (const v of row) biggest = Math.max(biggest, Math.abs(v));
+        return { label, grid, kind, biggest, rows: grid.length, cols: grid[0].length };
     };
 
-    let width = 0, height = 0, focal = 0, colours = ['#888', '#888'], ink = '#888', dark = true, lastDraw = 0;
-    // Set once per frame: where along the network the viewer is, the slight drift of the head, and the fade.
-    let along = 0, swayX = 0, swayY = 0, curtain = 1;
+    const build = (weights, letters) => {
+        const { tokens, result } = write(weights, letters);
+        const input = tokens.slice(0, run.context);
+        const name = (t) => run.vocab[t];
+        const rows = [
+            { formula: 'six letters to sort, then the answer so far', slabs: [slab('tokens', input.map((t) => [name(t)]), 'text')] },
+            { formula: 'the lookup tables', slabs: [slab('wte  token embedding', weights.wte, 'weight'), slab('wpe  position embedding', weights.wpe, 'weight')] },
+            { formula: 'x = wte[token] + wpe[position]', slabs: [slab('x', result.embedded, 'value')] },
+        ];
+        weights.layers.forEach((layer, l) => {
+            const r = result.layers[l], n = l + 1;
+            rows.push(
+                { formula: `layer ${n} · attention weights`, slabs: [slab('W qkv', layer.qkv, 'weight')] },
+                { formula: 'softmax(Q · Kᵀ / √d)   who looks at whom', slabs: r.attention.map((head, h) => slab(`head ${h + 1}`, head, 'share')) },
+                { formula: 'x ← x + attention · W out', slabs: [slab('W out', layer.out, 'weight'), slab('x', r.afterAttention, 'value')] },
+                { formula: `layer ${n} · feed-forward weights`, slabs: [slab('W fc', layer.fc, 'weight')] },
+                { formula: 'h = GELU(LayerNorm(x) · W fc)', slabs: [slab('h', r.hidden, 'value')] },
+                { formula: 'x ← x + h · W proj', slabs: [slab('W proj', layer.proj, 'weight'), slab('x', r.out, 'value')] },
+            );
+        });
+        rows.push(
+            { formula: 'p = softmax(LayerNorm(x) · W head)', slabs: [slab('W head', weights.head, 'weight'), slab('p  A B C', result.probabilities, 'share')] },
+            { formula: 'the next letter, at every position', slabs: [slab('prediction', result.prediction.map((t) => [name(t)]), 'text')] },
+        );
+        const answer = tokens.slice(run.letters);
+        const sorted = [...letters].sort((a, b) => a - b);
+        return { rows, question: letters.map(name).join(' '), answer: answer.map(name).join(' '), right: answer.join() === sorted.join() };
+    };
+
+    // ------------------------------------------------------------------
+    // Drawing.
+    // ------------------------------------------------------------------
+    // Isometric view: a step along a slab's first axis goes right and down, along its second left and down.
+    const RIGHT = 0.866, DOWN = 0.5;
+
+    let width = 0, height = 0, cell = 0, thick = 0, gap = 0;
+    let colours = ['#888', '#888'], ink = '#888', surface = '#222', lastDraw = 0;
 
     const resize = () => {
         const ratio = Math.min(devicePixelRatio || 1, 2);
@@ -231,165 +156,213 @@
         canvas.width = width * ratio;
         canvas.height = height * ratio;
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-        focal = Math.min(height * 0.95, width * 0.62);
+        // The widest row (W proj beside x) should fit across the window.
+        cell = Math.max(2.6, Math.min(8, width * 0.86 / (112 * RIGHT), height / 62));
+        thick = cell * 1.8;
+        gap = cell * 7;
     };
 
-    // The palette's two colours and the text colour, as currently resolved by the stylesheet.
+    // The palette's two colours, the text colour and the card colour, as resolved by the stylesheet.
     const readColours = () => {
         const style = getComputedStyle(root);
         colours = [style.getPropertyValue('--accent').trim(), style.getPropertyValue('--counter').trim()];
         ink = style.getPropertyValue('--fg').trim();
-        dark = root.dataset.mode === 'dark';
+        surface = style.getPropertyValue('--surface-raised').trim();
     };
 
     const clamp = (v) => Math.max(0, Math.min(1, v));
     const smooth = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
 
-    // Perspective from beside the network. Returns screen x, screen y and the distance from the viewer.
-    const SIN = Math.sin(TURN), COS = Math.cos(TURN);
-    const project = (x, y, z) => {
-        const dx = x - (SIDE + swayX), dz = z - along;
-        const depth = Math.max(0.05, -COS * dx + SIN * dz);
-        return [width / 2 + (SIN * dx + COS * dz) * focal / depth, height / 2 + (y - swayY) * focal / depth, depth];
-    };
-    // Fully visible in the middle distance; dissolving close to the screen and far away.
-    const visible = (depth) => clamp((depth - NEAR) / 0.75) * clamp((FAR - depth) / 2.5) * curtain;
-    const see = (k, i) => { const [x, y, z] = spot(k, i); return project(x, y, z); };
+    const slabWidth = (s) => (s.rows + s.cols) * RIGHT * cell;
+    const slabHeight = (s) => (s.rows + s.cols) * DOWN * cell + thick;
+    const rowHeight = (row) => Math.max(...row.slabs.map(slabHeight));
+    const rowWidth = (row) => row.slabs.reduce((sum, s) => sum + slabWidth(s), 0) + cell * 3 * (row.slabs.length - 1);
 
-    // The screen path of a wire into plane k: its two ends and, for attention, a
-    // control point that lifts it into an arc over (or under) the columns. Then
-    // how visible it is (its dimmer end decides) and how far away.
-    const route = (k, link) => {
-        const a = spot(k - 1, link.from), b = spot(k, link.to);
-        const p = project(a[0], a[1], a[2]), q = project(b[0], b[1], b[2]);
-        let cx = (p[0] + q[0]) / 2, cy = (p[1] + q[1]) / 2;
-        if (link.arc) {
-            const lift = (0.35 + 0.5 * Math.abs(b[0] - a[0]) / 3.2) * (a[1] < 0 ? -1 : 1);
-            [cx, cy] = project((a[0] + b[0]) / 2, a[1] + lift, (a[2] + b[2]) / 2);
-        }
-        return [p[0], p[1], cx, cy, q[0], q[1], Math.min(visible(p[2]), visible(q[2])), (p[2] + q[2]) / 2];
-    };
-    const pointOn = (r, u) => {
-        const v = 1 - u;
-        return [v * v * r[0] + 2 * v * u * r[2] + u * u * r[4], v * v * r[1] + 2 * v * u * r[3] + u * u * r[5]];
-    };
-    // Draws the first `part` of a route (0..1), as a curve.
-    const trace = (r, part) => {
-        const [ex, ey] = pointOn(r, part);
-        // Control point of the shortened curve (de Casteljau).
-        ctx.moveTo(r[0], r[1]);
-        ctx.quadraticCurveTo(r[0] + (r[2] - r[0]) * part, r[1] + (r[3] - r[1]) * part, ex, ey);
-        return [ex, ey];
+    const quad = (points) => {
+        ctx.beginPath();
+        points.forEach(([x, y], n) => { if (n) ctx.lineTo(x, y); else ctx.moveTo(x, y); });
+        ctx.closePath();
     };
 
-    // The wires arriving at plane k. `reached` is 0 before the calculation gets
-    // there, rises to 1 as the signals cross, and stays 1 afterwards.
-    const drawLinks = (k, links, reached) => {
-        if (reached <= 0) { // not yet computed: only a faint trace of the wiring, in one stroke
-            ctx.globalAlpha = 0.05 * curtain;
-            ctx.strokeStyle = colours[0];
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            for (const link of links) {
-                const r = route(k, link);
-                if (r[6] > 0.3) trace(r, 1);
-            }
-            ctx.stroke();
-            return;
+    // One slab. (cx, top) is where the middle of its top corner goes on screen.
+    // lit: 0..1, how much of it the walkthrough has reached.
+    const drawSlab = (s, cx, top, lit, fade) => {
+        const I = s.rows, J = s.cols;
+        const ox = cx - (I - J) * RIGHT * cell / 2;
+        const at = (i, j) => [ox + (i - j) * RIGHT * cell, top + (i + j) * DOWN * cell];
+        const weight = s.kind === 'weight';
+
+        // The two visible sides: first colour for results, second for weights.
+        const [lx, ly] = at(0, J), [bx, by] = at(I, J), [rx, ry] = at(I, 0);
+        ctx.fillStyle = colours[weight ? 1 : 0];
+        ctx.globalAlpha = fade * 0.34;
+        quad([[lx, ly], [bx, by], [bx, by + thick], [lx, ly + thick]]);
+        ctx.fill();
+        ctx.globalAlpha = fade * 0.2;
+        quad([[bx, by], [rx, ry], [rx, ry + thick], [bx, by + thick]]);
+        ctx.fill();
+
+        // The top face: a solid plate with one cell per number.
+        ctx.globalAlpha = fade * 0.92;
+        ctx.fillStyle = surface;
+        quad([at(0, 0), at(I, 0), at(I, J), at(0, J)]);
+        ctx.fill();
+
+        const inset = cell > 4 ? 0.09 : 0;
+        if (s.kind === 'text') {
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = `700 ${Math.max(8, cell * 1.5)}px ui-monospace, Consolas, monospace`;
         }
-        const crossing = reached < 1;
-        for (const link of links) {
-            // Crossing: full strength. Done: settled a little dimmer.
-            const r = route(k, link);
-            const alpha = (crossing ? 0.1 + 0.9 * link.glow : 0.06 + 0.5 * link.glow) * r[6];
-            if (alpha < 0.025) continue;
-            ctx.globalAlpha = alpha;
-            ctx.strokeStyle = ctx.fillStyle = colours[link.tone];
-            ctx.lineWidth = crossing && link.glow > 0.55 ? 1.6 : 1;
-            ctx.beginPath();
-            const [ex, ey] = trace(r, reached);
-            ctx.stroke();
-            if (crossing && link.glow > 0.45) { // the head of a strong signal
-                ctx.globalAlpha = Math.min(1, alpha * 2);
-                ctx.beginPath();
-                ctx.arc(ex, ey, Math.max(1.2, Math.min(5, 0.009 * focal / r[7])), 0, Math.PI * 2);
+        for (let i = 0; i < I; i++) {
+            // Results arrive row by row, sweeping across the block. Weights are simply there.
+            const here = weight ? 0.35 + 0.65 * lit : smooth(lit * 1.5 - (i / I) * 0.5);
+            for (let j = 0; j < J; j++) {
+                const v = s.grid[i][j];
+                if (s.kind === 'text') {
+                    const [x, y] = at(i + 0.5, j + 0.5);
+                    ctx.globalAlpha = fade * (0.3 + 0.7 * here);
+                    ctx.fillStyle = ink;
+                    ctx.fillText(v, x, y);
+                    continue;
+                }
+                const strength = s.kind === 'share' ? Math.sqrt(v) : Math.abs(v) / s.biggest;
+                ctx.globalAlpha = fade * (0.05 + 0.95 * strength * here);
+                ctx.fillStyle = colours[v >= 0 ? 0 : 1];
+                quad([at(i + inset, j + inset), at(i + 1 - inset, j + inset), at(i + 1 - inset, j + 1 - inset), at(i + inset, j + 1 - inset)]);
                 ctx.fill();
             }
         }
+
+        // The outline of the top face, brighter while the walkthrough is on this block.
+        const active = Math.sin(clamp(lit) * Math.PI);
+        ctx.globalAlpha = fade * (0.4 + 0.6 * active);
+        ctx.strokeStyle = colours[weight ? 1 : 0];
+        ctx.lineWidth = 1 + active;
+        quad([at(0, 0), at(I, 0), at(I, J), at(0, J)]);
+        ctx.stroke();
+
+        if (cell >= 5) {
+            const [tx, ty] = at(0, 0);
+            ctx.globalAlpha = fade * 0.85;
+            ctx.fillStyle = ink;
+            ctx.font = `${Math.min(13, cell * 1.7)}px ui-monospace, Consolas, monospace`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'alphabetic';
+            ctx.fillText(`${s.label}   ${I}×${J}`, tx, ty - cell * 0.9);
+        }
     };
 
-    // The neurons of plane k. `arrived` is how far their values have come in, 0..1.
-    const drawNeurons = (k, p, arrived) => {
-        for (let i = 0; i < p.values.length; i++) {
-            const [x, y, depth] = see(k, i);
-            const fog = visible(depth);
-            if (fog <= 0.02) continue;
-            const shine = p.glow[i] * arrived;
-            const radius = Math.max(0.8, Math.min(10, 0.02 * focal / depth));
-            ctx.fillStyle = colours[arrived > 0 && p.values[i] < 0 ? 1 : 0];
-            if (shine > 0.5) { // a halo around the strongest
-                ctx.globalAlpha = 0.2 * shine * fog;
-                ctx.beginPath();
-                ctx.arc(x, y, radius * 2.6, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            ctx.globalAlpha = (0.14 + 0.86 * shine) * fog;
+    // The pipe from one row of blocks down to the next, with light running down it.
+    const drawPipe = (x1, y1, x2, y2, flow, fade) => {
+        ctx.globalAlpha = fade * 0.3;
+        ctx.strokeStyle = ink;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        if (flow <= 0 || flow >= 1) return;
+        ctx.fillStyle = colours[0];
+        for (let n = 0; n < 4; n++) { // a short train of lights
+            const at = flow - n * 0.09;
+            if (at < 0) continue;
+            ctx.globalAlpha = fade * (1 - n * 0.22);
             ctx.beginPath();
-            ctx.arc(x, y, radius * (0.8 + 0.5 * shine), 0, Math.PI * 2);
+            ctx.arc(x1 + (x2 - x1) * at, y1 + (y2 - y1) * at, Math.max(1.5, cell * 0.3), 0, Math.PI * 2);
             ctx.fill();
         }
     };
 
-    // The formula above plane k. While the plane is being computed it is brighter
-    // and a second line shows the same formula with this pass's numbers.
-    const drawFormula = (k, p, reached) => {
-        const [x, y, depth] = project(0, -1.2, k * GAP);
-        const fog = visible(depth);
-        const size = Math.min(21, 0.075 * focal / depth);
-        if (fog <= 0.03 || size < 9) return;
-        const live = reached > 0 ? Math.max(0, 1 - Math.max(0, reached - 1) / 1.2) : 0; // fades after the plane is done
-        ctx.textAlign = 'center';
+    // Screen x of the middle of each slab in a row, centred as a group.
+    const centres = (row) => {
+        let left = width / 2 - rowWidth(row) / 2;
+        return row.slabs.map((s) => { const cx = left + slabWidth(s) / 2; left += slabWidth(s) + cell * 3; return cx; });
+    };
+
+    // What is being trained, and how the model is doing at this moment of the run.
+    const drawStatus = (at, scene) => {
+        const size = Math.max(10, Math.min(13, width / 60));
+        const x = Math.max(12, width * 0.02), y = Math.min(height - 4 * size * 1.5, height * 0.8);
+        ctx.textAlign = 'left';
         ctx.textBaseline = 'alphabetic';
-        ctx.fillStyle = live > 0.05 ? colours[0] : ink;
-        ctx.globalAlpha = fog * (0.5 + 0.5 * live);
-        ctx.font = `italic ${size}px 'Cambria Math', 'STIX Two Math', Cambria, Georgia, serif`;
-        ctx.fillText(p.formula, x, y);
-        if (live > 0.05) {
-            ctx.fillStyle = ink;
-            ctx.globalAlpha = fog * live;
-            ctx.font = `${size * 0.72}px ui-monospace, Consolas, monospace`;
-            ctx.fillText(p.detail, x, y - size * 1.25);
-        }
+        ctx.font = `${size}px ui-monospace, Consolas, monospace`;
+        ctx.globalAlpha = 0.95;
+        ctx.fillStyle = ink;
+        const last = run.snapshots[run.snapshots.length - 1].step;
+        const trained = at >= run.snapshots.length - 1;
+        ctx.fillText('nano-GPT learning to sort letters', x, y);
+        ctx.fillText(trained ? `trained · step ${last} of ${last}` : `training · step ${Math.round(blend('step', at))} of ${last}`, x, y + size * 1.5);
+        ctx.fillText(`loss ${blend('loss', at).toFixed(3)} · sorts ${Math.round(blend('accuracy', at) * 100)}% correctly`, x, y + size * 3);
+        ctx.fillStyle = colours[scene.right ? 0 : 1];
+        ctx.fillText(`${scene.question}  →  ${scene.answer}  ${scene.right ? '✓' : '✗'}`, x, y + size * 4.5);
+        // Progress through the training run.
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = ink;
+        ctx.fillRect(x, y + size * 5.2, size * 20, 2);
+        ctx.globalAlpha = 0.95;
+        ctx.fillStyle = colours[0];
+        ctx.fillRect(x, y + size * 5.2, size * 20 * clamp(at / (run.snapshots.length - 1)), 2);
     };
 
     const draw = () => {
+        if (!run || !bytes) return;
         const t = Date.now() / 1000; // UTC seconds: the playhead
-        const pass = Math.floor(t / PERIOD);
-        const into = t - pass * PERIOD;
-        const phase = into / HOP; // how many planes the calculation has reached
-        const planes = build(pass);
 
-        // The viewer keeps a little behind the calculation, and stops when it reaches the output.
-        along = GAP * (Math.min(phase, PLANES - 1) - 0.7);
-        swayX = 0.1 * Math.sin(t * 0.21);
-        swayY = -0.05 + 0.05 * Math.sin(t * 0.17 + 1);
-        curtain = smooth(into / 1.2) * smooth((PERIOD - into) / 1.4); // fade in at the input, out at the output
+        // Where the training replay is, and the weights of that moment.
+        const at = clamp((t % CYCLE) / TRAINING) * (run.snapshots.length - 1);
+        const pass = Math.floor(t / PASS), into = t - pass * PASS;
+        // Each walkthrough sorts its own six letters.
+        const letters = Array.from({ length: run.letters }, (_, i) => Math.floor(hash(pass, 50 + i) * run.vocab.length));
+        const scene = build(weightsAt(at), letters);
+        const rows = scene.rows;
+
+        const stage = (PASS - 4) / rows.length; // seconds per row; the last seconds rewind
+        const reached = into / stage;
+        const fade = smooth(into / 1.2) * smooth((PASS - into) / 1.2);
+
+        // Where each row sits in the stack, top to bottom.
+        const tops = [];
+        let y = 0;
+        for (const row of rows) { tops.push(y); y += rowHeight(row) + gap; }
+        const middle = (r) => tops[r] + rowHeight(rows[r]) / 2;
+
+        // The view rests on each row, then glides to the next; at the end it rewinds.
+        const capped = Math.min(rows.length - 1, reached);
+        const whole = Math.floor(capped);
+        const focus = (whole + smooth((capped - whole - 0.55) / 0.45)) * (1 - smooth((into - rows.length * stage) / 3));
+        const low = Math.min(rows.length - 1, Math.floor(focus)), high = Math.min(rows.length - 1, low + 1);
+        const scroll = middle(low) + (middle(high) - middle(low)) * (focus - low) - height * 0.5;
 
         ctx.clearRect(0, 0, width, height);
-        ctx.globalCompositeOperation = dark ? 'lighter' : 'source-over'; // overlapping lights add up
-        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
 
-        for (let k = PLANES - 1; k >= 0; k--) {
-            if (Math.abs(k * GAP - along) > 9) continue; // far along the track: off screen anyway
-            const reached = k === 0 ? 1 + phase : phase - (k - 1); // crossing while between 0 and 1
-            if (k > 0) drawLinks(k, planes[k].links, Math.min(1, reached));
-            drawNeurons(k, planes[k], k === 0 ? 1 : smooth(reached * 1.4 - 0.4));
-        }
-        // Formulas last, so they sit on top of the lights.
-        ctx.globalCompositeOperation = 'source-over';
-        for (let k = 0; k < PLANES; k++) {
-            if (Math.abs(k * GAP - along) <= 9) drawFormula(k, planes[k], k === 0 ? 1 + phase : phase - (k - 1));
-        }
+        rows.forEach((row, r) => {
+            const top = tops[r] - scroll;
+            if (top > height + 60 || top + rowHeight(row) + gap < -60) return;
+            const lit = r === 0 ? 1 : clamp((reached - r) / 0.4);
+            const cx = centres(row);
+
+            // Pipes down to the next row, drawn first so the blocks sit on top of them.
+            if (r + 1 < rows.length) {
+                const flow = clamp((reached - r - 0.55) / 0.45);
+                const nextTop = tops[r + 1] - scroll;
+                const nextCx = centres(rows[r + 1]);
+                cx.forEach((x, n) => nextCx.forEach((nx) => drawPipe(x, top + slabHeight(row.slabs[n]), nx, nextTop, flow, fade)));
+            }
+            row.slabs.forEach((s, n) => drawSlab(s, cx[n], top, lit, fade));
+
+            if (cell >= 5) {
+                ctx.globalAlpha = fade * (0.6 + 0.4 * Math.sin(clamp(lit) * Math.PI));
+                ctx.fillStyle = lit > 0 && lit < 1 ? colours[0] : ink;
+                ctx.font = `italic ${Math.min(17, cell * 2.2)}px 'Cambria Math', Cambria, Georgia, serif`;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'alphabetic';
+                ctx.fillText(row.formula, width / 2 - rowWidth(row) / 2, top - cell * 3.4);
+            }
+        });
+
+        drawStatus(at, scene);
         ctx.globalAlpha = 1;
     };
 
@@ -417,5 +390,10 @@
 
     resize();
     readColours();
-    begin();
+
+    // The recorded run is fetched once; the animation starts when it has arrived.
+    const file = (name) => fetch(new URL(`data/${name}`, document.baseURI));
+    Promise.all([file('nanogpt.json').then((r) => r.json()), file('nanogpt.bin').then((r) => r.arrayBuffer())])
+        .then(([description, buffer]) => { run = description; bytes = new Int8Array(buffer); begin(); })
+        .catch(() => { /* without the data there is simply no background animation */ });
 })();
