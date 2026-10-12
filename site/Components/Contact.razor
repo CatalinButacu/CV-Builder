@@ -1,25 +1,18 @@
-<Section Id="contact" Eyebrow="Contact" Title="Let's talk"
-         Subtitle="The fastest way to reach me is email. I'm also on LinkedIn and GitHub.">
-    <ul class="contact-links">
-        @foreach (var link in Links)
-        {
-            <li>
-                <a class="surface" href="@link.Href" target="@(link.External ? "_blank" : null)" rel="@(link.External ? "noopener me" : "me")">
-                    <span class="mono-label">@link.Kind</span>
-                    <span class="value">@link.Label</span>
-                </a>
-            </li>
-        }
-    </ul>
-</Section>
-
-@code {
-    private sealed record Link(string Kind, string Label, string Href, bool External = true);
-
-    private static readonly Link[] Links =
-    [
-        new("Email", "butacu.catalin@yahoo.com", "mailto:butacu.catalin@yahoo.com", External: false),
-        new("LinkedIn", "linkedin.com/in/catalin-butacu", "https://ro.linkedin.com/in/catalin-butacu"),
-        new("GitHub", "github.com/CatalinButacu", "https://github.com/CatalinButacu/"),
-    ];
-}
+@* The closing band: one invitation, one main action, and the other ways to reach me beside it. *@
+<section id="contact" class="section">
+    <div class="container-x">
+        <div class="band surface">
+            <p class="section-eyebrow">Contact</p>
+            <h2>Have a model that needs to <span class="gradient-text">reach production?</span></h2>
+            <p class="lede">
+                Tell me what you are building. I usually reply within a day, and email is the fastest way to reach me.
+            </p>
+            <div class="actions">
+                <a class="btn primary lg" href="mailto:@Profile.Person.Email" rel="me">@Profile.Person.Email</a>
+                <a class="text-link" href="@Profile.Person.LinkedIn" target="_blank" rel="noopener me">LinkedIn</a>
+                <a class="text-link" href="@Profile.Person.GitHub" target="_blank" rel="noopener me">GitHub</a>
+                <a class="text-link" href="cv.pdf" target="_blank" rel="noopener">Download CV</a>
+            </div>
+        </div>
+    </div>
+</section>
