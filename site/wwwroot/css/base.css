@@ -92,6 +92,26 @@ body::before {
         height: 100%;
     }
 
+/* The background belongs to the top and the bottom of a page. As the page
+   scrolls it fades out, stays away through the reading sections and returns
+   at the end. Tied to the scroll position itself, with no script. */
+@supports (animation-timeline: scroll()) {
+    .backdrop {
+        animation: backdrop-presence linear both;
+        animation-timeline: scroll(root block);
+    }
+}
+
+@keyframes backdrop-presence {
+    0%, 100% {
+        opacity: var(--pattern-opacity);
+    }
+
+    22%, 80% {
+        opacity: 0;
+    }
+}
+
 /* Anything marked hidden stays hidden, whatever its display rule says. */
 [hidden] {
     display: none !important;
