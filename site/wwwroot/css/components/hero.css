@@ -1,33 +1,47 @@
-/* Hero: one column, so the animated background has the right-hand side to itself. */
+/* Hero */
 .hero {
     position: relative;
-    padding-block: clamp(4rem, 9vw, 7.5rem) clamp(3rem, 6vw, 5rem);
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: clamp(4rem, 9vw, 7rem) 3.5rem;
+}
+
+.hero-grid {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.03;
+    background-image: linear-gradient(var(--fg) 1px, transparent 1px), linear-gradient(90deg, var(--fg) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+    pointer-events: none;
+}
+
+.hero-cols {
+    display: grid;
+    align-items: center;
+    gap: 3rem;
+}
+
+@media (min-width: 64rem) {
+    .hero-cols {
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+        gap: 4rem;
+    }
 }
 
 .hero-kicker {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 1rem;
-    margin: 0 0 2.25rem;
-}
-
-.hero-kicker > span {
-    display: grid;
-    font-size: 0.9375rem;
-    line-height: 1.4;
-    color: var(--fg-muted);
-}
-
-.hero-kicker strong {
-    font-size: 1.0625rem;
-    font-weight: 600;
-    color: var(--fg);
+    gap: 0.75rem;
+    margin-bottom: 2rem;
 }
 
 /* The CV photo, as a round portrait at the start of the hero. */
 .portrait {
-    width: 4rem;
-    height: 4rem;
+    width: 5.5rem;
+    height: 5.5rem;
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid var(--surface);
@@ -36,30 +50,55 @@
 }
 
 .hero h1 {
-    margin: 0 0 1.75rem;
-    font-size: clamp(2.75rem, 7.4vw, 6rem);
+    margin: 0 0 1.5rem;
+    font-size: clamp(2.5rem, 5.2vw, 4.5rem);
     font-weight: 800;
-    line-height: 0.96;
-    letter-spacing: -0.055em;
+    line-height: 0.95;
+    letter-spacing: -0.05em;
+    text-wrap: balance;
 }
 
 .hero h1 span {
     display: block;
-    padding-bottom: 0.08em;
+    padding-bottom: 0.25rem;
 }
 
 .hero-sub {
-    max-width: 40rem;
+    max-width: 36rem;
     margin: 0;
-    font-size: clamp(1.0625rem, 1.5vw, 1.25rem);
+    font-size: clamp(1rem, 1.4vw, 1.125rem);
     color: var(--fg-muted);
     text-wrap: pretty;
+}
+
+.hero-proof {
+    max-width: 36rem;
+    margin: 1rem 0 0;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--fg-subtle);
 }
 
 .hero-cta {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 0.75rem 1.75rem;
-    margin-top: 2.5rem;
+    gap: 0.75rem;
+    margin-top: 2.25rem;
+}
+
+.tech {
+    display: grid;
+    gap: 1rem;
+    margin-top: clamp(4rem, 6vw, 5rem);
+    padding-top: 2rem;
+    border-top: 1px solid var(--line);
+}
+
+.tech p {
+    margin: 0;
+}
+
+.tech .chip {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
 }
