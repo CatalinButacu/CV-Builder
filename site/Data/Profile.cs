@@ -2,7 +2,8 @@ namespace Portfolio.Data;
 
 public sealed record Person(string Name, string ShortName, string Location, string Email, string LinkedIn, string GitHub, string Summary);
 public sealed record Competency(string Title, string[] Items);
-public sealed record Role(string Title, string Period, string[] Bullets);
+// Highlight is the one line shown for the role on the home page.
+public sealed record Role(string Title, string Period, string[] Bullets, string? Highlight = null);
 public sealed record Organisation(string Name, string Location, Role[] Roles);
 public sealed record Note(string Label, string Text);
 public sealed record Degree(string Title, string School, string Period, Note[] Notes);
@@ -53,13 +54,13 @@ public static class Profile
                 "Refactored legacy C++ modules with smart pointers, clearer ownership, and unit-test-backed debt reduction.",
                 "Fixed crashes, memory leaks, and regressions through root cause analysis, heap diagnostics, sanitizers, and tests.",
                 "Collaborated in Agile Scrum for sprint planning, estimation, code review, demos, and retrospectives.",
-            ]),
+            ], Highlight: "Ships production C++/Qt features end to end, including multi-instance crash recovery over shared-memory IPC and two-way cloud sync."),
             new("Software Engineer Intern", "August 2022 – May 2023",
             [
                 "Built custom Qt UI components from specs and integrated them into production views.",
                 "Extended real-time canvas behavior and optimized desktop event handling for smoother repaints.",
                 "Delivered work through Git workflows, merge requests, and GitLab CI/CD for stable feature branches.",
-            ]),
+            ], Highlight: "Built custom Qt UI components from specs and made real-time canvas repaints smoother."),
         ]),
         new("Special Telecommunications Service (STS)", "Botoșani, RO",
         [
@@ -68,7 +69,7 @@ public static class Profile
                 "Kept IT infrastructure operational across local electoral bureaus during the election process.",
                 "Verified and transmitted electoral data through SIMPV and SICPV systems.",
                 "Provided technical support and guidance to electoral bureau staff.",
-            ]),
+            ], Highlight: "Kept IT infrastructure running across local electoral bureaus during the election process."),
         ]),
     ];
 
