@@ -1,0 +1,21 @@
+@* The long description of a project: an introduction, then headed lists of points. *@
+<div class="prose">
+    @if (Detail is not null)
+    {
+        <p>@Detail.Intro</p>
+        @foreach (var section in Detail.Sections)
+        {
+            <h2>@section.Heading</h2>
+            <ul>
+                @foreach (var point in section.Points)
+                {
+                    <li>@point</li>
+                }
+            </ul>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public ProjectDetail? Detail { get; set; }
+}

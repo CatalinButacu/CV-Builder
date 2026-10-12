@@ -16,13 +16,7 @@ else
             <ProjectCover Project="Project" />
 
             <div class="detail-copy">
-                <div class="badges">
-                    <Badge Variant="accent">@Project.Kind</Badge>
-                    @if (Project.InProgress)
-                    {
-                        <Badge Variant="warning" Dot="true">In progress</Badge>
-                    }
-                </div>
+                <ProjectBadges Project="Project" />
                 <h1>@Project.Title</h1>
                 <p class="lede">@Project.Summary</p>
                 <p class="meta">
@@ -33,33 +27,8 @@ else
         </header>
 
         <div class="detail-body">
-            <div class="prose">
-                @if (Detail is not null)
-                {
-                    <p>@Detail.Intro</p>
-                    @foreach (var section in Detail.Sections)
-                    {
-                        <h2>@section.Heading</h2>
-                        <ul>
-                            @foreach (var point in section.Points)
-                            {
-                                <li>@point</li>
-                            }
-                        </ul>
-                    }
-                }
-            </div>
-
-            <aside class="surface">
-                <h2 class="mono-label">Tech stack</h2>
-                <ul class="chips">
-                    @foreach (var item in Project.Stack)
-                    {
-                        <li class="chip">@item</li>
-                    }
-                </ul>
-                <a class="btn primary" href="@Project.Repo" target="_blank" rel="noopener">View source on GitHub ↗</a>
-            </aside>
+            <ProjectWriteUp Detail="ProjectDetails.For(Slug)" />
+            <ProjectStack Project="Project" />
         </div>
     </article>
 }
@@ -68,5 +37,4 @@ else
     [Parameter] public string Slug { get; set; } = "";
 
     private Project? Project => ProjectCatalog.Find(Slug);
-    private ProjectDetail? Detail => ProjectDetails.For(Slug);
 }

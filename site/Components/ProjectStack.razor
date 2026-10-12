@@ -1,0 +1,15 @@
+@* Side panel of a project page: its full tech stack and the link to the source. *@
+<aside class="surface">
+    <h2 class="mono-label">Tech stack</h2>
+    <ul class="chips">
+        @foreach (var item in Project.Stack)
+        {
+            <li class="chip">@item</li>
+        }
+    </ul>
+    <a class="btn primary" href="@Project.Repo" target="_blank" rel="noopener">View source on GitHub ↗</a>
+</aside>
+
+@code {
+    [Parameter, EditorRequired] public Project Project { get; set; } = default!;
+}

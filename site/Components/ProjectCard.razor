@@ -3,13 +3,7 @@
     <ProjectCover Project="Project" />
 
     <div class="body">
-        <div class="badges">
-            <Badge Variant="accent">@Project.Kind</Badge>
-            @if (Project.InProgress)
-            {
-                <Badge Variant="warning" Dot="true">In progress</Badge>
-            }
-        </div>
+        <ProjectBadges Project="Project" />
 
         <h3>@Project.Title</h3>
         <p class="summary">@Project.Summary</p>

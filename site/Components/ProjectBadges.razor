@@ -1,0 +1,12 @@
+@* A project's kind, and a marker while it is still in progress. *@
+<div class="badges">
+    <Badge Variant="accent">@Project.Kind</Badge>
+    @if (Project.InProgress)
+    {
+        <Badge Variant="warning" Dot="true">In progress</Badge>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Project Project { get; set; } = default!;
+}
