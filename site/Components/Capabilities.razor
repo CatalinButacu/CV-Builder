@@ -1,0 +1,83 @@
+@* Home page: the kinds of work I do as a grid of unequal tiles, each backed by a project. *@
+<section id="capabilities" class="section">
+    <div class="container-x">
+        <div class="section-head centred">
+            <div>
+                <p class="section-eyebrow">What I build</p>
+                <h2 class="section-title">Five kinds of work, each with code to show for it.</h2>
+            </div>
+        </div>
+
+        <ul class="bento">
+            @for (var i = 0; i < Areas.Length; i++)
+            {
+                var area = Areas[i];
+                <li class="tile surface @(i == 0 ? "lead" : null)">
+                    <span class="index" aria-hidden="true">@((i + 1).ToString("00"))</span>
+                    <h3>@area.Title</h3>
+                    <p>@area.Text</p>
+                    <p class="backing">
+                        @foreach (var slug in area.Proof)
+                        {
+                            var project = ProjectCatalog.Find(slug);
+                            @if (project is not null)
+                            {
+                                <a class="text-link" href="projects/@(project.Slug)/">@project.Title</a>
+                            }
+                            else
+                            {
+                                <span>@slug</span>
+                            }
+                        }
+                    </p>
+                </li>
+            }
+
+            <li class="tile surface figure">
+                <p class="big">@Verified</p>
+                <h3>verifiable certifications</h3>
+                <p>Microsoft MLOps Engineer, four Oracle Cloud AI and data credentials, and the DataTalks.Club LLM Zoomcamp.</p>
+                <p class="backing"><a class="text-link" href="about/">See them all</a></p>
+            </li>
+
+            <li class="tile surface toolbox">
+                <h3>Toolbox</h3>
+                <dl>
+                    @foreach (var group in Profile.Skills)
+                    {
+                        <div>
+                            <dt>@group.Group</dt>
+                            <dd>@string.Join(" · ", group.Items)</dd>
+                        </div>
+                    }
+                </dl>
+            </li>
+        </ul>
+    </div>
+</section>
+
+@code {
+    private sealed record Area(string Title, string Text, string[] Proof);
+
+    private static readonly int Verified = Profile.Certifications.Count(c => c.Link is not null);
+
+    // Proof entries are project slugs; anything else is shown as plain text.
+    private static readonly Area[] Areas =
+    [
+        new("Generative AI & LLM applications",
+            "RAG and agentic applications from retrieval to interface: hybrid dense and sparse search, reranking, grounding and safety layers, served behind an async API.",
+            ["med-assist", "text2motion"]),
+        new("Desktop & enterprise C++/Qt",
+            "Production desktop software: Qt interfaces, networking, crash recovery and cloud sync inside a shipping product.",
+            ["Gemini CAD Systems, 2022 to today"]),
+        new("Computer vision at the edge",
+            "Detection models quantised to INT8 and benchmarked on NPU and CPU hardware.",
+            ["hand-gesture"]),
+        new("ML & optimisation",
+            "Classical ML pipelines and metaheuristic solvers, benchmarked and reproducible.",
+            ["brain-age", "metaheuristics"]),
+        new("ML for security",
+            "Threat classification, and clustering that writes its own Snort rules.",
+            ["smart-firewall"]),
+    ];
+}
