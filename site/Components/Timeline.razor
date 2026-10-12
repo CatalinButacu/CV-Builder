@@ -1,0 +1,32 @@
+@* Years newest first; projects are linked chips, work and study are dashed ones. *@
+<Section Id="timeline" Eyebrow="Timeline" Title="Work and study, year by year">
+    <div class="timeline">
+        <ol>
+            @foreach (var year in Years)
+            {
+                <li>
+                    <span class="dot" aria-hidden="true"></span>
+                    <time datetime="@year">@year</time>
+                    <ul aria-label="@year">
+                        @foreach (var project in ProjectCatalog.All.Where(p => p.StartYear == year))
+                        {
+                            <li><a class="entry" href="projects/@(project.Slug)/">@project.Title</a></li>
+                        }
+                        @foreach (var milestone in Milestones.All.Where(m => m.Year == year))
+                        {
+                            <li><span class="entry plain">@milestone.Name</span></li>
+                        }
+                    </ul>
+                </li>
+            }
+        </ol>
+    </div>
+</Section>
+
+@code {
+    private static readonly int[] Years = ProjectCatalog.All.Select(p => p.StartYear)
+        .Concat(Milestones.All.Select(m => m.Year))
+        .Distinct()
+        .OrderByDescending(year => year)
+        .ToArray();
+}

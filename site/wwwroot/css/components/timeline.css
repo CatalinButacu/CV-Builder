@@ -1,0 +1,107 @@
+/* Timeline */
+.timeline {
+    position: relative;
+}
+
+.timeline::before {
+    content: "";
+    position: absolute;
+    top: 2rem;
+    bottom: 2rem;
+    left: 7px;
+    width: 1px;
+    background: linear-gradient(var(--accent), var(--line), transparent);
+}
+
+.timeline ol,
+.timeline ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.timeline ol > li {
+    position: relative;
+    display: grid;
+    gap: 0.75rem;
+    padding: 1.5rem 0 1.5rem 2rem;
+    border-bottom: 1px solid var(--line);
+}
+
+.timeline ol > li:last-child {
+    border-bottom: 0;
+}
+
+@media (min-width: 48rem) {
+    .timeline ol > li {
+        grid-template-columns: 8rem minmax(0, 1fr);
+        column-gap: 2.5rem;
+        align-items: start;
+    }
+}
+
+.timeline .dot {
+    position: absolute;
+    top: 1.85rem;
+    left: 0;
+    width: 15px;
+    height: 15px;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    background: var(--bg);
+}
+
+.timeline ol > li:first-child .dot {
+    background: var(--accent);
+}
+
+.timeline time {
+    font-size: 1.875rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+}
+
+.timeline ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-top: 0.25rem;
+}
+
+.timeline .entry {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+    color: var(--fg);
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: border-color 0.2s, color 0.2s;
+}
+
+.timeline .entry::before {
+    content: "";
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background: var(--accent);
+}
+
+.timeline a.entry:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.timeline .entry.plain {
+    border-style: dashed;
+    background: transparent;
+    color: var(--fg-muted);
+}
+
+.timeline .entry.plain::before {
+    display: none;
+}

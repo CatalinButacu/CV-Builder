@@ -58,8 +58,7 @@ public static partial class Bundle
         "components/hero.css",
         "components/stack-layers.css",
         "components/text-link.css",
-        "components/experience.css",
-        "components/capabilities.css",
+        "components/timeline.css",
         "components/contact.css",
     ];
 
