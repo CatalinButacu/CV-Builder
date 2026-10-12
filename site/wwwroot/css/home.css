@@ -77,7 +77,7 @@
 }
 
     .text-link::after {
-        content: " 92";
+        content: " →";
         color: var(--accent);
     }
 
