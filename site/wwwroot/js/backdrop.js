@@ -1,27 +1,28 @@
-// Animated background: a transformer seen from the side, one forward pass at a time.
+// Animated background: a real transformer forward pass, seen from the side,
+// with its formulas.
 //
-// You stand beside the network and travel along it, the way you would watch a
-// train from a path next to the track. The layers are planes of neurons
-// standing in a row; the data flows from left to right. Neurons that come too
-// close to the screen dissolve, so nothing looms in front of the page.
+// You stand beside the network and travel along it. The layers are planes of
+// neurons standing in a row; the data flows from left to right. Neurons that
+// come too close to the screen dissolve.
 //
-// The network is finite: an input plane, four identical blocks, an output
-// plane. Each block is three planes:
-//   1. the stream after ATTENTION: signals cross from one token's column to
-//      another's along curved arcs, the only place tokens exchange information;
-//   2. the FEED-FORWARD hidden layer: each token on its own widens into two columns;
-//   3. the stream again: each token narrows back to one column.
-// Straight wires carry the residual stream from each neuron to its counterpart.
+// The network is a genuine small transformer and the scene is its calculation:
+//   - 8 tokens, each a column of 6 neurons (the residual stream is 6 wide);
+//   - 4 blocks, each drawn as three planes:
+//       x + Attention(x)   two heads; arcs cross from one token to another
+//       GELU(x W1)         the feed-forward hidden layer, 12 wide (two columns)
+//       x + h W2           back to the stream
+//   - an input plane before the first block; the last plane is the output.
 //
-// One pass: two signals start on the input plane and run through every block
-// to the output, a neuron that fires handing the signal down its wires to the
-// neurons that fire next. The view follows them. At the output it holds for a
-// moment, fades, and the next pass begins at the input: the loop.
+// What you see is what was computed. A neuron's brightness is the size of its
+// activation and its colour the sign. A wire's brightness is the signal it
+// carries: the attention weight for an arc, weight x activation for a
+// feed-forward wire. Above every plane floats the formula it computes, and the
+// plane being computed also shows that formula with its real numbers.
 //
-// Nothing here is truly random. The wiring is fixed, the path of each pass is
-// a formula of the pass number, and UTC time only says which pass we are in
-// and how far along it is. A refresh, or another visitor, picks it up exactly
-// where it was.
+// The weights are fixed and random, not trained, so the final prediction means
+// nothing; the arithmetic is real. Each pass feeds in eight tokens chosen by a
+// formula of the pass number. UTC time is only the playhead: which pass, and
+// how far along. A refresh, or another visitor, picks it up exactly there.
 (() => {
     const canvas = document.querySelector('.backdrop canvas');
     if (!canvas) return;
@@ -31,19 +32,22 @@
     const still = matchMedia('(prefers-reduced-motion: reduce)');
 
     const TOKENS = 8;      // columns in a plane
-    const WIDTH = 6;       // neurons per token in the stream
+    const WIDTH = 6;       // neurons per token: the width of the residual stream
+    const HEADS = 2;
+    const HIDDEN = WIDTH * 2;
+    const VOCAB = 10;
     const BLOCKS = 4;
     const PLANES = BLOCKS * 3 + 1; // input plane, then three planes per block; the last is the output
     const GAP = 1.5;       // distance between planes
 
-    const HOP = 1.1;       // seconds for a signal to cross from one plane to the next
-    const PERIOD = 18;     // seconds from the start of one pass to the start of the next
+    const HOP = 1.6;       // seconds for the calculation to move from one plane to the next
+    const PERIOD = 24;     // seconds from the start of one pass to the start of the next
     const FRAME = 1000 / 30;
 
     // The viewpoint: beside the network, turned a little towards where the data is going.
-    const SIDE = 3.1;                 // how far to the side the viewer stands
-    const TURN = 24 * Math.PI / 180;  // how far the view is turned along the flow
-    const NEAR = 1.15, FAR = 7.5;     // things closer or further than this are not drawn
+    const SIDE = 3.1;
+    const TURN = 24 * Math.PI / 180;
+    const NEAR = 1.15, FAR = 7.5; // things closer or further than this are not drawn
 
     // A repeatable value between 0 and 1 for a pair of whole numbers.
     const hash = (a, b) => {
@@ -53,93 +57,170 @@
         return ((h ^ (h >>> 15)) >>> 0) / 4294967296;
     };
 
-    // --- The architecture. Plane 0 is the input; after that the three kinds repeat.
-    const STREAM = 0, ATTENDED = 1, HIDDEN = 2;
-    const kind = (k) => k % 3;
-    const count = (k) => kind(k) === HIDDEN ? TOKENS * WIDTH * 2 : TOKENS * WIDTH;
+    // ------------------------------------------------------------------
+    // The model: fixed random weights, the same for every visitor.
+    // ------------------------------------------------------------------
+    const random = (() => {
+        let seed = 0x7a3f51;
+        return () => {
+            seed = (seed + 0x6d2b79f5) | 0;
+            let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+    })();
+    const normal = () => random() + random() + random() + random() - 2; // roughly bell-shaped
+    const matrix = (rows, cols, scale) =>
+        Array.from({ length: rows }, () => Array.from({ length: cols }, () => normal() * scale));
 
-    // A neuron is (plane k, index i). In the stream i = token * WIDTH + row;
-    // in the hidden layer each token has two sub-columns of WIDTH neurons.
-    const where = (k, i) => {
-        if (kind(k) !== HIDDEN) return { token: Math.floor(i / WIDTH), half: -1, row: i % WIDTH };
-        return { token: Math.floor(i / (WIDTH * 2)), half: Math.floor(i / WIDTH) % 2, row: i % WIDTH };
+    const tokenEmbedding = matrix(VOCAB, WIDTH, 1);
+    const positionEmbedding = matrix(TOKENS, WIDTH, 0.6);
+    const blocks = Array.from({ length: BLOCKS }, () => ({
+        query: matrix(WIDTH, WIDTH, 0.9), key: matrix(WIDTH, WIDTH, 0.9), value: matrix(WIDTH, WIDTH, 0.7), out: matrix(WIDTH, WIDTH, 0.6),
+        up: matrix(WIDTH, HIDDEN, 0.7), down: matrix(HIDDEN, WIDTH, 0.4),
+    }));
+    const unembedding = matrix(WIDTH, VOCAB, 0.8);
+
+    // A matrix is an array of rows.
+    const multiply = (a, b) => a.map((row) => b[0].map((_, j) => row.reduce((sum, v, k) => sum + v * b[k][j], 0)));
+    const add = (a, b) => a.map((row, i) => row.map((v, j) => v + b[i][j]));
+    const normalise = (a) => a.map((row) => {
+        const mean = row.reduce((s, v) => s + v, 0) / row.length;
+        const spread = Math.sqrt(row.reduce((s, v) => s + (v - mean) ** 2, 0) / row.length) || 1;
+        return row.map((v) => (v - mean) / spread);
+    });
+    const softmax = (row) => {
+        const top = Math.max(...row);
+        const e = row.map((v) => Math.exp(v - top));
+        const sum = e.reduce((s, v) => s + v, 0);
+        return e.map((v) => v / sum);
     };
+    const gelu = (v) => 0.5 * v * (1 + Math.tanh(0.7978845608 * (v + 0.044715 * v ** 3)));
+    const fixed = (v) => (v < 0 ? '−' : '') + Math.abs(v).toFixed(2);
+
+    // One drawn plane: its values (one row per token), the wires arriving from
+    // the plane before, the formula it computes, and that formula with numbers in.
+    const plane = (grid, formula, detail) => {
+        let biggest = 1e-9;
+        for (const row of grid) for (const v of row) biggest = Math.max(biggest, Math.abs(v));
+        return { values: grid.flat(), glow: grid.flat().map((v) => Math.abs(v) / biggest), links: [], formula, detail };
+    };
+
+    // Wires between two dense planes of the same token: for each target unit its
+    // two strongest incoming signals, where a signal is weight x activation.
+    const wire = (target, source, weights) => {
+        const signals = [];
+        let biggest = 1e-9;
+        source.forEach((row, token) => {
+            for (let u = 0; u < weights[0].length; u++) {
+                const ranked = row.map((a, c) => ({ c, s: a * weights[c][u] })).sort((p, q) => Math.abs(q.s) - Math.abs(p.s)).slice(0, 2);
+                for (const r of ranked) {
+                    biggest = Math.max(biggest, Math.abs(r.s));
+                    signals.push({ from: token * row.length + r.c, to: token * weights[0].length + u, s: r.s });
+                }
+            }
+        });
+        for (const g of signals) target.links.push({ from: g.from, to: g.to, arc: false, glow: Math.abs(g.s) / biggest, tone: g.s >= 0 ? 0 : 1 });
+    };
+
+    // The largest entry of a grid, with where it is.
+    const peak = (grid) => {
+        let best = { token: 0, unit: 0, value: 0 };
+        grid.forEach((row, token) => row.forEach((v, unit) => { if (Math.abs(v) > Math.abs(best.value)) best = { token, unit, value: v }; }));
+        return best;
+    };
+
+    // The forward pass for one pass number, as the planes to draw.
+    const memo = new Map();
+    const build = (pass) => {
+        let planes = memo.get(pass);
+        if (planes) return planes;
+
+        const tokens = Array.from({ length: TOKENS }, (_, i) => Math.floor(hash(pass, 100 + i) * VOCAB));
+        let x = add(tokens.map((t) => tokenEmbedding[t]), positionEmbedding);
+        planes = [plane(x, 'x = E[token] + P[position]', `tokens = [${tokens.join(' ')}]`)];
+
+        for (const block of blocks) {
+            // --- Attention.
+            const a = normalise(x);
+            const q = multiply(a, block.query), k = multiply(a, block.key), v = multiply(a, block.value);
+            const span = WIDTH / HEADS;
+            const mixed = Array.from({ length: TOKENS }, () => new Array(WIDTH).fill(0));
+            const arcs = [];
+            let strongest = { w: 0, i: 0, j: 0 };
+            for (let h = 0; h < HEADS; h++) {
+                const from = h * span;
+                q.forEach((qi, i) => {
+                    // How much token i attends to each token j.
+                    const share = softmax(k.map((kj) => {
+                        let dot = 0;
+                        for (let c = from; c < from + span; c++) dot += qi[c] * kj[c];
+                        return dot / Math.sqrt(span);
+                    }));
+                    share.forEach((w, j) => {
+                        for (let c = from; c < from + span; c++) mixed[i][c] += w * v[j][c];
+                        if (i === j) return;
+                        if (w > strongest.w) strongest = { w, i, j };
+                        // Each head owns its share of the neurons, so its arcs run along those rows.
+                        if (w > 0.14) for (let c = from; c < from + span; c++) arcs.push({ from: j * WIDTH + c, to: i * WIDTH + c, arc: true, glow: Math.sqrt(w), tone: h });
+                    });
+                });
+            }
+            const before = x;
+            x = add(x, multiply(mixed, block.out));
+            const attended = plane(x, 'x ← x + softmax(Q·Kᵀ / √d) · V',
+                `token ${strongest.i} attends to token ${strongest.j}:  a = ${strongest.w.toFixed(2)}`);
+            // The residual: every neuron also carries its own value straight on.
+            before.flat().forEach((value, i) => attended.links.push({ from: i, to: i, arc: false, glow: 0.5 * planes[planes.length - 1].glow[i], tone: value >= 0 ? 0 : 1 }));
+            attended.links.push(...arcs);
+            planes.push(attended);
+
+            // --- Feed-forward, widening.
+            const input = normalise(x);
+            const sums = multiply(input, block.up);
+            const hidden = sums.map((row) => row.map(gelu));
+            const top = peak(hidden);
+            const wide = plane(hidden, 'h = GELU(x · W₁)', `GELU(${fixed(sums[top.token][top.unit])}) = ${fixed(top.value)}`);
+            wire(wide, input, block.up);
+            planes.push(wide);
+
+            // --- Feed-forward, narrowing, added back to the stream.
+            const delta = multiply(hidden, block.down);
+            const after = add(x, delta);
+            const most = peak(delta);
+            const merged = plane(after, 'x ← x + h · W₂',
+                `${fixed(x[most.token][most.unit])} + ${fixed(most.value)} = ${fixed(after[most.token][most.unit])}`);
+            wire(merged, hidden, block.down);
+            planes.push(merged);
+            x = after;
+        }
+
+        // The last plane is also the output: what the model would say comes next for each token.
+        const probability = multiply(normalise(x), unembedding).map(softmax);
+        const answer = probability.map((row) => row.indexOf(Math.max(...row)));
+        const final = planes[planes.length - 1];
+        final.formula = 'p = softmax(x · Wᵤ)';
+        final.detail = `argmax p = [${answer.join(' ')}]`;
+
+        if (memo.size > 3) memo.clear();
+        memo.set(pass, planes);
+        return planes;
+    };
+
+    // ------------------------------------------------------------------
+    // Where things are.
+    // ------------------------------------------------------------------
+    const isWide = (k) => k % 3 === 2; // the feed-forward hidden planes
     const columnX = (token) => -1.6 + 3.2 * (token + 0.5) / TOKENS;
     const rowY = (row) => -0.9 + 1.8 * (row + 0.5) / WIDTH;
     // Position in space: x across the tokens (towards the viewer), y down the column, z along the flow.
     const spot = (k, i) => {
-        const { token, half, row } = where(k, i);
-        return [columnX(token) + (half < 0 ? 0 : (half - 0.5) * 0.17), rowY(row), k * GAP];
+        if (!isWide(k)) return [columnX(Math.floor(i / WIDTH)), rowY(i % WIDTH), k * GAP];
+        const half = Math.floor(i / WIDTH) % 2;
+        return [columnX(Math.floor(i / HIDDEN)) + (half - 0.5) * 0.17, rowY(i % WIDTH), k * GAP];
     };
 
-    // The tokens that read from `token` in the attention step after plane k: one or two others.
-    const readers = (k, token) => {
-        const out = [];
-        for (let n = 0; out.length < 2 && n < 6; n++) {
-            const other = Math.floor(hash(k * 16 + token, 20 + n) * TOKENS);
-            if (other !== token && !out.includes(other) && (out.length === 0 || hash(k * 16 + token, 9) < 0.6)) out.push(other);
-        }
-        return out;
-    };
-
-    // The wires leaving neuron (k, i) for the next plane. `arc` marks attention, which crosses between tokens.
-    const wiring = new Map();
-    const wires = (k, i) => {
-        const key = k * 128 + i;
-        let out = wiring.get(key);
-        if (out) return out;
-        const { token, half, row } = where(k, i);
-        const type = kind(k);
-        if (type === STREAM) {
-            // Attention: straight on (the residual), and across to every token that reads from this one.
-            out = [{ to: i, arc: false }, ...readers(k, token).map((other) => ({ to: other * WIDTH + row, arc: true }))];
-        } else if (type === ATTENDED) {
-            // Feed-forward, widening: to both sub-columns of the same token, and one neighbour.
-            const near = Math.max(0, Math.min(WIDTH - 1, row + (hash(key, 3) < 0.5 ? -1 : 1)));
-            const base = token * WIDTH * 2;
-            out = [{ to: base + row, arc: false }, { to: base + WIDTH + row, arc: false }, { to: base + (hash(key, 4) < 0.5 ? 0 : WIDTH) + near, arc: false }];
-        } else {
-            // Feed-forward, narrowing: back to the same token's stream.
-            const near = Math.max(0, Math.min(WIDTH - 1, row + (half ? 1 : -1)));
-            out = [{ to: token * WIDTH + row, arc: false }, { to: token * WIDTH + near, arc: false }];
-        }
-        wiring.set(key, out);
-        return out;
-    };
-
-    // --- The signals. Each pass sends two through the network, from the input plane to the output.
-    // The whole path of signal n of a pass: for each plane, which neurons fire and which wires carry it on.
-    const paths = new Map();
-    const pathOf = (pass, n) => {
-        const key = pass * 2 + n;
-        let steps = paths.get(key);
-        if (steps) return steps;
-
-        // It begins on a few neurons of one token of the input.
-        const token = Math.floor(hash(key, 4) * TOKENS);
-        let firing = [...new Set([0, 1, 2].map((m) => token * WIDTH + Math.floor(hash(key * 13 + m, 5) * WIDTH)))];
-        steps = [];
-        for (let k = 0; k < PLANES; k++) {
-            const sparks = [];
-            if (k < PLANES - 1) {
-                for (const i of firing) {
-                    // Attention always carries the signal across to the reading tokens. Elsewhere the
-                    // neuron uses its first wire and, about half the time, a second.
-                    wires(k, i).forEach((wire, m) => {
-                        if (wire.arc || m === 0 || hash(key * 31 + k, i * 8 + m) < 0.5) sparks.push({ from: i, to: wire.to, arc: wire.arc });
-                    });
-                }
-            }
-            steps.push({ k, firing, sparks });
-            // The neurons reached fire next; the cascade is kept from flooding the plane.
-            firing = [...new Set(sparks.map((s) => s.to))].slice(0, 10);
-        }
-        if (paths.size > 8) paths.clear();
-        paths.set(key, steps);
-        return steps;
-    };
-
-    let width = 0, height = 0, focal = 0, colours = ['#888', '#888'], dark = true, lastDraw = 0;
+    let width = 0, height = 0, focal = 0, colours = ['#888', '#888'], ink = '#888', dark = true, lastDraw = 0;
     // Set once per frame: where along the network the viewer is, the slight drift of the head, and the fade.
     let along = 0, swayX = 0, swayY = 0, curtain = 1;
 
@@ -153,10 +234,11 @@
         focal = Math.min(height * 0.95, width * 0.62);
     };
 
-    // The palette's two colours, as currently resolved by the stylesheet.
+    // The palette's two colours and the text colour, as currently resolved by the stylesheet.
     const readColours = () => {
         const style = getComputedStyle(root);
         colours = [style.getPropertyValue('--accent').trim(), style.getPropertyValue('--counter').trim()];
+        ink = style.getPropertyValue('--fg').trim();
         dark = root.dataset.mode === 'dark';
     };
 
@@ -174,145 +256,109 @@
     const visible = (depth) => clamp((depth - NEAR) / 0.75) * clamp((FAR - depth) / 2.5) * curtain;
     const see = (k, i) => { const [x, y, z] = spot(k, i); return project(x, y, z); };
 
-    // The screen path of a wire from (k, from) to (k + 1, to): its two ends and, for
-    // attention, a control point that lifts it into an arc over (or under) the columns.
-    // The last entry is how visible the wire is (its dimmer end decides).
-    const route = (k, from, to, arc) => {
-        const a = spot(k, from), b = spot(k + 1, to);
+    // The screen path of a wire into plane k: its two ends and, for attention, a
+    // control point that lifts it into an arc over (or under) the columns. Then
+    // how visible it is (its dimmer end decides) and how far away.
+    const route = (k, link) => {
+        const a = spot(k - 1, link.from), b = spot(k, link.to);
         const p = project(a[0], a[1], a[2]), q = project(b[0], b[1], b[2]);
         let cx = (p[0] + q[0]) / 2, cy = (p[1] + q[1]) / 2;
-        if (arc) {
+        if (link.arc) {
             const lift = (0.35 + 0.5 * Math.abs(b[0] - a[0]) / 3.2) * (a[1] < 0 ? -1 : 1);
             [cx, cy] = project((a[0] + b[0]) / 2, a[1] + lift, (a[2] + b[2]) / 2);
         }
         return [p[0], p[1], cx, cy, q[0], q[1], Math.min(visible(p[2]), visible(q[2])), (p[2] + q[2]) / 2];
     };
-    const trace = (r) => { ctx.moveTo(r[0], r[1]); ctx.quadraticCurveTo(r[2], r[3], r[4], r[5]); };
     const pointOn = (r, u) => {
         const v = 1 - u;
         return [v * v * r[0] + 2 * v * u * r[2] + u * u * r[4], v * v * r[1] + 2 * v * u * r[3] + u * u * r[5]];
     };
+    // Draws the first `part` of a route (0..1), as a curve.
+    const trace = (r, part) => {
+        const [ex, ey] = pointOn(r, part);
+        // Control point of the shortened curve (de Casteljau).
+        ctx.moveTo(r[0], r[1]);
+        ctx.quadraticCurveTo(r[0] + (r[2] - r[0]) * part, r[1] + (r[3] - r[1]) * part, ex, ey);
+        return [ex, ey];
+    };
 
-    // Lines of a given colour whose brightness varies with distance are drawn in
-    // a few brightness bands, so each band is one stroke.
-    const BANDS = 4;
-    const strokeBanded = (lines, colour, strength) => {
-        ctx.strokeStyle = colour;
-        ctx.lineWidth = 1;
-        for (let band = 1; band <= BANDS; band++) {
-            ctx.globalAlpha = strength * band / BANDS;
+    // The wires arriving at plane k. `reached` is 0 before the calculation gets
+    // there, rises to 1 as the signals cross, and stays 1 afterwards.
+    const drawLinks = (k, links, reached) => {
+        if (reached <= 0) { // not yet computed: only a faint trace of the wiring, in one stroke
+            ctx.globalAlpha = 0.05 * curtain;
+            ctx.strokeStyle = colours[0];
+            ctx.lineWidth = 1;
             ctx.beginPath();
-            let any = false;
-            for (const r of lines) {
-                if (Math.ceil(r[6] * BANDS) !== band) continue;
-                trace(r);
-                any = true;
+            for (const link of links) {
+                const r = route(k, link);
+                if (r[6] > 0.3) trace(r, 1);
             }
-            if (any) ctx.stroke();
+            ctx.stroke();
+            return;
+        }
+        const crossing = reached < 1;
+        for (const link of links) {
+            // Crossing: full strength. Done: settled a little dimmer.
+            const r = route(k, link);
+            const alpha = (crossing ? 0.1 + 0.9 * link.glow : 0.06 + 0.5 * link.glow) * r[6];
+            if (alpha < 0.025) continue;
+            ctx.globalAlpha = alpha;
+            ctx.strokeStyle = ctx.fillStyle = colours[link.tone];
+            ctx.lineWidth = crossing && link.glow > 0.55 ? 1.6 : 1;
+            ctx.beginPath();
+            const [ex, ey] = trace(r, reached);
+            ctx.stroke();
+            if (crossing && link.glow > 0.45) { // the head of a strong signal
+                ctx.globalAlpha = Math.min(1, alpha * 2);
+                ctx.beginPath();
+                ctx.arc(ex, ey, Math.max(1.2, Math.min(5, 0.009 * focal / r[7])), 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
     };
 
-    // The neurons of a plane at rest. Each fades on its own as it nears the screen.
-    const drawDots = (points) => {
-        ctx.fillStyle = colours[0];
-        for (const [x, y, depth] of points) {
+    // The neurons of plane k. `arrived` is how far their values have come in, 0..1.
+    const drawNeurons = (k, p, arrived) => {
+        for (let i = 0; i < p.values.length; i++) {
+            const [x, y, depth] = see(k, i);
             const fog = visible(depth);
             if (fog <= 0.02) continue;
-            ctx.globalAlpha = 0.34 * fog;
-            ctx.beginPath();
-            ctx.arc(x, y, Math.max(0.8, Math.min(10, 0.02 * focal / depth)), 0, Math.PI * 2);
-            ctx.fill();
-        }
-    };
-
-    // One plane at rest: a spine down each token's column, the wires leaving it, and its neurons.
-    const drawPlane = (k) => {
-        const total = count(k);
-        const points = Array.from({ length: total }, (_, i) => see(k, i));
-
-        const spines = [];
-        for (let i = 0; i < total; i += WIDTH) {
-            const a = points[i], b = points[i + WIDTH - 1];
-            spines.push([a[0], a[1], (a[0] + b[0]) / 2, (a[1] + b[1]) / 2, b[0], b[1], Math.min(visible(a[2]), visible(b[2]))]);
-        }
-        // The input and output planes are drawn more strongly, to mark the two ends.
-        strokeBanded(spines, colours[0], k === 0 || k === PLANES - 1 ? 0.55 : 0.2);
-
-        if (k < PLANES - 1) {
-            const straight = [], arcs = [];
-            for (let i = 0; i < total; i++) {
-                const edge = i % WIDTH === 0 || i % WIDTH === WIDTH - 1;
-                for (const wire of wires(k, i)) {
-                    if (!wire.arc) straight.push(route(k, i, wire.to, false));
-                    // Only the top and bottom rows of attention are drawn at rest: a canopy, not a curtain.
-                    else if (edge) arcs.push(route(k, i, wire.to, true));
-                }
+            const shine = p.glow[i] * arrived;
+            const radius = Math.max(0.8, Math.min(10, 0.02 * focal / depth));
+            ctx.fillStyle = colours[arrived > 0 && p.values[i] < 0 ? 1 : 0];
+            if (shine > 0.5) { // a halo around the strongest
+                ctx.globalAlpha = 0.2 * shine * fog;
+                ctx.beginPath();
+                ctx.arc(x, y, radius * 2.6, 0, Math.PI * 2);
+                ctx.fill();
             }
-            strokeBanded(straight, colours[0], 0.07);
-            strokeBanded(arcs, colours[1], 0.22);
-        }
-
-        drawDots(points);
-    };
-
-    // A neuron firing: a bright core with a halo. `light` is 0..1.
-    const drawFlash = (k, i, light, colour) => {
-        const [x, y, depth] = see(k, i);
-        const fog = visible(depth);
-        if (fog <= 0.02 || light <= 0.02) return;
-        const radius = Math.max(0.8, Math.min(10, 0.02 * focal / depth));
-        ctx.fillStyle = colour;
-        ctx.globalAlpha = 0.2 * light * fog;
-        ctx.beginPath();
-        ctx.arc(x, y, radius * (2.6 + 3 * light), 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = (0.35 + 0.65 * light) * fog;
-        ctx.beginPath();
-        ctx.arc(x, y, radius * (1 + 0.7 * light), 0, Math.PI * 2);
-        ctx.fill();
-    };
-
-    // A wire lit up, with a spark `u` of the way along it.
-    const drawSpark = (k, spark, u, colour) => {
-        const r = route(k, spark.from, spark.to, spark.arc);
-        const fog = r[6];
-        if (fog <= 0.02) return;
-        ctx.strokeStyle = ctx.fillStyle = colour;
-        // The wire glows while the spark is on it, and cools afterwards.
-        ctx.globalAlpha = fog * (u < 1 ? 0.25 + 0.5 * Math.sin(u * Math.PI) : 0.35 * (1 - (u - 1) / 0.8));
-        ctx.lineWidth = Math.max(1, Math.min(2.4, 0.005 * focal / r[7]));
-        ctx.beginPath();
-        trace(r);
-        ctx.stroke();
-        if (u >= 1) return;
-        const head = smooth(u);
-        const size = Math.max(1.2, Math.min(6, 0.011 * focal / r[7]));
-        for (let tail = 0; tail < 4; tail++) {
-            const at = head - tail * 0.05;
-            if (at <= 0) return;
-            const [x, y] = pointOn(r, at);
-            ctx.globalAlpha = fog * (1 - tail * 0.23);
+            ctx.globalAlpha = (0.14 + 0.86 * shine) * fog;
             ctx.beginPath();
-            ctx.arc(x, y, size * (1 - tail * 0.16), 0, Math.PI * 2);
+            ctx.arc(x, y, radius * (0.8 + 0.5 * shine), 0, Math.PI * 2);
             ctx.fill();
         }
     };
 
-    // Brightness of a neuron `since` hops after the signal reached it: a quick flash, then a slow fade.
-    const flash = (since) => {
-        if (since < 0) return 0;
-        return since < 0.12 ? since / 0.12 : Math.exp(-(since - 0.12) * 1.4);
-    };
-
-    // One signal, as far as it has got. `phase` is the number of planes crossed so far.
-    const drawSignal = (steps, phase, colour) => {
-        for (const step of steps) {
-            const since = phase - step.k;
-            if (since < 0) break;
-            if (since < 1.8) for (const spark of step.sparks) drawSpark(step.k, spark, since, colour);
-            // The answer on the output plane stays lit until the pass ends.
-            const light = step.k === PLANES - 1 ? Math.max(flash(since), 0.7 * smooth(since * 4)) : flash(since);
-            for (const i of step.firing) drawFlash(step.k, i, light, colour);
+    // The formula above plane k. While the plane is being computed it is brighter
+    // and a second line shows the same formula with this pass's numbers.
+    const drawFormula = (k, p, reached) => {
+        const [x, y, depth] = project(0, -1.2, k * GAP);
+        const fog = visible(depth);
+        const size = Math.min(21, 0.075 * focal / depth);
+        if (fog <= 0.03 || size < 9) return;
+        const live = reached > 0 ? Math.max(0, 1 - Math.max(0, reached - 1) / 1.2) : 0; // fades after the plane is done
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'alphabetic';
+        ctx.fillStyle = live > 0.05 ? colours[0] : ink;
+        ctx.globalAlpha = fog * (0.5 + 0.5 * live);
+        ctx.font = `italic ${size}px 'Cambria Math', 'STIX Two Math', Cambria, Georgia, serif`;
+        ctx.fillText(p.formula, x, y);
+        if (live > 0.05) {
+            ctx.fillStyle = ink;
+            ctx.globalAlpha = fog * live;
+            ctx.font = `${size * 0.72}px ui-monospace, Consolas, monospace`;
+            ctx.fillText(p.detail, x, y - size * 1.25);
         }
     };
 
@@ -320,12 +366,13 @@
         const t = Date.now() / 1000; // UTC seconds: the playhead
         const pass = Math.floor(t / PERIOD);
         const into = t - pass * PERIOD;
-        const phase = into / HOP;
+        const phase = into / HOP; // how many planes the calculation has reached
+        const planes = build(pass);
 
-        // The viewer keeps a little behind the signal, and stops when it reaches the output.
+        // The viewer keeps a little behind the calculation, and stops when it reaches the output.
         along = GAP * (Math.min(phase, PLANES - 1) - 0.7);
         swayX = 0.1 * Math.sin(t * 0.21);
-        swayY = -0.12 + 0.05 * Math.sin(t * 0.17 + 1);
+        swayY = -0.05 + 0.05 * Math.sin(t * 0.17 + 1);
         curtain = smooth(into / 1.2) * smooth((PERIOD - into) / 1.4); // fade in at the input, out at the output
 
         ctx.clearRect(0, 0, width, height);
@@ -333,14 +380,17 @@
         ctx.lineCap = 'round';
 
         for (let k = PLANES - 1; k >= 0; k--) {
-            const away = Math.abs(k * GAP - along);
-            if (away < 9) drawPlane(k); // planes far along the track are off screen anyway
+            if (Math.abs(k * GAP - along) > 9) continue; // far along the track: off screen anyway
+            const reached = k === 0 ? 1 + phase : phase - (k - 1); // crossing while between 0 and 1
+            if (k > 0) drawLinks(k, planes[k].links, Math.min(1, reached));
+            drawNeurons(k, planes[k], k === 0 ? 1 : smooth(reached * 1.4 - 0.4));
         }
-        drawSignal(pathOf(pass, 0), phase, colours[0]);
-        drawSignal(pathOf(pass, 1), phase, colours[1]);
-
-        ctx.globalAlpha = 1;
+        // Formulas last, so they sit on top of the lights.
         ctx.globalCompositeOperation = 'source-over';
+        for (let k = 0; k < PLANES; k++) {
+            if (Math.abs(k * GAP - along) <= 9) drawFormula(k, planes[k], k === 0 ? 1 + phase : phase - (k - 1));
+        }
+        ctx.globalAlpha = 1;
     };
 
     const loop = (frame) => {
