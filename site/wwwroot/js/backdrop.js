@@ -189,7 +189,7 @@
             const after = add(x, delta);
             const most = peak(delta);
             const merged = plane(after, 'x ← x + h · W₂',
-                `${fixed(x[most.token][most.unit])} + ${fixed(most.value)} = ${fixed(after[most.token][most.unit])}`);
+                `${fixed(x[most.token][most.unit])} ${most.value < 0 ? '−' : '+'} ${Math.abs(most.value).toFixed(2)} = ${fixed(after[most.token][most.unit])}`);
             wire(merged, hidden, block.down);
             planes.push(merged);
             x = after;
