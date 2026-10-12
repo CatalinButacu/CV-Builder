@@ -21,12 +21,13 @@
     <!-- If you add any scoped CSS files, uncomment the following to load them
     <link href="Portfolio.styles.css" rel="stylesheet" /> -->
     <script src="js/theme.js"></script>
-    <script src="js/nanogpt.js" defer></script>
-    <script src="js/nanogpt-view.js" defer></script>
+    <script src="js/backdrop.js" defer></script>
     <script type="importmap"></script>
 </head>
 
 <body>
+    <div class="backdrop" aria-hidden="true"><canvas></canvas></div>
+
     <div id="app">
         <svg class="loading-progress">
             <circle r="40%" cx="50%" cy="50%" />
