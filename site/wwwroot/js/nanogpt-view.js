@@ -1,4 +1,5 @@
-// Animated background: a nano-GPT, end to end, while it learns.
+// The nano-GPT view: draws the model on a canvas, end to end, while it learns.
+// The Lab page mounts it with NanoGptView.mount(canvas, panel).
 //
 // The model is a small GPT (js/nanogpt.js) whose job is to sort six letters
 // from {A, B, C}: given "C B A B B C" it should write "A B B B C C". It was
@@ -16,19 +17,13 @@
 //      stack of solid blocks seen from above at an angle, as on
 //      bbycroft.net/llm: every weight matrix and every intermediate result is
 //      a slab whose top face has one cell per number. The view moves down the
-//      stack block by block: embeddings, then for each layer the attention
-//      weights, the attention pattern, the feed-forward weights and its hidden
-//      layer, and finally the output probabilities and the letters predicted.
+//      stack block by block.
 //
 // A cell's brightness is the size of its number and its colour the sign.
 // Result blocks have sides in the first palette colour, weight blocks in the
-// second. Nothing is made up: the forward pass is recomputed every frame from
-// the weights of that moment of the training run.
+// second. The forward pass is recomputed every frame from the weights of that
+// moment of the training run.
 (() => {
-    const canvas = document.querySelector('.backdrop canvas');
-    if (!canvas || !window.NanoGPT) return;
-
-    const ctx = canvas.getContext('2d');
     const root = document.documentElement;
     const still = matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -46,10 +41,17 @@
     };
 
     // ------------------------------------------------------------------
-    // The recorded training run.
+    // The recorded training run. Fetched once, the first time a view is mounted.
     // ------------------------------------------------------------------
     let run = null;   // the description: model shape and, per snapshot, step, loss and accuracy
     let bytes = null; // every snapshot's weights, one signed byte each
+    let loading = null;
+    const load = () => {
+        const file = (name) => fetch(new URL(`data/${name}`, document.baseURI));
+        loading ??= Promise.all([file('nanogpt.json').then((r) => r.json()), file('nanogpt.bin').then((r) => r.arrayBuffer())])
+            .then(([description, buffer]) => { run = description; bytes = new Int8Array(buffer); });
+        return loading;
+    };
 
     // The weights at a point of the run. `at` counts snapshots and may fall
     // between two, in which case the weights are blended.
@@ -141,23 +143,26 @@
     };
 
     // ------------------------------------------------------------------
-    // Drawing.
+    // Drawing. One view at a time: the canvas it draws on and the panel whose
+    // text it keeps up to date.
     // ------------------------------------------------------------------
     // Isometric view: a step along a slab's first axis goes right and down, along its second left and down.
     const RIGHT = 0.866, DOWN = 0.5;
 
+    let canvas = null, ctx = null, panel = null, watcher = null;
+    let frame = 0, ticker = 0, lastDraw = 0, lastStatus = 0;
     let width = 0, height = 0, cell = 0, thick = 0, gap = 0;
-    let colours = ['#888', '#888'], ink = '#888', surface = '#222', lastDraw = 0;
+    let colours = ['#888', '#888'], ink = '#888', surface = '#222';
 
     const resize = () => {
         const ratio = Math.min(devicePixelRatio || 1, 2);
-        width = innerWidth;
-        height = innerHeight;
+        width = canvas.clientWidth;
+        height = canvas.clientHeight;
         canvas.width = width * ratio;
         canvas.height = height * ratio;
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-        // The widest row (W proj beside x) should fit across the window.
-        cell = Math.max(2.6, Math.min(11, width * 0.86 / (112 * RIGHT), height / 48));
+        // The widest row (W proj beside x) should fit across the canvas.
+        cell = Math.max(2.6, Math.min(11, width * 0.9 / (112 * RIGHT), height / 44));
         thick = cell * 1.8;
         gap = cell * 7;
     };
@@ -280,33 +285,28 @@
         return row.slabs.map((s) => { const cx = left + slabWidth(s) / 2; left += slabWidth(s) + cell * 3; return cx; });
     };
 
-    // What is being trained, and how the model is doing at this moment of the run.
-    const drawStatus = (at, scene) => {
-        const size = Math.max(10, Math.min(13, width / 60));
-        const x = Math.max(12, width * 0.02), y = Math.min(height - 4 * size * 1.5, height * 0.8);
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'alphabetic';
-        ctx.font = `${size}px ui-monospace, Consolas, monospace`;
-        ctx.globalAlpha = 0.95;
-        ctx.fillStyle = ink;
+    // Writes how the model is doing into the panel's text, a few times a second.
+    // The panel marks each place with a data-gpt attribute.
+    const report = (at, scene, now) => {
+        if (!panel || now - lastStatus < 250) return;
+        lastStatus = now;
+        const set = (key, text) => { const el = panel.querySelector(`[data-gpt="${key}"]`); if (el && el.textContent !== text) el.textContent = text; };
         const last = run.snapshots[run.snapshots.length - 1].step;
         const trained = at >= run.snapshots.length - 1;
-        ctx.fillText('nano-GPT learning to sort letters', x, y);
-        ctx.fillText(trained ? `trained · step ${last} of ${last}` : `training · step ${Math.round(blend('step', at))} of ${last}`, x, y + size * 1.5);
-        ctx.fillText(`loss ${blend('loss', at).toFixed(3)} · sorts ${Math.round(blend('accuracy', at) * 100)}% correctly`, x, y + size * 3);
-        ctx.fillStyle = colours[scene.right ? 0 : 1];
-        ctx.fillText(`${scene.question}  →  ${scene.answer}  ${scene.right ? '✓' : '✗'}`, x, y + size * 4.5);
-        // Progress through the training run.
-        ctx.globalAlpha = 0.3;
-        ctx.fillStyle = ink;
-        ctx.fillRect(x, y + size * 5.2, size * 20, 2);
-        ctx.globalAlpha = 0.95;
-        ctx.fillStyle = colours[0];
-        ctx.fillRect(x, y + size * 5.2, size * 20 * clamp(at / (run.snapshots.length - 1)), 2);
+        set('state', trained ? 'Trained' : 'Training');
+        set('step', `${trained ? last : Math.round(blend('step', at))} / ${last}`);
+        set('loss', blend('loss', at).toFixed(3));
+        set('accuracy', `${Math.round(blend('accuracy', at) * 100)}%`);
+        set('question', scene.question);
+        set('answer', scene.answer);
+        set('verdict', scene.right ? 'correct' : 'wrong');
+        panel.dataset.right = scene.right ? 'yes' : 'no';
+        const bar = panel.querySelector('[data-gpt="bar"]');
+        if (bar) bar.style.width = `${clamp(at / (run.snapshots.length - 1)) * 100}%`;
     };
 
     const draw = () => {
-        if (!run || !bytes) return;
+        if (!run || !canvas) return;
         const t = Date.now() / 1000; // UTC seconds: the playhead
 
         // Where the training replay is, and the weights of that moment.
@@ -361,39 +361,52 @@
                 ctx.fillText(row.formula, width / 2 - rowWidth(row) / 2, top - cell * 3.4);
             }
         });
-
-        drawStatus(at, scene);
         ctx.globalAlpha = 1;
+        report(at, scene, t * 1000);
     };
 
-    const loop = (frame) => {
-        if (still.matches) return;
-        requestAnimationFrame(loop);
-        if (frame - lastDraw < FRAME) return;
-        lastDraw = frame;
+    const loop = (now) => {
+        if (!canvas || still.matches) return;
+        frame = requestAnimationFrame(loop);
+        if (now - lastDraw < FRAME) return;
+        lastDraw = now;
         draw();
     };
 
     // With "reduce motion" on: no smooth movement, just a fresh picture each second.
-    let ticker = 0;
     const begin = () => {
+        cancelAnimationFrame(frame);
         clearInterval(ticker);
+        if (!canvas) return;
         draw();
         if (still.matches) ticker = setInterval(draw, 1000);
-        else requestAnimationFrame(loop);
+        else frame = requestAnimationFrame(loop);
     };
 
-    addEventListener('resize', () => { resize(); draw(); });
+    const themes = new MutationObserver(() => { if (canvas) { readColours(); draw(); } });
     still.addEventListener('change', begin);
-    new MutationObserver(() => { readColours(); draw(); })
-        .observe(root, { attributes: true, attributeFilter: ['data-mode', 'data-palette'] });
 
-    resize();
-    readColours();
-
-    // The recorded run is fetched once; the animation starts when it has arrived.
-    const file = (name) => fetch(new URL(`data/${name}`, document.baseURI));
-    Promise.all([file('nanogpt.json').then((r) => r.json()), file('nanogpt.bin').then((r) => r.arrayBuffer())])
-        .then(([description, buffer]) => { run = description; bytes = new Int8Array(buffer); begin(); })
-        .catch(() => { /* without the data there is simply no background animation */ });
+    window.NanoGptView = {
+        // Starts drawing on `target`. `info` is the element whose data-gpt fields show the training status.
+        mount(target, info) {
+            this.unmount();
+            canvas = target;
+            ctx = canvas.getContext('2d');
+            panel = info || null;
+            lastStatus = 0;
+            watcher = new ResizeObserver(() => { resize(); draw(); });
+            watcher.observe(canvas);
+            themes.observe(root, { attributes: true, attributeFilter: ['data-mode', 'data-palette'] });
+            resize();
+            readColours();
+            load().then(begin).catch(() => { if (panel) panel.dataset.failed = 'yes'; });
+        },
+        unmount() {
+            cancelAnimationFrame(frame);
+            clearInterval(ticker);
+            watcher?.disconnect();
+            themes.disconnect();
+            canvas = ctx = panel = watcher = null;
+        },
+    };
 })();
