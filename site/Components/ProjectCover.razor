@@ -1,8 +1,8 @@
-@* The top of a project card: the project's result as a large figure with a few words under it. *@
-<p class="cover">
-    <span class="figure">@Project.Figure</span>
-    <span class="caption">@Project.FigureLabel</span>
-</p>
+@* Generated cover: a gradient in the project's hue with its title as a watermark. *@
+<div class="cover" style="--hue: @Project.Hue" aria-hidden="true">
+    <span class="cover-grid"></span>
+    <span class="watermark">@Project.Title</span>
+</div>
 
 @code {
     [Parameter, EditorRequired] public Project Project { get; set; } = default!;

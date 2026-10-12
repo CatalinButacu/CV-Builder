@@ -17,16 +17,12 @@
 }
 
 .detail-head .cover {
-    min-height: 14rem;
-    padding: 2rem;
-    border: 1px solid var(--line);
     border-radius: var(--radius-card);
-    background-color: var(--surface);
     box-shadow: var(--shadow-elev-2);
 }
 
-.detail-head .cover .figure {
-    font-size: clamp(3rem, 7vw, 5rem);
+.detail-head .cover .watermark {
+    font-size: clamp(3rem, 10vw, 6rem);
 }
 
 @media (min-width: 64rem) {
