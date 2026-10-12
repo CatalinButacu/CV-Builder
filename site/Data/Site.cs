@@ -55,7 +55,12 @@ public static partial class Bundle
         "components/project-page.css",
         "components/about.css",
         "components/theme-menu.css",
-        "home.css",
+        "components/hero.css",
+        "components/text-link.css",
+        "components/proof.css",
+        "components/experience.css",
+        "components/capabilities.css",
+        "components/contact.css",
     ];
 
     // Joins the stylesheets in dependency order and strips what a browser does not need.

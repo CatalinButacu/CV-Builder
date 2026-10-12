@@ -1,0 +1,101 @@
+/* A section in two columns: its heading stays in view on the left while the content scrolls on the right. */
+@media (min-width: 64rem) {
+    .split {
+        display: grid;
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+        gap: 5rem;
+        align-items: start;
+    }
+
+    .split-head {
+        position: sticky;
+        top: 7rem;
+    }
+}
+
+.split-head {
+    margin-bottom: 2.5rem;
+}
+
+.split-head .section-title {
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+}
+
+.split-head .text-link {
+    display: inline-block;
+    margin-top: 1.5rem;
+}
+
+/* Experience rows */
+.xp {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.xp li {
+    position: relative;
+    display: grid;
+    gap: 0.5rem 2rem;
+    padding-block: 1.75rem;
+    border-top: 1px solid var(--line);
+}
+
+.xp li:last-child {
+    border-bottom: 1px solid var(--line);
+}
+
+/* A line in the palette's colours draws across the top of the row under the pointer. */
+.xp li::before {
+    content: "";
+    position: absolute;
+    inset: -1px 0 auto;
+    height: 2px;
+    background: linear-gradient(90deg in oklch, var(--accent), var(--counter));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.6s var(--ease-out-expo);
+}
+
+.xp li:hover::before {
+    transform: scaleX(1);
+}
+
+@media (min-width: 40rem) {
+    .xp li {
+        grid-template-columns: 9.5rem minmax(0, 1fr);
+    }
+}
+
+.xp p {
+    margin: 0;
+}
+
+.xp .when {
+    padding-top: 0.3rem;
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--fg-subtle);
+}
+
+.xp h3 {
+    margin: 0;
+    font-size: 1.375rem;
+    font-weight: 650;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+}
+
+.xp .org {
+    margin-top: 0.125rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--accent);
+}
+
+.xp .result {
+    max-width: 38rem;
+    margin-top: 0.75rem;
+    color: var(--fg-muted);
+    text-wrap: pretty;
+}

@@ -1,0 +1,65 @@
+/* Hero: one column, so the animated background has the right-hand side to itself. */
+.hero {
+    position: relative;
+    padding-block: clamp(4rem, 9vw, 7.5rem) clamp(3rem, 6vw, 5rem);
+}
+
+.hero-kicker {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 0 0 2.25rem;
+}
+
+.hero-kicker > span {
+    display: grid;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    color: var(--fg-muted);
+}
+
+.hero-kicker strong {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    color: var(--fg);
+}
+
+/* The CV photo, as a round portrait at the start of the hero. */
+.portrait {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--surface);
+    outline: 1px solid var(--line-strong);
+    box-shadow: var(--shadow-elev-2);
+}
+
+.hero h1 {
+    margin: 0 0 1.75rem;
+    font-size: clamp(2.75rem, 7.4vw, 6rem);
+    font-weight: 800;
+    line-height: 0.96;
+    letter-spacing: -0.055em;
+}
+
+.hero h1 span {
+    display: block;
+    padding-bottom: 0.08em;
+}
+
+.hero-sub {
+    max-width: 40rem;
+    margin: 0;
+    font-size: clamp(1.0625rem, 1.5vw, 1.25rem);
+    color: var(--fg-muted);
+    text-wrap: pretty;
+}
+
+.hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.75rem;
+    margin-top: 2.5rem;
+}

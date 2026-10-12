@@ -1,0 +1,135 @@
+/* A section heading set in the middle of the page. */
+.section-head.centred {
+    justify-content: center;
+    text-align: center;
+}
+
+/* What I build: a grid of unequal tiles. Six columns, so tiles can be a half or a third wide. */
+.bento {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+@media (min-width: 56rem) {
+    .bento {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .tile {
+        grid-column: span 2;
+    }
+
+    .tile.lead {
+        grid-column: span 3;
+        grid-row: span 2;
+    }
+
+    .tile:nth-child(2),
+    .tile:nth-child(3) {
+        grid-column: span 3;
+    }
+
+    .tile.toolbox {
+        grid-column: 1 / -1;
+    }
+}
+
+.tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    padding: 1.75rem;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-elev-1);
+    transition: box-shadow 0.4s var(--ease-out-expo), transform 0.4s var(--ease-out-expo);
+}
+
+.tile:hover {
+    box-shadow: var(--shadow-elev-2);
+    transform: translateY(-2px);
+}
+
+.tile p {
+    margin: 0;
+    color: var(--fg-muted);
+}
+
+.tile h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 650;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+}
+
+.tile .index {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+}
+
+/* Where the proof is: pushed to the bottom of the tile. */
+.tile .backing {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.5rem;
+    margin-top: auto;
+    padding-top: 1rem;
+    font-size: 0.9375rem;
+}
+
+/* The first tile is the largest and carries the palette's two colours as a glow. */
+.tile.lead {
+    justify-content: flex-end;
+    min-height: 20rem;
+    background:
+        radial-gradient(24rem 16rem at 100% 0%, color-mix(in oklch, var(--counter) 30%, transparent), transparent 70%),
+        radial-gradient(20rem 14rem at 0% 0%, color-mix(in oklch, var(--accent) 26%, transparent), transparent 70%),
+        var(--glass-tint);
+}
+
+.tile.lead h3 {
+    font-size: clamp(1.5rem, 2.6vw, 2.125rem);
+    letter-spacing: -0.03em;
+}
+
+.tile.lead .backing {
+    margin-top: 0;
+}
+
+.tile.figure .big {
+    background: linear-gradient(100deg in oklch, var(--accent), var(--counter));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-size: 4rem;
+    font-weight: 750;
+    line-height: 1;
+    letter-spacing: -0.05em;
+}
+
+/* Skills as plain lines of text in columns, not as a wall of pills. */
+.toolbox dl {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    gap: 1rem 2rem;
+    margin: 0.5rem 0 0;
+}
+
+.toolbox dt {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--fg);
+}
+
+.toolbox dd {
+    margin: 0.125rem 0 0;
+    font-size: 0.875rem;
+    color: var(--fg-muted);
+}

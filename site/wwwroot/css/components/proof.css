@@ -1,0 +1,52 @@
+/* Proof: four figures in a row, two by two on a phone. */
+.proof {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem 1.5rem;
+    margin: clamp(3.5rem, 7vw, 5.5rem) 0 0;
+    padding-top: 2rem;
+    border-top: 1px solid var(--line);
+}
+
+@media (min-width: 48rem) {
+    .proof {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .proof > div + div {
+        padding-left: 1.5rem;
+        border-left: 1px solid var(--line);
+    }
+}
+
+.proof > div {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.proof dt {
+    max-width: 14rem;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    color: var(--fg-muted);
+}
+
+.proof dd {
+    margin: 0;
+    font-size: clamp(2.5rem, 5vw, 3.75rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    color: var(--fg);
+}
+
+.proof dd small {
+    margin-left: 0.12em;
+    font-size: 0.42em;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--accent);
+}
