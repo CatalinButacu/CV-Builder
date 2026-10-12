@@ -49,7 +49,12 @@ public static partial class Bundle
         "components/buttons.css",
         "components/badges.css",
         "components/section.css",
-        "components.css",
+        "components/project-card.css",
+        "components/header.css",
+        "components/footer.css",
+        "components/project-page.css",
+        "components/about.css",
+        "components/theme-menu.css",
         "home.css",
     ];
 

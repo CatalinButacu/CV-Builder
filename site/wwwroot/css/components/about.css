@@ -1,0 +1,92 @@
+/* About page */
+.stack {
+    display: grid;
+    gap: 1.25rem;
+}
+
+.panel {
+    margin: 0;
+    padding: 1.5rem;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-elev-1);
+}
+
+.panel .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+}
+
+.panel h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+}
+
+.panel .when {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--fg-subtle);
+}
+
+.panel .where {
+    margin: 0.125rem 0 0;
+    color: var(--fg-muted);
+}
+
+.panel .note {
+    margin: 0.75rem 0 0;
+    font-size: 0.9375rem;
+    color: var(--fg-muted);
+}
+
+.panel .note strong {
+    color: var(--fg);
+}
+
+.role {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+}
+
+.bullets {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0.75rem 0 0;
+    padding-left: 1.2em;
+    color: var(--fg-muted);
+}
+
+.bullets li::marker {
+    color: var(--accent);
+}
+
+.skills {
+    display: grid;
+    gap: 1rem;
+}
+
+.skill-row {
+    display: grid;
+    gap: 0.5rem;
+    align-items: baseline;
+}
+
+@media (min-width: 40rem) {
+    .skill-row {
+        grid-template-columns: 8rem minmax(0, 1fr);
+    }
+}
+
+.certs {
+    display: grid;
+    gap: 0.75rem;
+    padding-left: 2.75rem;
+}
+
+.certs li::marker {
+    color: var(--success);
+}
