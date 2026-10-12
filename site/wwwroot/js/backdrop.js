@@ -25,13 +25,13 @@
 // signal number w, are fixed by formulas, and UTC time only says where the
 // viewer is and how far each signal has got. A refresh, or another visitor,
 // picks the scene up exactly where it was.
-(() => {
-    const canvas = document.querySelector('.backdrop canvas');
-    if (!canvas) return;
-
+//
+// This file only draws. js/backdrop-start.js starts it, normally in a worker,
+// so that none of the drawing runs on the page's own thread. It therefore never
+// touches the page: its size, colours and motion setting arrive as messages.
+const backdropScene = (canvas) => {
     const ctx = canvas.getContext('2d');
-    const root = document.documentElement;
-    const still = matchMedia('(prefers-reduced-motion: reduce)');
+    let still = false; // true when the visitor asked for reduced motion
 
     const TOKENS = 8;    // columns
     const WIDTH = 6;     // neurons per token in the stream
@@ -150,11 +150,9 @@
     // scene emerges from the haze and no single frame has the whole network to draw.
     let sight = FAR, began = 0;
 
-    const resize = () => {
-        // A dim backdrop does not need every pixel of a dense screen.
-        const ratio = Math.min(devicePixelRatio || 1, 1.5);
-        width = innerWidth;
-        height = innerHeight;
+    const resize = (w, h, ratio) => {
+        width = w;
+        height = h;
         canvas.width = width * ratio;
         canvas.height = height * ratio;
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -162,13 +160,6 @@
         focal = Math.max(width / 3.3, height / 2.05);
         // On a wide screen the vanishing point sits to the right, clear of the headline.
         centre = width * (width >= 900 ? 0.7 : 0.5);
-    };
-
-    // The palette's two colours, as currently resolved by the stylesheet.
-    const readColours = () => {
-        const style = getComputedStyle(root);
-        colours = [style.getPropertyValue('--accent').trim(), style.getPropertyValue('--counter').trim()];
-        dark = root.dataset.mode === 'dark';
     };
 
     const clamp = (v) => Math.max(0, Math.min(1, v));
@@ -322,7 +313,7 @@
         viewer = t * SPEED;
         swayX = 0.11 * Math.sin(t * 0.11);
         swayY = 0.07 * Math.sin(t * 0.15 + 1);
-        sight = still.matches ? FAR : Math.min(FAR, 1.2 + (performance.now() - began) * 0.0042);
+        sight = still ? FAR : Math.min(FAR, 1.2 + (performance.now() - began) * 0.0042);
 
         ctx.clearRect(0, 0, width, height);
         ctx.globalCompositeOperation = dark ? 'lighter' : 'source-over'; // overlapping lights add up
@@ -339,8 +330,9 @@
         ctx.globalCompositeOperation = 'source-over';
     };
 
+    let looping = false;
     const loop = (frame) => {
-        if (still.matches) return;
+        if (still) { looping = false; return; }
         requestAnimationFrame(loop);
         if (frame - lastDraw < FRAME) return;
         lastDraw = frame;
@@ -352,19 +344,25 @@
     const begin = () => {
         clearInterval(ticker);
         draw();
-        if (still.matches) ticker = setInterval(draw, 1000);
-        else requestAnimationFrame(loop);
+        if (still) ticker = setInterval(draw, 1000);
+        else if (!looping) { looping = true; requestAnimationFrame(loop); }
     };
 
-    addEventListener('resize', () => { resize(); draw(); });
-    still.addEventListener('change', begin);
-    new MutationObserver(() => { readColours(); draw(); })
-        .observe(root, { attributes: true, attributeFilter: ['data-mode', 'data-palette'] });
+    // What the page tells the scene: its size, its colours, and whether to hold still.
+    return (message) => {
+        if (!began) began = performance.now();
+        if (message.size) resize(...message.size);
+        if (message.colours) { colours = message.colours; dark = message.dark; }
+        if ('still' in message) still = message.still;
+        begin();
+    };
+};
 
-    // Start only once the page has loaded and the browser has a quiet moment,
-    // so drawing never competes with showing the content.
-    const start = () => { began = performance.now(); resize(); readColours(); begin(); };
-    const whenIdle = () => (window.requestIdleCallback ? requestIdleCallback(start, { timeout: 2500 }) : setTimeout(start, 600));
-    if (document.readyState === 'complete') whenIdle();
-    else addEventListener('load', whenIdle, { once: true });
-})();
+// In a worker, the first message brings the canvas; every message goes to the scene.
+if (typeof document === 'undefined') {
+    let tell = null;
+    onmessage = ({ data }) => {
+        if (data.canvas) tell = backdropScene(data.canvas);
+        tell(data);
+    };
+}
