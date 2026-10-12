@@ -146,9 +146,13 @@
     let width = 0, height = 0, focal = 0, colours = ['#888', '#888'], dark = true, lastDraw = 0;
     // Set once per frame: where the viewer is, and the head's slight sideways drift.
     let viewer = 0, swayX = 0, swayY = 0;
+    // How far ahead can be seen. It opens up over the first second and a half, so the
+    // scene emerges from the haze and no single frame has the whole network to draw.
+    let sight = FAR, began = 0;
 
     const resize = () => {
-        const ratio = Math.min(devicePixelRatio || 1, 2);
+        // A dim backdrop does not need every pixel of a dense screen.
+        const ratio = Math.min(devicePixelRatio || 1, 1.5);
         width = innerWidth;
         height = innerHeight;
         canvas.width = width * ratio;
@@ -172,7 +176,7 @@
     const project = (x, y, depth) => [width / 2 + (x - swayX) * focal / depth, height / 2 + (y - swayY) * focal / depth];
     const see = (k, i) => { const [x, y] = spot(k, i); return project(x, y, k - viewer); };
     // Faint in the distance, and fading out as a plane passes the viewer.
-    const haze = (depth) => clamp((FAR - depth) / 3.5) * clamp((depth - 0.12) / 0.45);
+    const haze = (depth) => clamp((sight - depth) / 3.5) * clamp((depth - 0.12) / 0.45);
 
     // The screen path of a wire from (k, from) to (k + 1, to): two ends and, for
     // attention, a control point that lifts it into an arc over (or under) the columns.
@@ -316,13 +320,14 @@
         viewer = t * SPEED;
         swayX = 0.11 * Math.sin(t * 0.11);
         swayY = 0.07 * Math.sin(t * 0.15 + 1);
+        sight = still.matches ? FAR : Math.min(FAR, 1.2 + (performance.now() - began) * 0.0042);
 
         ctx.clearRect(0, 0, width, height);
         ctx.globalCompositeOperation = dark ? 'lighter' : 'source-over'; // overlapping lights add up
         ctx.lineCap = 'round';
 
         // The planes ahead, from the furthest to the nearest.
-        for (let k = Math.floor(viewer + FAR); k > viewer; k--) drawPlane(k);
+        for (let k = Math.floor(viewer + sight); k > viewer; k--) drawPlane(k);
 
         // Every signal still within sight.
         const latest = Math.floor(t / EVERY);
@@ -356,7 +361,7 @@
 
     // Start only once the page has loaded and the browser has a quiet moment,
     // so drawing never competes with showing the content.
-    const start = () => { resize(); readColours(); begin(); };
+    const start = () => { began = performance.now(); resize(); readColours(); begin(); };
     const whenIdle = () => (window.requestIdleCallback ? requestIdleCallback(start, { timeout: 2500 }) : setTimeout(start, 600));
     if (document.readyState === 'complete') whenIdle();
     else addEventListener('load', whenIdle, { once: true });
