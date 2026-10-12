@@ -13,18 +13,18 @@
     margin: 0 0 2.25rem;
 }
 
-    .hero-kicker > span {
-        display: grid;
-        font-size: 0.9375rem;
-        line-height: 1.4;
-        color: var(--fg-muted);
-    }
+.hero-kicker > span {
+    display: grid;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    color: var(--fg-muted);
+}
 
-    .hero-kicker strong {
-        font-size: 1.0625rem;
-        font-weight: 600;
-        color: var(--fg);
-    }
+.hero-kicker strong {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    color: var(--fg);
+}
 
 /* The CV photo, as a round portrait at the start of the hero. */
 .portrait {
@@ -45,10 +45,10 @@
     letter-spacing: -0.055em;
 }
 
-    .hero h1 span {
-        display: block;
-        padding-bottom: 0.08em;
-    }
+.hero h1 span {
+    display: block;
+    padding-bottom: 0.08em;
+}
 
 .hero-sub {
     max-width: 40rem;
@@ -76,16 +76,16 @@
     transition: background-size 0.35s var(--ease-out-expo), color 0.2s;
 }
 
-    .text-link::after {
-        content: " →";
-        color: var(--accent);
-    }
+.text-link::after {
+    content: " →";
+    color: var(--accent);
+}
 
-    .text-link:hover {
-        background-size: 100% 1px;
-        text-decoration: none;
-        color: var(--accent);
-    }
+.text-link:hover {
+    background-size: 100% 1px;
+    text-decoration: none;
+    color: var(--accent);
+}
 
 /* Proof: four figures in a row, two by two on a phone. */
 .proof {
@@ -102,10 +102,10 @@
         grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
-        .proof > div + div {
-            padding-left: 1.5rem;
-            border-left: 1px solid var(--line);
-        }
+    .proof > div + div {
+        padding-left: 1.5rem;
+        border-left: 1px solid var(--line);
+    }
 }
 
 .proof > div {
@@ -132,13 +132,13 @@
     color: var(--fg);
 }
 
-    .proof dd small {
-        margin-left: 0.12em;
-        font-size: 0.42em;
-        font-weight: 600;
-        letter-spacing: 0;
-        color: var(--accent);
-    }
+.proof dd small {
+    margin-left: 0.12em;
+    font-size: 0.42em;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--accent);
+}
 
 /* A section in two columns: its heading stays in view on the left while the content scrolls on the right. */
 @media (min-width: 64rem) {
@@ -159,14 +159,14 @@
     margin-bottom: 2.5rem;
 }
 
-    .split-head .section-title {
-        font-size: clamp(1.75rem, 3vw, 2.5rem);
-    }
+.split-head .section-title {
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+}
 
-    .split-head .text-link {
-        display: inline-block;
-        margin-top: 1.5rem;
-    }
+.split-head .text-link {
+    display: inline-block;
+    margin-top: 1.5rem;
+}
 
 /* Experience rows */
 .xp {
@@ -175,33 +175,33 @@
     list-style: none;
 }
 
-    .xp li {
-        position: relative;
-        display: grid;
-        gap: 0.5rem 2rem;
-        padding-block: 1.75rem;
-        border-top: 1px solid var(--line);
-    }
+.xp li {
+    position: relative;
+    display: grid;
+    gap: 0.5rem 2rem;
+    padding-block: 1.75rem;
+    border-top: 1px solid var(--line);
+}
 
-        .xp li:last-child {
-            border-bottom: 1px solid var(--line);
-        }
+.xp li:last-child {
+    border-bottom: 1px solid var(--line);
+}
 
-        /* A line in the palette's colours draws across the top of the row under the pointer. */
-        .xp li::before {
-            content: "";
-            position: absolute;
-            inset: -1px 0 auto;
-            height: 2px;
-            background: linear-gradient(90deg in oklch, var(--accent), var(--counter));
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.6s var(--ease-out-expo);
-        }
+/* A line in the palette's colours draws across the top of the row under the pointer. */
+.xp li::before {
+    content: "";
+    position: absolute;
+    inset: -1px 0 auto;
+    height: 2px;
+    background: linear-gradient(90deg in oklch, var(--accent), var(--counter));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.6s var(--ease-out-expo);
+}
 
-        .xp li:hover::before {
-            transform: scaleX(1);
-        }
+.xp li:hover::before {
+    transform: scaleX(1);
+}
 
 @media (min-width: 40rem) {
     .xp li {
@@ -266,19 +266,19 @@
         grid-column: span 2;
     }
 
-        .tile.lead {
-            grid-column: span 3;
-            grid-row: span 2;
-        }
+    .tile.lead {
+        grid-column: span 3;
+        grid-row: span 2;
+    }
 
-        .tile:nth-child(2),
-        .tile:nth-child(3) {
-            grid-column: span 3;
-        }
+    .tile:nth-child(2),
+    .tile:nth-child(3) {
+        grid-column: span 3;
+    }
 
-        .tile.toolbox {
-            grid-column: 1 / -1;
-        }
+    .tile.toolbox {
+        grid-column: 1 / -1;
+    }
 }
 
 .tile {
@@ -293,70 +293,70 @@
     transition: box-shadow 0.4s var(--ease-out-expo), transform 0.4s var(--ease-out-expo);
 }
 
-    .tile:hover {
-        box-shadow: var(--shadow-elev-2);
-        transform: translateY(-2px);
-    }
+.tile:hover {
+    box-shadow: var(--shadow-elev-2);
+    transform: translateY(-2px);
+}
 
-    .tile p {
-        margin: 0;
-        color: var(--fg-muted);
-    }
+.tile p {
+    margin: 0;
+    color: var(--fg-muted);
+}
 
-    .tile h3 {
-        margin: 0;
-        font-size: 1.25rem;
-        font-weight: 650;
-        line-height: 1.25;
-        letter-spacing: -0.02em;
-    }
+.tile h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 650;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+}
 
-    .tile .index {
-        font-size: 0.8125rem;
-        font-weight: 600;
-        font-variant-numeric: tabular-nums;
-        color: var(--accent);
-    }
+.tile .index {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+}
 
-    /* Where the proof is: pushed to the bottom of the tile. */
-    .tile .backing {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.25rem 1.5rem;
-        margin-top: auto;
-        padding-top: 1rem;
-        font-size: 0.9375rem;
-    }
+/* Where the proof is: pushed to the bottom of the tile. */
+.tile .backing {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.5rem;
+    margin-top: auto;
+    padding-top: 1rem;
+    font-size: 0.9375rem;
+}
 
-    /* The first tile is the largest and carries the palette's two colours as a glow. */
-    .tile.lead {
-        justify-content: flex-end;
-        min-height: 20rem;
-        background:
-            radial-gradient(24rem 16rem at 100% 0%, color-mix(in oklch, var(--counter) 30%, transparent), transparent 70%),
-            radial-gradient(20rem 14rem at 0% 0%, color-mix(in oklch, var(--accent) 26%, transparent), transparent 70%),
-            var(--glass-tint);
-    }
+/* The first tile is the largest and carries the palette's two colours as a glow. */
+.tile.lead {
+    justify-content: flex-end;
+    min-height: 20rem;
+    background:
+        radial-gradient(24rem 16rem at 100% 0%, color-mix(in oklch, var(--counter) 30%, transparent), transparent 70%),
+        radial-gradient(20rem 14rem at 0% 0%, color-mix(in oklch, var(--accent) 26%, transparent), transparent 70%),
+        var(--glass-tint);
+}
 
-        .tile.lead h3 {
-            font-size: clamp(1.5rem, 2.6vw, 2.125rem);
-            letter-spacing: -0.03em;
-        }
+.tile.lead h3 {
+    font-size: clamp(1.5rem, 2.6vw, 2.125rem);
+    letter-spacing: -0.03em;
+}
 
-        .tile.lead .backing {
-            margin-top: 0;
-        }
+.tile.lead .backing {
+    margin-top: 0;
+}
 
-    .tile.figure .big {
-        background: linear-gradient(100deg in oklch, var(--accent), var(--counter));
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-        font-size: 4rem;
-        font-weight: 750;
-        line-height: 1;
-        letter-spacing: -0.05em;
-    }
+.tile.figure .big {
+    background: linear-gradient(100deg in oklch, var(--accent), var(--counter));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-size: 4rem;
+    font-weight: 750;
+    line-height: 1;
+    letter-spacing: -0.05em;
+}
 
 /* Skills as plain lines of text in columns, not as a wall of pills. */
 .toolbox dl {
@@ -393,32 +393,32 @@
     text-align: center;
 }
 
-    .band p {
-        margin: 0;
-    }
+.band p {
+    margin: 0;
+}
 
-    .band h2 {
-        max-width: 18ch;
-        margin: 0;
-        font-size: clamp(2rem, 5.4vw, 4rem);
-        font-weight: 800;
-        line-height: 1.02;
-        letter-spacing: -0.045em;
-        text-wrap: balance;
-    }
+.band h2 {
+    max-width: 18ch;
+    margin: 0;
+    font-size: clamp(2rem, 5.4vw, 4rem);
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -0.045em;
+    text-wrap: balance;
+}
 
-    .band .lede {
-        max-width: 34rem;
-        font-size: clamp(1rem, 1.4vw, 1.125rem);
-        color: var(--fg-muted);
-        text-wrap: pretty;
-    }
+.band .lede {
+    max-width: 34rem;
+    font-size: clamp(1rem, 1.4vw, 1.125rem);
+    color: var(--fg-muted);
+    text-wrap: pretty;
+}
 
-    .band .actions {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: center;
-        gap: 0.75rem 1.75rem;
-        margin-top: 1rem;
-    }
+.band .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem 1.75rem;
+    margin-top: 1rem;
+}
