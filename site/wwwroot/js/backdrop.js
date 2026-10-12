@@ -143,7 +143,7 @@
         return steps;
     };
 
-    let width = 0, height = 0, focal = 0, colours = ['#888', '#888'], dark = true, lastDraw = 0;
+    let width = 0, height = 0, centre = 0, focal = 0, colours = ['#888', '#888'], dark = true, lastDraw = 0;
     // Set once per frame: where the viewer is, and the head's slight sideways drift.
     let viewer = 0, swayX = 0, swayY = 0;
     // How far ahead can be seen. It opens up over the first second and a half, so the
@@ -160,6 +160,8 @@
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
         // A plane one step ahead just about fills the window, so you are inside it.
         focal = Math.max(width / 3.3, height / 2.05);
+        // On a wide screen the vanishing point sits to the right, clear of the headline.
+        centre = width * (width >= 900 ? 0.7 : 0.5);
     };
 
     // The palette's two colours, as currently resolved by the stylesheet.
@@ -173,7 +175,7 @@
     const smooth = (x) => { x = clamp(x); return x * x * (3 - 2 * x); };
 
     // Perspective: a point at a given depth ahead of the viewer.
-    const project = (x, y, depth) => [width / 2 + (x - swayX) * focal / depth, height / 2 + (y - swayY) * focal / depth];
+    const project = (x, y, depth) => [centre + (x - swayX) * focal / depth, height / 2 + (y - swayY) * focal / depth];
     const see = (k, i) => { const [x, y] = spot(k, i); return project(x, y, k - viewer); };
     // Faint in the distance, and fading out as a plane passes the viewer.
     const haze = (depth) => clamp((sight - depth) / 3.5) * clamp((depth - 0.12) / 0.45);
