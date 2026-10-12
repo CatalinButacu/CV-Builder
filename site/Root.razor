@@ -1,0 +1,39 @@
+@* The document every page is rendered into: head, background, layout and the page itself. *@
+<!DOCTYPE html>
+<html lang="en" data-palettes="@string.Join(',', Site.Palettes)">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@Spec.Title</title>
+    <meta name="description" content="@Spec.Description" />
+    <base href="@Site.Base" />
+    <link rel="canonical" href="@Address" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="@Spec.Title" />
+    <meta property="og:description" content="@Spec.Description" />
+    <meta property="og:url" content="@Address" />
+    <meta name="theme-color" content="#f9f9fb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e0d14" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+    @* Styles and the theme script are inside the page: no extra requests before first paint. *@
+    @((MarkupString)$"<style>{Site.Css}</style>")
+    @((MarkupString)$"<script>{Site.ThemeScript}</script>")
+    <script src="js/backdrop.js" defer></script>
+</head>
+<body>
+    <div class="backdrop" aria-hidden="true"><canvas></canvas></div>
+    @* The page's own address is spelled out because of the base tag above. *@
+    <a class="skip" href="@(Spec.Path == "404.html" ? "" : Spec.Path)#main">Skip to content</a>
+
+    <LayoutView Layout="typeof(MainLayout)">
+        <DynamicComponent Type="Spec.Component" Parameters="Spec.Parameters" />
+    </LayoutView>
+</body>
+</html>
+
+@code {
+    [Parameter, EditorRequired] public PageSpec Spec { get; set; } = default!;
+
+    private string Address => Site.Origin + Site.Base + (Spec.Path == "404.html" ? "" : Spec.Path);
+}

@@ -1,7 +1,5 @@
 @page "/"
 
-<PageTitle>Cătălin Butacu · ML & Software Engineer</PageTitle>
-
 <section class="hero">
     <div class="hero-grid" aria-hidden="true"></div>
 
@@ -9,7 +7,7 @@
         <div class="hero-cols">
             <div class="hero-copy">
                 <div class="hero-kicker">
-                    <img class="portrait" src="profile.png" alt="Portrait of Cătălin Butacu" width="88" height="88" />
+                    <img class="portrait" src="img/portrait.jpg" alt="Portrait of Cătălin Butacu" width="88" height="88" fetchpriority="high" />
                     <Badge Variant="accent">ML & Software Engineer</Badge>
                     <span class="mono-label">Iași, Romania</span>
                 </div>
@@ -29,9 +27,8 @@
                 </p>
 
                 <div class="hero-cta">
-                    <a class="btn primary lg" href="projects">View my work →</a>
+                    <a class="btn primary lg" href="projects/">View my work →</a>
                     <a class="btn secondary lg" href="#contact">Get in touch</a>
-                    @* target="_blank" also keeps the Blazor router from treating this as a page. *@
                     <a class="btn secondary lg" href="cv.pdf" target="_blank" rel="noopener">Download CV</a>
                 </div>
             </div>
@@ -54,7 +51,7 @@
 <Section Id="projects" Eyebrow="Selected work" Title="Projects"
          Subtitle="@($"{ProjectCatalog.All.Length} projects across generative AI, computer vision, security and optimisation.")">
     <Action>
-        <a class="btn secondary" href="projects">View all projects</a>
+        <a class="btn secondary" href="projects/">View all projects</a>
     </Action>
     <ChildContent>
         <ul class="project-grid">

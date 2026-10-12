@@ -39,29 +39,18 @@ jobs:
         id: pages
         uses: actions/configure-pages@v5
 
-      - name: Publish Blazor WebAssembly site
-        run: dotnet publish site/Portfolio.csproj -c Release -o publish
-
-      # A project site lives under /<repo>/, and Pages serves 404.html for
-      # unknown paths, which lets the Blazor router handle deep links.
-      - name: Prepare for GitHub Pages
-        run: |
-          sed -i 's|<base href="/" />|<base href="${{ steps.pages.outputs.base_path }}/" />|' publish/wwwroot/index.html
-          grep -n '<base' publish/wwwroot/index.html
-          cp publish/wwwroot/index.html publish/wwwroot/404.html
-
-      # The portrait is the one the CV uses, taken from the repository root so
-      # there is a single copy of it.
-      - name: Add the CV photo
-        run: cp profile-preview.png publish/wwwroot/profile.png
+      # Renders every page to plain HTML. Nothing from .NET is sent to the browser.
+      - name: Generate the site
+        working-directory: site
+        run: dotnet run -c Release -- --base "${{ steps.pages.outputs.base_path }}/" --site "${{ steps.pages.outputs.origin }}" --out ../publish
 
       - name: Add the CV itself
-        run: cp CV_Butacu.Ionel-Catalin.pdf publish/wwwroot/cv.pdf
+        run: cp CV_Butacu.Ionel-Catalin.pdf publish/cv.pdf
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: publish/wwwroot
+          path: publish
 
   deploy:
     needs: build

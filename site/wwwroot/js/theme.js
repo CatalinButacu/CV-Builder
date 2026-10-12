@@ -1,17 +1,10 @@
-// Applies the saved colour mode and palette before first paint, so the page
-// never flashes the wrong theme. ThemeMenu.razor calls get() and set().
-window.theme = (() => {
-    // One css/palettes/<name>.css file each, linked in index.html.
-    const palettes = [
-        'cobalt-magenta',
-        'violet-cyan',
-        'emerald-indigo',
-        'tangerine-fuchsia',
-        'crimson-amber',
-        'teal-coral',
-    ];
-
+// Colour mode and palette. This script is placed inside every page's <head>,
+// so the saved theme applies before first paint and the page never flashes
+// the wrong colours. It also runs the theme menu in the header.
+(() => {
     const root = document.documentElement;
+    // The palette names, in rotation order, come from the page itself (Site.Palettes).
+    const palettes = (root.dataset.palettes || '').split(',').filter(Boolean);
     const system = matchMedia('(prefers-color-scheme: dark)');
 
     const read = (key, fallback) => {
@@ -33,25 +26,49 @@ window.theme = (() => {
         root.dataset.mode = dark ? 'dark' : 'light';
     };
 
-    // palette is 'rotate' or the name of a pinned palette.
-    const get = () => ({
-        mode: read('theme-mode', 'system'),
-        palette: read('theme-palette', 'rotate'),
-        active: root.dataset.palette,
-        palettes,
+    // `palette` is 'rotate' or the name of a pinned palette.
+    let mode = read('theme-mode', 'system');
+    let palette = read('theme-palette', 'rotate');
+    applyMode(mode);
+    root.dataset.palette = palettes.includes(palette) ? palette : nextInRotation();
+    system.addEventListener('change', () => applyMode(mode));
+
+    // --- The menu. Its markup arrives after this script, so wiring waits for the page.
+    document.addEventListener('DOMContentLoaded', () => {
+        const button = document.querySelector('.theme-button');
+        const panel = document.getElementById('theme-panel');
+        if (!button || !panel) return;
+
+        const show = () => {
+            for (const b of panel.querySelectorAll('[data-mode]')) b.setAttribute('aria-checked', String(b.dataset.mode === mode));
+            for (const b of panel.querySelectorAll('.swatch')) b.setAttribute('aria-checked', String(b.dataset.pick === root.dataset.palette));
+            panel.querySelector('[data-pick="rotate"]').setAttribute('aria-pressed', String(palette === 'rotate'));
+        };
+        const open = (yes) => {
+            panel.hidden = !yes;
+            button.setAttribute('aria-expanded', String(yes));
+        };
+
+        button.addEventListener('click', () => { show(); open(panel.hidden); });
+        panel.addEventListener('click', (event) => {
+            const choice = event.target.closest('[data-mode], [data-pick]');
+            if (!choice) return;
+            if (choice.dataset.mode) {
+                mode = choice.dataset.mode;
+                write('theme-mode', mode);
+                applyMode(mode);
+            } else {
+                // Picking a palette pins it; "rotate" keeps the current one until the next refresh.
+                palette = choice.dataset.pick;
+                write('theme-palette', palette);
+                if (palette !== 'rotate') root.dataset.palette = palette;
+            }
+            show();
+        });
+        // Clicking elsewhere, or Escape, closes it.
+        document.addEventListener('click', (event) => { if (!event.target.closest('.theme-menu')) open(false); });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !panel.hidden) { open(false); button.focus(); }
+        });
     });
-
-    const set = (mode, palette) => {
-        write('theme-mode', mode);
-        write('theme-palette', palette);
-        applyMode(mode);
-        if (palettes.includes(palette)) root.dataset.palette = palette;
-    };
-
-    const saved = get();
-    applyMode(saved.mode);
-    root.dataset.palette = palettes.includes(saved.palette) ? saved.palette : nextInRotation();
-    system.addEventListener('change', () => applyMode(get().mode));
-
-    return { get, set };
 })();

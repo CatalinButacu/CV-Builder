@@ -10,7 +10,7 @@
                     <ul aria-label="@year">
                         @foreach (var project in ProjectCatalog.All.Where(p => p.StartYear == year))
                         {
-                            <li><a class="entry" href="projects/@project.Slug">@project.Title</a></li>
+                            <li><a class="entry" href="projects/@(project.Slug)/">@project.Title</a></li>
                         }
                         @foreach (var milestone in Milestones.All.Where(m => m.Year == year))
                         {

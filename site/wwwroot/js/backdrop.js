@@ -354,7 +354,10 @@
     new MutationObserver(() => { readColours(); draw(); })
         .observe(root, { attributes: true, attributeFilter: ['data-mode', 'data-palette'] });
 
-    resize();
-    readColours();
-    begin();
+    // Start only once the page has loaded and the browser has a quiet moment,
+    // so drawing never competes with showing the content.
+    const start = () => { resize(); readColours(); begin(); };
+    const whenIdle = () => (window.requestIdleCallback ? requestIdleCallback(start, { timeout: 2500 }) : setTimeout(start, 600));
+    if (document.readyState === 'complete') whenIdle();
+    else addEventListener('load', whenIdle, { once: true });
 })();

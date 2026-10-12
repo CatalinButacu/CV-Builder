@@ -1,76 +1,34 @@
-@* Header control for colour mode and palette. The choice is stored by js/theme.js. *@
-@inject IJSRuntime JS
-
-<div class="theme-menu" @onkeydown="OnKeyDown">
-    <button type="button" class="theme-button" aria-label="Theme settings" aria-expanded="@(open ? "true" : "false")" @onclick="() => open = !open">
-        ◐
+@* Header control for colour mode and palette. The markup is static; js/theme.js
+   opens the panel, applies the choice and remembers it. *@
+<div class="theme-menu">
+    <button type="button" class="theme-button" aria-label="Theme settings" aria-expanded="false" aria-controls="theme-panel">
+        <span aria-hidden="true">◐</span>
     </button>
 
-    @if (open)
-    {
-        <div class="theme-panel surface">
-            <p class="mono-label">Mode</p>
-            <div class="segmented" role="radiogroup" aria-label="Colour mode">
-                @foreach (var option in Modes)
-                {
-                    <button type="button" role="radio" aria-checked="@(option == mode ? "true" : "false")" @onclick="() => Apply(option, palette)">
-                        @option
-                    </button>
-                }
-            </div>
-
-            <p class="mono-label">Palette</p>
-            <div class="swatches" role="radiogroup" aria-label="Colour palette">
-                @foreach (var option in palettes)
-                {
-                    <button type="button" role="radio" class="swatch" data-palette="@option" title="@Label(option)" aria-label="@Label(option)"
-                            aria-checked="@(option == active ? "true" : "false")" @onclick="() => Apply(mode, option)">
-                    </button>
-                }
-            </div>
-            <div class="segmented">
-                <button type="button" aria-pressed="@(palette == Rotate ? "true" : "false")" @onclick="() => Apply(mode, Rotate)">
-                    Change on every refresh
-                </button>
-            </div>
+    <div class="theme-panel surface" id="theme-panel" hidden>
+        <p class="mono-label" id="theme-mode-label">Mode</p>
+        <div class="segmented" role="radiogroup" aria-labelledby="theme-mode-label">
+            @foreach (var mode in Modes)
+            {
+                <button type="button" role="radio" aria-checked="false" data-mode="@mode">@mode</button>
+            }
         </div>
-    }
+
+        <p class="mono-label" id="theme-palette-label">Palette</p>
+        <div class="swatches" role="radiogroup" aria-labelledby="theme-palette-label">
+            @foreach (var palette in Site.Palettes)
+            {
+                // data-palette also gives the swatch that palette's own two colours.
+                <button type="button" role="radio" class="swatch" aria-checked="false" data-palette="@palette" data-pick="@palette"
+                        title="@palette.Replace('-', ' ')" aria-label="@palette.Replace('-', ' ')"></button>
+            }
+        </div>
+        <div class="segmented">
+            <button type="button" aria-pressed="false" data-pick="rotate">Change on every refresh</button>
+        </div>
+    </div>
 </div>
 
 @code {
-    private sealed record Prefs(string Mode, string Palette, string Active, string[] Palettes);
-
-    private const string Rotate = "rotate";
-
     private static readonly string[] Modes = ["system", "light", "dark"];
-
-    private bool open;
-    private string mode = "system";
-    private string palette = Rotate;
-    private string active = "";
-    private string[] palettes = [];
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender) return;
-
-        var saved = await JS.InvokeAsync<Prefs>("theme.get");
-        (mode, palette, active, palettes) = (saved.Mode, saved.Palette, saved.Active, saved.Palettes);
-        StateHasChanged();
-    }
-
-    // Picking a palette pins it; Rotate keeps the current one until the next refresh.
-    private async Task Apply(string newMode, string newPalette)
-    {
-        (mode, palette) = (newMode, newPalette);
-        if (newPalette != Rotate) active = newPalette;
-        await JS.InvokeVoidAsync("theme.set", mode, palette);
-    }
-
-    private static string Label(string name) => name.Replace('-', ' ');
-
-    private void OnKeyDown(KeyboardEventArgs e)
-    {
-        if (e.Key == "Escape") open = false;
-    }
 }

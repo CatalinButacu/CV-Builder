@@ -91,6 +91,33 @@ body::before {
         height: 100%;
     }
 
+/* Anything marked hidden stays hidden, whatever its display rule says. */
+[hidden] {
+    display: none !important;
+}
+
+/* The first thing a keyboard user reaches: jump past the header. */
+.skip {
+    position: absolute;
+    left: -9999px;
+}
+
+    .skip:focus {
+        left: 1rem;
+        top: 1rem;
+        z-index: 100;
+        padding: 0.5rem 0.875rem;
+        border-radius: 0.5rem;
+        background: var(--surface);
+        color: var(--fg);
+        box-shadow: var(--shadow-elev-2);
+    }
+
+/* A soft cross-fade between pages, where the browser supports it. */
+@view-transition {
+    navigation: auto;
+}
+
 ::selection {
     background: var(--accent);
     color: var(--accent-fg);

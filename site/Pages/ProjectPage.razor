@@ -2,19 +2,15 @@
 
 @if (Project is null)
 {
-    <PageTitle>Project not found · Cătălin Butacu</PageTitle>
-
     <Section Eyebrow="404" Title="Project not found" PageHeading="true"
              Subtitle="There is no project at this address.">
-        <a class="btn secondary" href="projects">← All projects</a>
+        <a class="btn secondary" href="projects/">← All projects</a>
     </Section>
 }
 else
 {
-    <PageTitle>@Project.Title · Cătălin Butacu</PageTitle>
-
     <article class="container-x detail">
-        <a class="back" href="projects">← All projects</a>
+        <a class="back" href="projects/">← All projects</a>
 
         <header class="detail-head">
             <ProjectCover Project="Project" />
