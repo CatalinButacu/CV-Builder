@@ -1,7 +1,8 @@
 @inherits LayoutComponentBase
 
 <header class="header surface">
-    <a class="brand" href="">
+    @* The name is hidden on narrow screens, so the link carries it as a label too. *@
+    <a class="brand" href="" aria-label="Cătălin Butacu, home">
         <span class="mark" aria-hidden="true">CB</span>
         <span>Cătălin Butacu</span>
     </a>

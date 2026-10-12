@@ -592,6 +592,12 @@
         flex-basis: 100%;
     }
 
+        /* A link inside a sentence must not be told apart by colour alone. */
+        .footer .credit a {
+            text-decoration: underline;
+            text-underline-offset: 0.2em;
+        }
+
 /* Project detail page */
 .detail {
     display: grid;
