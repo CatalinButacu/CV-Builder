@@ -1,0 +1,50 @@
+/* Anything marked hidden stays hidden, whatever its display rule says. */
+[hidden] {
+    display: none !important;
+}
+
+/* The first thing a keyboard user reaches: jump past the header. */
+.skip {
+    position: absolute;
+    left: -9999px;
+}
+
+.skip:focus {
+    left: 1rem;
+    top: 1rem;
+    z-index: 100;
+    padding: 0.5rem 0.875rem;
+    border-radius: 0.5rem;
+    background: var(--surface);
+    color: var(--fg);
+    box-shadow: var(--shadow-elev-2);
+}
+
+/* A soft cross-fade between pages, where the browser supports it. */
+@view-transition {
+    navigation: auto;
+}
+
+::selection {
+    background: var(--accent);
+    color: var(--accent-fg);
+}
+
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
+/* Blazor moves focus to the page heading after navigation; that is for screen
+   readers and should not draw a ring around the heading. */
+h1[tabindex="-1"]:focus {
+    outline: none;
+}
+
+.container-x {
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 6vw, 3.5rem);
+}

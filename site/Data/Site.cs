@@ -43,6 +43,12 @@ public static partial class Bundle
     private static readonly string[] Sheets =
     [
         "base.css",
+        "components/backdrop.css",
+        "components/helpers.css",
+        "components/surface.css",
+        "components/buttons.css",
+        "components/badges.css",
+        "components/section.css",
         "components.css",
         "home.css",
     ];

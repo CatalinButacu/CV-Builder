@@ -1,0 +1,60 @@
+/* Sections */
+.section {
+    position: relative;
+    scroll-margin-top: 6rem;
+    padding-block: clamp(4rem, 8vw, 6rem);
+    /* Sections below the screen are laid out only as they come near it. The
+       size is a stand-in until then, and the browser remembers the real one. */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 48rem;
+}
+
+.section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: clamp(3rem, 5vw, 4rem);
+}
+
+.section-head > div:first-child {
+    max-width: 42rem;
+}
+
+.section-eyebrow {
+    margin: 0 0 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+
+.section-title {
+    margin: 0;
+    font-size: clamp(1.875rem, 4vw, 3rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+    color: var(--fg);
+}
+
+.section-subtitle {
+    margin: 1rem 0 0;
+    font-size: clamp(1rem, 1.4vw, 1.125rem);
+    color: var(--fg-muted);
+    text-wrap: pretty;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}

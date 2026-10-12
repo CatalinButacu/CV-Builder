@@ -1,0 +1,65 @@
+/* Badges and chips */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.625rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    background: var(--surface-raised);
+    color: var(--fg-muted);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    white-space: nowrap;
+    box-shadow: var(--elev-inset);
+}
+
+.badge.accent {
+    background: var(--accent-soft);
+    border-color: transparent;
+    color: var(--accent);
+}
+
+.badge.success {
+    background: color-mix(in oklch, var(--success) 12%, transparent);
+    border-color: transparent;
+    color: var(--success);
+}
+
+.badge.warning {
+    background: color-mix(in oklch, var(--warning) 14%, transparent);
+    border-color: transparent;
+    color: var(--warning-fg);
+}
+
+.badge.outline {
+    background: transparent;
+    border-color: var(--line-strong);
+}
+
+.badge .dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.chip {
+    padding: 0.125rem 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    background: var(--surface-raised);
+    color: var(--fg-muted);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+}

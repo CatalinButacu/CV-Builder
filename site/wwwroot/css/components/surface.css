@@ -1,0 +1,70 @@
+/* Frosted glass: the surface colour is part see-through, and whatever lies
+   behind it is blurred, so text on top stays easy to read. The sheen runs
+   from a lighter top-left corner to a clearer bottom-right one. */
+.surface {
+    --glass-tint: color-mix(in oklch, var(--surface) var(--glass), transparent);
+    background: linear-gradient(135deg in oklch, color-mix(in oklch, var(--surface) calc(var(--glass) + 14%), transparent), var(--glass-tint));
+    border: 1px solid color-mix(in oklch, var(--line-strong) 55%, transparent);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.7);
+    backdrop-filter: blur(var(--glass-blur)) saturate(1.7);
+}
+
+/* Glass inside glass cannot see the page behind its parent, so it is nearly solid. */
+.surface .surface {
+    --glass: 90%;
+}
+
+/* Solid surfaces where blurring is not available, or the visitor asked for less transparency. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .surface {
+        background: var(--surface);
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .surface {
+        background: var(--surface);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+}
+
+.gradient-text {
+    background: linear-gradient(100deg in oklch, var(--accent) 10%, var(--counter) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* Accent-to-counter hairline that fades in on hover. */
+.gradient-border {
+    position: relative;
+}
+
+.gradient-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, var(--accent), transparent 40%, transparent 60%, var(--counter));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s var(--ease-out-expo);
+    pointer-events: none;
+}
+
+.gradient-border:hover::before,
+.gradient-border:focus-within::before {
+    opacity: 1;
+}
+
+.mono-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-subtle);
+}
