@@ -87,7 +87,11 @@ foreach (var source in Directory.EnumerateFiles(assets, "*", SearchOption.AllDir
     if (relative.StartsWith("css/") || relative == "js/theme.js") continue;
     var target = Path.Combine(outDir, relative);
     Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-    File.Copy(source, target, overwrite: true);
+    // Scripts lose their comment lines and indentation on the way: fewer bytes to download.
+    if (relative.EndsWith(".js"))
+        File.WriteAllLines(target, File.ReadLines(source).Select(line => line.Trim()).Where(line => line != "" && !line.StartsWith("//")));
+    else
+        File.Copy(source, target, overwrite: true);
 }
 
 // For search engines.
