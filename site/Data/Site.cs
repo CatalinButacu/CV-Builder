@@ -46,6 +46,7 @@ public static partial class Bundle
         files.AddRange(Site.Palettes.Select(name => Path.Combine(folder, "palettes", name + ".css")));
         files.Add(Path.Combine(folder, "base.css"));
         files.Add(Path.Combine(folder, "components.css"));
+        files.Add(Path.Combine(folder, "home.css"));
 
         var css = string.Join("\n", files.Select(File.ReadAllText));
         css = Comments().Replace(css, "");
