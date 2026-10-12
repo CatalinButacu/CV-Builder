@@ -117,7 +117,7 @@
         const name = (t) => run.vocab[t];
         const rows = [
             { formula: 'six letters to sort, then the answer so far', slabs: [slab('tokens', input.map((t) => [name(t)]), 'text')] },
-            { formula: 'the lookup tables', slabs: [slab('wte  token embedding', weights.wte, 'weight'), slab('wpe  position embedding', weights.wpe, 'weight')] },
+            { formula: 'token embedding wte, position embedding wpe', slabs: [slab('wte', weights.wte, 'weight'), slab('wpe', weights.wpe, 'weight')] },
             { formula: 'x = wte[token] + wpe[position]', slabs: [slab('x', result.embedded, 'value')] },
         ];
         weights.layers.forEach((layer, l) => {
@@ -157,7 +157,7 @@
         canvas.height = height * ratio;
         ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
         // The widest row (W proj beside x) should fit across the window.
-        cell = Math.max(2.6, Math.min(8, width * 0.86 / (112 * RIGHT), height / 62));
+        cell = Math.max(2.6, Math.min(11, width * 0.86 / (112 * RIGHT), height / 48));
         thick = cell * 1.8;
         gap = cell * 7;
     };
