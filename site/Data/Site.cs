@@ -39,14 +39,20 @@ public sealed class StaticNavigation : NavigationManager
 
 public static partial class Bundle
 {
+    // The stylesheets after the tokens and palettes, in the order they must cascade.
+    private static readonly string[] Sheets =
+    [
+        "base.css",
+        "components.css",
+        "home.css",
+    ];
+
     // Joins the stylesheets in dependency order and strips what a browser does not need.
     public static string Css(string folder)
     {
         var files = new List<string> { Path.Combine(folder, "tokens.css") };
         files.AddRange(Site.Palettes.Select(name => Path.Combine(folder, "palettes", name + ".css")));
-        files.Add(Path.Combine(folder, "base.css"));
-        files.Add(Path.Combine(folder, "components.css"));
-        files.Add(Path.Combine(folder, "home.css"));
+        files.AddRange(Sheets.Select(name => Path.Combine(folder, name)));
 
         var css = string.Join("\n", files.Select(File.ReadAllText));
         css = Comments().Replace(css, "");
