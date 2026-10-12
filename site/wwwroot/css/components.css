@@ -551,8 +551,14 @@
         }
 
 @media (max-width: 30rem) {
+    /* Out of sight on narrow screens, but still the link's name for a screen reader. */
     .brand span:last-child {
-        display: none;
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
     }
 }
 
