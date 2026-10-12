@@ -1,0 +1,28 @@
+@* One kind of work: its number, a sentence, and the projects that back it up. *@
+<li class="tile surface @(Lead ? "lead" : null)">
+    <span class="index" aria-hidden="true">@Number.ToString("00")</span>
+    <h3>@Capability.Title</h3>
+    <p>@Capability.Text</p>
+    <p class="backing">
+        @foreach (var slug in Capability.Proof)
+        {
+            var project = ProjectCatalog.Find(slug);
+            @if (project is not null)
+            {
+                <a class="text-link" href="projects/@(project.Slug)/">@project.Title</a>
+            }
+            else
+            {
+                <span>@slug</span>
+            }
+        }
+    </p>
+</li>
+
+@code {
+    [Parameter, EditorRequired] public Capability Capability { get; set; } = default!;
+    [Parameter] public int Number { get; set; }
+
+    // The lead tile is the largest in the grid.
+    [Parameter] public bool Lead { get; set; }
+}
