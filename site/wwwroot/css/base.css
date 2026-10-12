@@ -45,7 +45,6 @@ body {
     font-family: var(--font-sans);
     font-size: 1.0625rem;
     line-height: 1.6;
-    text-rendering: optimizeLegibility;
 }
 
 a {
@@ -313,6 +312,10 @@ h1[tabindex="-1"]:focus {
     position: relative;
     scroll-margin-top: 6rem;
     padding-block: clamp(4rem, 8vw, 6rem);
+    /* Sections below the screen are laid out only as they come near it. The
+       size is a stand-in until then, and the browser remembers the real one. */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 48rem;
 }
 
 .section-head {
