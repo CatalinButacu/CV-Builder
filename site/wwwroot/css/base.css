@@ -52,9 +52,9 @@ a {
     text-decoration: none;
 }
 
-    a:hover {
-        text-decoration: underline;
-    }
+a:hover {
+    text-decoration: underline;
+}
 
 /* The palette's colours as faint glows behind the top of the page only.
    They fade out before the reading sections, which sit on the plain page. */
@@ -86,11 +86,11 @@ body::before {
     pointer-events: none;
 }
 
-    .backdrop canvas {
-        display: block;
-        width: 100%;
-        height: 100%;
-    }
+.backdrop canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
 
 /* The background belongs to the top and the bottom of a page. As the page
    scrolls it fades out, stays away through the reading sections and returns
@@ -123,16 +123,16 @@ body::before {
     left: -9999px;
 }
 
-    .skip:focus {
-        left: 1rem;
-        top: 1rem;
-        z-index: 100;
-        padding: 0.5rem 0.875rem;
-        border-radius: 0.5rem;
-        background: var(--surface);
-        color: var(--fg);
-        box-shadow: var(--shadow-elev-2);
-    }
+.skip:focus {
+    left: 1rem;
+    top: 1rem;
+    z-index: 100;
+    padding: 0.5rem 0.875rem;
+    border-radius: 0.5rem;
+    background: var(--surface);
+    color: var(--fg);
+    box-shadow: var(--shadow-elev-2);
+}
 
 /* A soft cross-fade between pages, where the browser supports it. */
 @view-transition {
@@ -174,10 +174,10 @@ h1[tabindex="-1"]:focus {
     backdrop-filter: blur(var(--glass-blur)) saturate(1.7);
 }
 
-    /* Glass inside glass cannot see the page behind its parent, so it is nearly solid. */
-    .surface .surface {
-        --glass: 90%;
-    }
+/* Glass inside glass cannot see the page behind its parent, so it is nearly solid. */
+.surface .surface {
+    --glass: 90%;
+}
 
 /* Solid surfaces where blurring is not available, or the visitor asked for less transparency. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
@@ -206,25 +206,25 @@ h1[tabindex="-1"]:focus {
     position: relative;
 }
 
-    .gradient-border::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        padding: 1px;
-        background: linear-gradient(135deg, var(--accent), transparent 40%, transparent 60%, var(--counter));
-        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-        -webkit-mask-composite: xor;
-        mask-composite: exclude;
-        opacity: 0;
-        transition: opacity 0.3s var(--ease-out-expo);
-        pointer-events: none;
-    }
+.gradient-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, var(--accent), transparent 40%, transparent 60%, var(--counter));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s var(--ease-out-expo);
+    pointer-events: none;
+}
 
-    .gradient-border:hover::before,
-    .gradient-border:focus-within::before {
-        opacity: 1;
-    }
+.gradient-border:hover::before,
+.gradient-border:focus-within::before {
+    opacity: 1;
+}
 
 .mono-label {
     font-family: var(--font-mono);
@@ -250,42 +250,42 @@ h1[tabindex="-1"]:focus {
     transition: box-shadow 0.2s var(--ease-out-expo), transform 0.2s var(--ease-out-expo), background-color 0.2s var(--ease-out-expo);
 }
 
-    .btn:hover {
-        text-decoration: none;
-    }
+.btn:hover {
+    text-decoration: none;
+}
 
-    .btn:active {
-        transform: translateY(1px);
-    }
+.btn:active {
+    transform: translateY(1px);
+}
 
-    .btn.lg {
-        min-height: 3.25rem;
-        padding-inline: 2rem;
-        font-size: 1rem;
-    }
+.btn.lg {
+    min-height: 3.25rem;
+    padding-inline: 2rem;
+    font-size: 1rem;
+}
 
-    .btn.primary {
-        background: var(--accent);
-        color: var(--accent-fg);
-        box-shadow: var(--shadow-elev-1);
-    }
+.btn.primary {
+    background: var(--accent);
+    color: var(--accent-fg);
+    box-shadow: var(--shadow-elev-1);
+}
 
-        .btn.primary:hover {
-            background: var(--accent-strong);
-            box-shadow: var(--shadow-elev-2);
-        }
+.btn.primary:hover {
+    background: var(--accent-strong);
+    box-shadow: var(--shadow-elev-2);
+}
 
-    .btn.secondary {
-        background: var(--surface);
-        border: 1px solid var(--line);
-        color: var(--fg);
-    }
+.btn.secondary {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--fg);
+}
 
-        .btn.secondary:hover {
-            border-color: var(--line-strong);
-            background: var(--surface-raised);
-            box-shadow: var(--shadow-elev-1);
-        }
+.btn.secondary:hover {
+    border-color: var(--line-strong);
+    background: var(--surface-raised);
+    box-shadow: var(--shadow-elev-1);
+}
 
 /* Badges and chips */
 .badge {
@@ -304,35 +304,35 @@ h1[tabindex="-1"]:focus {
     box-shadow: var(--elev-inset);
 }
 
-    .badge.accent {
-        background: var(--accent-soft);
-        border-color: transparent;
-        color: var(--accent);
-    }
+.badge.accent {
+    background: var(--accent-soft);
+    border-color: transparent;
+    color: var(--accent);
+}
 
-    .badge.success {
-        background: color-mix(in oklch, var(--success) 12%, transparent);
-        border-color: transparent;
-        color: var(--success);
-    }
+.badge.success {
+    background: color-mix(in oklch, var(--success) 12%, transparent);
+    border-color: transparent;
+    color: var(--success);
+}
 
-    .badge.warning {
-        background: color-mix(in oklch, var(--warning) 14%, transparent);
-        border-color: transparent;
-        color: var(--warning-fg);
-    }
+.badge.warning {
+    background: color-mix(in oklch, var(--warning) 14%, transparent);
+    border-color: transparent;
+    color: var(--warning-fg);
+}
 
-    .badge.outline {
-        background: transparent;
-        border-color: var(--line-strong);
-    }
+.badge.outline {
+    background: transparent;
+    border-color: var(--line-strong);
+}
 
-    .badge .dot {
-        width: 0.5rem;
-        height: 0.5rem;
-        border-radius: 50%;
-        background: currentColor;
-    }
+.badge .dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: currentColor;
+}
 
 .chips {
     display: flex;
@@ -373,9 +373,9 @@ h1[tabindex="-1"]:focus {
     margin-bottom: clamp(3rem, 5vw, 4rem);
 }
 
-    .section-head > div:first-child {
-        max-width: 42rem;
-    }
+.section-head > div:first-child {
+    max-width: 42rem;
+}
 
 .section-eyebrow {
     margin: 0 0 0.75rem;
