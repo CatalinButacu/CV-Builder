@@ -7,7 +7,7 @@
         .then((response) => (response.ok ? response.json() : null))
         .then((data) => {
             if (!data?.count) return;
-            slot.textContent = ` · ${data.count} visits`;
+            slot.textContent = ` · visited ${data.count} times`;
             slot.hidden = false;
         })
         .catch(() => { });
