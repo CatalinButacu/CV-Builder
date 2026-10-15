@@ -9,6 +9,7 @@ on:
     paths-ignore:
       - site/**
       - .github/workflows/deploy-site.yml
+      - aws/**
   pull_request:
     branches:
       - cpp-software-engineer
@@ -16,6 +17,7 @@ on:
     paths-ignore:
       - site/**
       - .github/workflows/deploy-site.yml
+      - aws/**
 
 jobs:
   build-and-deploy:
