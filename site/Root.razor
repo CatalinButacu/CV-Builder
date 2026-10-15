@@ -20,8 +20,7 @@
     @((MarkupString)$"<style>{Site.Css}</style>")
     @((MarkupString)$"<script>{Site.ThemeScript}</script>")
     <script src="js/backdrop-start.js" defer></script>
-    @* Visitor counts, private dashboard at catalinbutacu.goatcounter.com. No cookies, no personal data. *@
-    <script data-goatcounter="https://catalinbutacu.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+    @* Counts the visit and shows the total, through our own function (aws/visit-counter). No cookies. *@
     <script src="js/visits.js" defer></script>
 </head>
 <body>
