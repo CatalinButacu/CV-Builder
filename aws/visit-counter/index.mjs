@@ -1,74 +1,88 @@
-// Visit counter for the portfolio site, run as an AWS Lambda behind a Function URL.
-//
-// The site sends its visits here instead of straight to GoatCounter, so blockers
-// that stop requests to goatcounter.com do not stop the count. The function
-// forwards each visit to GoatCounter's API with the visitor's address and
-// browser, which GoatCounter needs to tell one person from another, and hands
-// the site's total back for the footer.
-//
-//   POST /count   body {"path", "title", "ref"} as text   -> 202
-//   GET  /total                                           -> {"count": "1,234"}
-//
-// Settings (Lambda environment variables):
-//   GOATCOUNTER_SITE    e.g. https://catalinbutacu.goatcounter.com
-//   GOATCOUNTER_TOKEN   API key with the "Record pageviews" permission
-//   ALLOWED_ORIGIN      e.g. https://catalinbutacu.github.io
+import { DynamoDBClient, UpdateItemCommand } from '@aws-sdk/client-dynamodb';
 
-const reply = (statusCode, body, headers = {}) => ({
-    statusCode,
-    headers: { 'content-type': 'application/json', ...headers },
-    body: body === undefined ? '' : JSON.stringify(body),
-});
+// Retrying an increment after a lost response could count the same visit twice.
+const database = new DynamoDBClient({ maxAttempts: 1 });
 
-// The visit as the page describes it. Anything malformed is refused, not repaired.
-const readVisit = (event) => {
-    let text = event.body ?? '';
-    if (event.isBase64Encoded) text = Buffer.from(text, 'base64').toString('utf8');
-    if (text.length > 2000) return null;
-    let visit;
-    try { visit = JSON.parse(text); } catch { return null; }
-    const short = (value, max) => typeof value === 'string' && value.length <= max;
-    if (!short(visit?.path, 300) || !visit.path.startsWith('/')) return null;
-    if (visit.title !== undefined && !short(visit.title, 300)) return null;
-    if (visit.ref !== undefined && !short(visit.ref, 500)) return null;
-    return { path: visit.path, title: visit.title ?? '', ref: visit.ref ?? '' };
+function jsonResponse(statusCode, body) {
+    return {
+        statusCode,
+        headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
+        body: JSON.stringify(body),
+    };
+}
+
+function decodeBody(event) {
+    const body = event.body ?? '';
+    if (typeof body !== 'string' || body.length > 4000) return undefined;
+    const json = event.isBase64Encoded ? Buffer.from(body, 'base64').toString('utf8') : body;
+    return json.length <= 2000 ? json : undefined;
+}
+
+function parseBody(json) {
+    if (json === undefined) return undefined;
+    try {
+        return JSON.parse(json);
+    } catch {
+        return undefined;
+    }
+}
+
+function isPagePath(path) {
+    return typeof path === 'string' && path.length <= 300
+        && path.startsWith('/') && !/[?#\s]/.test(path);
+}
+
+function validateRequest(event, tableName, allowedOrigin) {
+    if (!tableName || !allowedOrigin) {
+        console.error('Visit counter: TABLE_NAME and ALLOWED_ORIGIN must be configured');
+        return jsonResponse(500, { error: 'configuration' });
+    }
+    if (event.headers?.origin !== allowedOrigin) {
+        return jsonResponse(403, { error: 'origin' });
+    }
+    const { method, path } = event.requestContext?.http ?? {};
+    if (method !== 'POST' || path !== '/count') {
+        return jsonResponse(404, { error: 'route' });
+    }
+}
+
+function incrementCommand(tableName, pagePath) {
+    return new UpdateItemCommand({
+        TableName: tableName,
+        Key: { path: { S: pagePath } },
+        UpdateExpression: 'ADD visits :one',
+        ExpressionAttributeValues: { ':one': { N: '1' } },
+        ReturnValues: 'UPDATED_NEW',
+    });
+}
+
+function readCount(result) {
+    const count = result.Attributes?.visits?.N;
+    if (typeof count !== 'string' || !/^\d+$/.test(count)) {
+        throw new Error('Invalid stored visit count');
+    }
+    return count;
+}
+
+async function recordVisit(dynamoDb, tableName, pagePath) {
+    try {
+        const command = incrementCommand(tableName, pagePath);
+        const result = await dynamoDb.send(command, { abortSignal: AbortSignal.timeout(3000) });
+        return jsonResponse(200, { count: readCount(result) });
+    } catch (error) {
+        console.error('Visit counter database request failed:', error);
+        return jsonResponse(503, { error: 'counter unavailable' });
+    }
+}
+
+export const createHandler = (dynamoDb) => async (event) => {
+    const { TABLE_NAME, ALLOWED_ORIGIN } = process.env;
+    const error = validateRequest(event, TABLE_NAME, ALLOWED_ORIGIN);
+    if (error) return error;
+
+    const pagePath = parseBody(decodeBody(event))?.path;
+    if (!isPagePath(pagePath)) return jsonResponse(400, { error: 'path' });
+    return recordVisit(dynamoDb, TABLE_NAME, pagePath);
 };
 
-export const handler = async (event) => {
-    const { GOATCOUNTER_SITE: site, GOATCOUNTER_TOKEN: token, ALLOWED_ORIGIN: allowed } = process.env;
-    const http = event.requestContext?.http ?? {};
-
-    // Browsers always send Origin on these cross-site calls; anything else is not the site.
-    if ((event.headers?.origin ?? '') !== allowed) return reply(403, { error: 'origin' });
-
-    if (http.method === 'POST' && http.path === '/count') {
-        const visit = readVisit(event);
-        if (!visit) return reply(400, { error: 'visit' });
-        const response = await fetch(`${site}/api/v0/count`, {
-            method: 'POST',
-            headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
-            body: JSON.stringify({
-                no_sessions: false,
-                hits: [{ ...visit, ip: http.sourceIp, user_agent: http.userAgent ?? event.headers?.['user-agent'] ?? '' }],
-            }),
-        });
-        if (!response.ok) {
-            console.error('goatcounter count', response.status, await response.text());
-            return reply(502, { error: 'upstream' });
-        }
-        return reply(202);
-    }
-
-    if (http.method === 'GET' && http.path === '/total') {
-        const response = await fetch(`${site}/counter/TOTAL.json`);
-        if (!response.ok) {
-            console.error('goatcounter total', response.status);
-            return reply(502, { error: 'upstream' });
-        }
-        const { count } = await response.json();
-        // Browsers keep the total for five minutes, so busy pages do not call the function every time.
-        return reply(200, { count }, { 'cache-control': 'public, max-age=300' });
-    }
-
-    return reply(404, { error: 'route' });
-};
+export const handler = createHandler(database);

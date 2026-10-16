@@ -32,6 +32,15 @@ var outDir = Path.GetFullPath(Arg("--out") ?? "dist");
 Site.Base = "/" + (Arg("--base") ?? "/").Trim('/') + "/";
 if (Site.Base == "//") Site.Base = "/";
 Site.Origin = (Arg("--site") ?? "https://catalinbutacu.github.io").TrimEnd('/');
+Site.CounterUrl = (Environment.GetEnvironmentVariable("VISIT_COUNTER_URL") ?? "").Trim().TrimEnd('/');
+if (Site.CounterUrl != "" && (!Uri.TryCreate(Site.CounterUrl, UriKind.Absolute, out var counterUri)
+    || counterUri.Scheme != Uri.UriSchemeHttps || counterUri.AbsolutePath != "/"
+    || counterUri.Query != "" || counterUri.Fragment != "" || counterUri.UserInfo != ""))
+{
+    Console.Error.WriteLine("VISIT_COUNTER_URL must be an HTTPS origin, with no path, query, or credentials.");
+    return 1;
+}
+if (Site.CounterUrl == "") Console.WriteLine("Visit counter disabled: VISIT_COUNTER_URL is not set.");
 Site.Css = Bundle.Css(Path.Combine(assets, "css"));
 Site.ThemeScript = File.ReadAllText(Path.Combine(assets, "js", "theme.js"));
 

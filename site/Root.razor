@@ -20,8 +20,10 @@
     @((MarkupString)$"<style>{Site.Css}</style>")
     @((MarkupString)$"<script>{Site.ThemeScript}</script>")
     <script src="js/backdrop-start.js" defer></script>
-    @* Counts the visit and shows the total, through our own function (aws/visit-counter). No cookies. *@
-    <script src="js/visits.js" defer></script>
+    @if (Site.CounterUrl != "" && Spec.Path != "404.html")
+    {
+        <script src="js/visits.js" data-counter="@Site.CounterUrl" data-page="@(Site.Base + Spec.Path)" defer></script>
+    }
 </head>
 <body>
     <div class="backdrop" aria-hidden="true"><canvas></canvas></div>

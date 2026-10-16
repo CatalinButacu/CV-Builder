@@ -1,43 +1,67 @@
-// Self-check for the visit counter, with GoatCounter replaced by a stub.
-//   node aws/visit-counter/test.mjs
 import assert from 'node:assert/strict';
-import { handler } from './index.mjs';
+import { readFile } from 'node:fs/promises';
+import vm from 'node:vm';
+import { createHandler } from './index.mjs';
 
-process.env.GOATCOUNTER_SITE = 'https://example.goatcounter.com';
-process.env.GOATCOUNTER_TOKEN = 'secret';
+process.env.TABLE_NAME = 'portfolio-visits';
 process.env.ALLOWED_ORIGIN = 'https://catalinbutacu.github.io';
-
-const sent = [];
-globalThis.fetch = async (url, options = {}) => {
-    sent.push({ url, options });
-    if (url.endsWith('/counter/TOTAL.json')) return new Response(JSON.stringify({ count: '1,234' }));
-    return new Response('', { status: 202 });
-};
-
-const event = (method, path, body, origin = 'https://catalinbutacu.github.io') => ({
-    headers: { origin, 'user-agent': 'Mozilla/5.0' },
-    requestContext: { http: { method, path, sourceIp: '203.0.113.7', userAgent: 'Mozilla/5.0' } },
-    body,
+const items = new Map();
+const handler = createHandler({ async send({ input }) {
+    assert.equal(input.TableName, 'portfolio-visits');
+    assert.equal(input.UpdateExpression, 'ADD visits :one');
+    assert.deepEqual(input.ExpressionAttributeValues, { ':one': { N: '1' } });
+    assert.equal(input.ReturnValues, 'UPDATED_NEW');
+    const path = input.Key.path.S;
+    items.set(path, (items.get(path) ?? 0n) + 1n);
+    return { Attributes: { visits: { N: String(items.get(path)) } } };
+} });
+const event = (path) => ({
+    headers: { origin: process.env.ALLOWED_ORIGIN },
+    requestContext: { http: { method: 'POST', path: '/count' } },
+    body: JSON.stringify({ path }),
 });
+for (const [path, count] of [['/', '1'], ['/', '2'], ['/about/', '1']]) {
+    const result = await handler(event(path));
+    assert.equal(result.statusCode, 200);
+    assert.equal(result.headers['cache-control'], 'no-store');
+    assert.deepEqual(JSON.parse(result.body), { count });
+}
+for (const body of ['null', 'bad json', '{}', '{"path":"no-slash"}', 'x'.repeat(4001)]) {
+    assert.equal((await handler({ ...event('/'), body })).statusCode, 400);
+}
+assert.equal((await handler({ ...event('/'), headers: {} })).statusCode, 403);
+assert.equal((await handler({ ...event('/'), requestContext: {} })).statusCode, 404);
+const encoded = { ...event('/'), isBase64Encoded: true, body: Buffer.from('{"path":"/"}').toString('base64') };
+assert.equal(JSON.parse((await handler(encoded)).body).count, '3');
+assert.equal((await createHandler({ send: async () => { throw new Error('test failure'); } })(event('/'))).statusCode, 503);
+assert.equal((await createHandler({ send: async () => ({}) })(event('/'))).statusCode, 503);
 
-// A visit is forwarded with the visitor's address and browser, and the key.
-let result = await handler(event('POST', '/count', JSON.stringify({ path: '/CV-Builder/', title: 'Home', ref: '' })));
-assert.equal(result.statusCode, 202);
-const hit = JSON.parse(sent[0].options.body).hits[0];
-assert.deepEqual(hit, { path: '/CV-Builder/', title: 'Home', ref: '', ip: '203.0.113.7', user_agent: 'Mozilla/5.0' });
-assert.equal(sent[0].options.headers.authorization, 'Bearer secret');
-
-// The total comes back for the footer.
-result = await handler(event('GET', '/total'));
-assert.equal(result.statusCode, 200);
-assert.deepEqual(JSON.parse(result.body), { count: '1,234' });
-
-// Refused: other sites, malformed visits, unknown routes.
-assert.equal((await handler(event('POST', '/count', '{"path":"/"}', 'https://evil.example'))).statusCode, 403);
-assert.equal((await handler(event('POST', '/count', 'not json'))).statusCode, 400);
-assert.equal((await handler(event('POST', '/count', JSON.stringify({ path: 'no-slash' })))).statusCode, 400);
-assert.equal((await handler(event('POST', '/count', JSON.stringify({ path: '/' + 'x'.repeat(400) })))).statusCode, 400);
-assert.equal((await handler(event('GET', '/nope'))).statusCode, 404);
-assert.equal(sent.length, 2, 'refused requests must not reach GoatCounter');
-
+const script = await readFile(new URL('../../site/wwwroot/js/visits.js', import.meta.url), 'utf8');
+for (const mode of ['success', 'failure', 'invalid', 'doNotTrack', 'globalPrivacyControl', 'webdriver']) {
+    const slot = { hidden: true };
+    const requests = [], warnings = [];
+    vm.runInNewContext(script, {
+        navigator: { [mode]: mode === 'doNotTrack' ? '1' : true },
+        document: {
+            currentScript: { dataset: { counter: 'https://counter.example', page: '/about/' } },
+            querySelector: () => slot,
+        },
+        console: { warn: (...args) => warnings.push(args) },
+        fetch: (url, options) => {
+            requests.push({ url, options });
+            return Promise.resolve(new Response(JSON.stringify({ count: mode === 'invalid' ? 'bad' : '1234' }),
+                { status: mode === 'failure' ? 503 : 200 }));
+        },
+    });
+    await new Promise((resolve) => setImmediate(resolve));
+    const skipped = ['doNotTrack', 'globalPrivacyControl', 'webdriver'].includes(mode);
+    assert.equal(requests.length, skipped ? 0 : 1);
+    assert.equal(slot.hidden, skipped);
+    if (skipped) continue;
+    assert.equal(requests[0].url, 'https://counter.example/count');
+    assert.equal(requests[0].options.method, 'POST');
+    assert.equal(requests[0].options.body, '{"path":"/about/"}');
+    assert.equal(slot.textContent, mode === 'success' ? ' · 1,234 visits to this page' : ' · visit count unavailable');
+    assert.equal(warnings.length, mode === 'success' ? 0 : 1);
+}
 console.log('visit counter: all checks passed');

@@ -69,6 +69,7 @@ Makefile
 # .NET build output
 bin/
 obj/
+node_modules/
 # Playwright CLI output (may contain credentials)
 .playwright-cli/
 .playwright/

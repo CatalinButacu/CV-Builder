@@ -15,6 +15,8 @@ public static class Site
     // Scheme and host, without a trailing slash.
     public static string Origin { get; set; } = "";
 
+    public static string CounterUrl { get; set; } = "";
+
     // Every stylesheet, joined and minified, placed inside each page.
     public static string Css { get; set; } = "";
 

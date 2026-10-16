@@ -42,6 +42,8 @@ jobs:
       # Renders every page to plain HTML. Nothing from .NET is sent to the browser.
       - name: Generate the site
         working-directory: site
+        env:
+          VISIT_COUNTER_URL: ${{ vars.VISIT_COUNTER_URL }}
         run: dotnet run -c Release -- --base "${{ steps.pages.outputs.base_path }}/" --site "${{ steps.pages.outputs.origin }}" --out ../publish
 
       - name: Add the CV itself

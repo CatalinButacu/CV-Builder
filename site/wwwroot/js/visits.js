@@ -1,29 +1,28 @@
-// Counts this visit and shows the site's total in the footer. Both go through
-// our own counter function (aws/visit-counter), which passes them to
-// GoatCounter, so blockers that stop goatcounter.com stop neither.
+// One request records the visit and returns the updated DynamoDB count.
 (() => {
-    const counter = 'https://REPLACE-WITH-FUNCTION-URL.lambda-url.eu-central-1.on.aws';
-
-    // Not counted: automated browsers, and visitors who ask not to be tracked.
-    const skip = navigator.webdriver || navigator.globalPrivacyControl || navigator.doNotTrack === '1';
-    if (!skip) {
-        // A plain-text body keeps this a simple request, with no CORS preflight.
-        fetch(`${counter}/count`, {
-            method: 'POST',
-            keepalive: true,
-            body: JSON.stringify({ path: location.pathname, title: document.title, ref: document.referrer }),
-        }).catch(() => { });
-    }
-
-    // If the total cannot be read, the footer simply goes without it.
+    if (navigator.webdriver || navigator.globalPrivacyControl || navigator.doNotTrack === '1') return;
+    const { counter, page } = document.currentScript.dataset;
     const slot = document.querySelector('.footer .visits');
     if (!slot) return;
-    fetch(`${counter}/total`)
-        .then((response) => (response.ok ? response.json() : null))
+
+    fetch(`${counter}/count`, {
+        method: 'POST',
+        keepalive: true,
+        body: JSON.stringify({ path: page }),
+    })
+        .then((response) => {
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+        })
         .then((data) => {
-            if (!data?.count) return;
-            slot.textContent = ` · visited ${data.count} times`;
+            if (typeof data?.count !== 'string' || !/^\d+$/.test(data.count)) throw new Error('Invalid visit count');
+            const count = BigInt(data.count).toLocaleString('en-US');
+            slot.textContent = ` · ${count} visits to this page`;
             slot.hidden = false;
         })
-        .catch(() => { });
+        .catch((error) => {
+            console.warn('Page visit count unavailable:', error);
+            slot.textContent = ' · visit count unavailable';
+            slot.hidden = false;
+        });
 })();
