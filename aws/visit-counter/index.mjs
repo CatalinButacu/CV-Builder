@@ -1,4 +1,4 @@
-import { DynamoDBClient, UpdateItemCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, GetItemCommand, UpdateItemCommand } from '@aws-sdk/client-dynamodb';
 
 // Retrying an increment after a lost response could count the same visit twice.
 const database = new DynamoDBClient({ maxAttempts: 1 });
@@ -41,7 +41,7 @@ function validateRequest(event, tableName, allowedOrigin) {
         return jsonResponse(403, { error: 'origin' });
     }
     const { method, path } = event.requestContext?.http ?? {};
-    if (method !== 'POST' || path !== '/count') {
+    if (!(method === 'POST' && path === '/count') && !(method === 'GET' && path === '/total')) {
         return jsonResponse(404, { error: 'route' });
     }
 }
@@ -56,19 +56,28 @@ function incrementCommand(tableName, pagePath) {
     });
 }
 
-function readCount(result) {
-    const count = result.Attributes?.visits?.N;
+function readCommand(tableName, pagePath) {
+    return new GetItemCommand({
+        TableName: tableName,
+        Key: { path: { S: pagePath } },
+        ConsistentRead: true,
+    });
+}
+
+function readCount(result, readOnly) {
+    const count = readOnly && !result.Item ? '0'
+        : (readOnly ? result.Item : result.Attributes)?.visits?.N;
     if (typeof count !== 'string' || !/^\d+$/.test(count)) {
         throw new Error('Invalid stored visit count');
     }
     return count;
 }
 
-async function recordVisit(dynamoDb, tableName, pagePath) {
+async function fetchCount(dynamoDb, tableName, pagePath, readOnly) {
     try {
-        const command = incrementCommand(tableName, pagePath);
+        const command = readOnly ? readCommand(tableName, pagePath) : incrementCommand(tableName, pagePath);
         const result = await dynamoDb.send(command, { abortSignal: AbortSignal.timeout(3000) });
-        return jsonResponse(200, { count: readCount(result) });
+        return jsonResponse(200, { count: readCount(result, readOnly) });
     } catch (error) {
         console.error('Visit counter database request failed:', error);
         return jsonResponse(503, { error: 'counter unavailable' });
@@ -80,9 +89,10 @@ export const createHandler = (dynamoDb) => async (event) => {
     const error = validateRequest(event, TABLE_NAME, ALLOWED_ORIGIN);
     if (error) return error;
 
-    const pagePath = parseBody(decodeBody(event))?.path;
+    const readOnly = event.requestContext.http.method === 'GET';
+    const pagePath = readOnly ? event.queryStringParameters?.path : parseBody(decodeBody(event))?.path;
     if (!isPagePath(pagePath)) return jsonResponse(400, { error: 'path' });
-    return recordVisit(dynamoDb, TABLE_NAME, pagePath);
+    return fetchCount(dynamoDb, TABLE_NAME, pagePath, readOnly);
 };
 
 export const handler = createHandler(database);

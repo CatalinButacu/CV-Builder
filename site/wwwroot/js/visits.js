@@ -1,11 +1,12 @@
-// One request records the visit and returns the updated DynamoDB count.
+// Privacy preferences read the count without recording a visit.
 (() => {
-    if (navigator.webdriver || navigator.globalPrivacyControl || navigator.doNotTrack === '1') return;
+    const readOnly = navigator.webdriver || navigator.globalPrivacyControl || navigator.doNotTrack === '1';
     const { counter, page } = document.currentScript.dataset;
     const slot = document.querySelector('.footer .visits');
     if (!slot) return;
 
-    fetch(`${counter}/count`, {
+    const url = readOnly ? `${counter}/total?path=${encodeURIComponent(page)}` : `${counter}/count`;
+    fetch(url, readOnly ? { cache: 'no-store' } : {
         method: 'POST',
         keepalive: true,
         body: JSON.stringify({ path: page }),

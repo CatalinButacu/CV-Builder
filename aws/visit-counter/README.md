@@ -4,8 +4,10 @@ One `POST /count` with `{"path":"/about/"}` atomically increments a DynamoDB
 counter and returns `{"count":"1"}` for the footer. Refreshes count as visits,
 not unique people. No cookies, visitor profiles, GoatCounter, or API Gateway.
 
-Automated browsers, Do Not Track, and Global Privacy Control skip the counter
-entirely. The 404 page is excluded. Errors are logged and the footer shows
+Automated browsers, Do Not Track, and Global Privacy Control use
+`GET /total?path=%2Fabout%2F` to display the count without incrementing it.
+Unvisited pages return `{"count":"0"}`. Both endpoints disable caching.
+The 404 page is excluded. Errors are logged and the footer shows
 "visit count unavailable"; the rest of the site keeps working. Neither the SDK
 nor browser retries writes automatically.
 
@@ -34,7 +36,7 @@ Use **eu-central-1** for both services.
      "Version": "2012-10-17",
      "Statement": [{
        "Effect": "Allow",
-       "Action": "dynamodb:UpdateItem",
+       "Action": ["dynamodb:UpdateItem", "dynamodb:GetItem"],
        "Resource": "arn:aws:dynamodb:eu-central-1:YOUR_ACCOUNT_ID:table/portfolio-visits"
      }]
    }
@@ -43,7 +45,7 @@ Use **eu-central-1** for both services.
 5. **Configuration > Function URL > Create**:
    - Auth **NONE**; grant public invocation in the console.
      Function URLs require `lambda:InvokeFunctionUrl` and `lambda:InvokeFunction`.
-   - Enable CORS: origin `https://catalinbutacu.github.io`, method **POST**.
+   - Enable CORS: origin `https://catalinbutacu.github.io`, methods **GET**, **POST**.
      CORS headers are managed here, not in the handler.
 6. In GitHub **Settings > Secrets and variables > Actions > Variables**, add
    `VISIT_COUNTER_URL` with the public Function URL. Run **Deploy site to GitHub Pages**.
@@ -67,3 +69,10 @@ Tests use a stub database, not AWS. Free allowances depend on eligibility and
 other usage. Set a **$1 budget alert**, **7-day log retention**, and reserved
 Lambda concurrency **2** if available. These are not spending caps. The public
 endpoint can receive bot requests; CORS and Origin checks are not authentication.
+
+For an existing deployment, redeploy the updated Lambda code, add
+`dynamodb:GetItem` to its execution-role policy for the same table, and allow
+GET alongside POST in Function URL CORS. Then publish the updated site script.
+With a privacy preference enabled, refreshing should display the count without
+increasing it. JavaScript and network access are required; browsers or extensions
+that block the script or endpoint cannot be guaranteed to display a count.
