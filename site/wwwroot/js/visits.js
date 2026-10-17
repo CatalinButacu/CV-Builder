@@ -18,7 +18,7 @@
         .then((data) => {
             if (typeof data?.count !== 'string' || !/^\d+$/.test(data.count)) throw new Error('Invalid visit count');
             const count = BigInt(data.count).toLocaleString('en-US');
-            slot.textContent = ` · ${count} visits to this page`;
+            slot.textContent = ` · ${count} visits`;
             slot.hidden = false;
         })
         .catch((error) => {

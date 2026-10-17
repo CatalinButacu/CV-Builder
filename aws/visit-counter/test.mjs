@@ -87,7 +87,7 @@ for (const mode of ['success', 'failure', 'invalid', 'doNotTrack', 'globalPrivac
     assert.equal(requests[0].options.method, readOnly ? undefined : 'POST');
     assert.equal(requests[0].options.body, readOnly ? undefined : '{"path":"/about/"}');
     const failed = mode === 'failure' || mode === 'invalid';
-    assert.equal(slot.textContent, failed ? ' · visit count unavailable' : ' · 1,234 visits to this page');
+    assert.equal(slot.textContent, failed ? ' · visit count unavailable' : ' · 1,234 visits');
     assert.equal(warnings.length, failed ? 1 : 0);
 }
 console.log('visit counter: all checks passed');
