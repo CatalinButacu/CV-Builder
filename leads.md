@@ -16,6 +16,10 @@ Filled daily at 08:00 Bucharest by a Claude routine. Newest day first. Fit is sc
 
 ## Daily leads
 
+### 2026-11-10 - no new matches
+
+Searched ML Engineer (Iasi), C++/Qt Engineer (Iasi hybrid) and AI/LLM/RAG Engineer (remote Romania) via web search; search snippets surfaced candidates (GlobalLogic, CompuGroup Medical, Grid Dynamics, Continental, Accesa), but WebFetch could not resolve globallogic.com, hipo.ro or jobs.y-axis.com (outside the session's allowed network domains), so none could be opened and verified and nothing was listed.
+
 ### 2026-11-09 - no new matches
 
 Searched ML Engineer (Iasi), C++/Qt Engineer (Iasi hybrid) and AI/LLM/RAG Engineer (remote Romania) via web search; no posting could be opened and verified because WebFetch could not reach any job site (globallogic.com, hipo.ro, tremend, talentlyft, echojobs all failed DNS resolution in the session's network policy), so nothing was listed.
