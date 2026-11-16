@@ -16,6 +16,10 @@ Filled daily at 08:00 Bucharest by a Claude routine. Newest day first. Fit is sc
 
 ## Daily leads
 
+### 2026-11-16 - no new matches
+
+Searched ML Engineer (Iasi), C++/Qt Engineer (Iasi hybrid) and AI/LLM/RAG Engineer (remote Romania) via web search; snippets surfaced candidates (Continental, GlobalLogic, Zenitech, Accesa, Bentley Systems, Levi9 (applied), ESET (applied)), but WebFetch could not resolve hipo.ro, jobs.continental.com or zenitech.co.uk (outside the session's allowed network domains), so none could be opened and verified and nothing was listed.
+
 ### 2026-11-15 - no new matches
 
 Searched ML Engineer (Iasi) and AI/LLM Engineer (remote Romania) via web search; snippets surfaced candidates (Levi9 (applied), Grid Dynamics, Continental, CompuGroup Medical, AMD, Accesa, GlobalLogic), but WebFetch could not resolve hipo.ro, remotive.com or jobs.lever.co (outside the session's allowed network domains), so none could be opened and verified and nothing was listed.
