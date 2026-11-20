@@ -16,6 +16,10 @@ Filled daily at 08:00 Bucharest by a Claude routine. Newest day first. Fit is sc
 
 ## Daily leads
 
+### 2026-11-20 - no new matches
+
+Searched ML Engineer (Iasi) and C++/Qt Engineer (Iasi hybrid) via web search; snippets surfaced candidates (GlobalLogic Senior C++/Qt, Continental, APEX, Grid Dynamics, Levi9 (applied)), but WebFetch could not resolve www.globallogic.com or www.hipo.ro (outside the session's allowed network domains), so none could be opened and verified and nothing was listed.
+
 ### 2026-11-19 - no new matches
 
 Searched ML Engineer (Iasi) and C++/Qt Engineer (Iasi hybrid) via web search; snippets surfaced candidates (Grid Dynamics, CompuGroup Medical, Continental, GlobalLogic, APEX, Bentley Systems, Diconium, Levi9 (applied)), but WebFetch could not resolve jobs.continental.com, www.globallogic.com or builtin.com (outside the session's allowed network domains), so none could be opened and verified and nothing was listed.
